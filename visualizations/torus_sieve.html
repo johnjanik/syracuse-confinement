@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Torus Sieve: Dangerous Cells on (Z/3^k Z)²</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+h1 {
+  font-size: 1.6em;
+  font-weight: 300;
+  margin-bottom: 4px;
+  color: #f0f0f0;
+  letter-spacing: 0.5px;
+}
+h1 em { font-style: normal; color: #7eb8da; }
+.subtitle {
+  font-size: 0.85em;
+  color: #888;
+  margin-bottom: 16px;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  padding: 12px 20px;
+  background: #16213e;
+  border-radius: 8px;
+  border: 1px solid #2a2a4a;
+}
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.control-group label {
+  font-size: 0.85em;
+  color: #aaa;
+  white-space: nowrap;
+}
+.control-group input[type="range"] {
+  width: 120px;
+  accent-color: #7eb8da;
+}
+.control-group .value {
+  font-size: 0.85em;
+  color: #7eb8da;
+  min-width: 50px;
+  font-variant-numeric: tabular-nums;
+}
+button {
+  background: #2a2a4a;
+  color: #ccc;
+  border: 1px solid #3a3a5a;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: background 0.2s;
+}
+button:hover { background: #3a3a5a; }
+button.active { background: #4a5a8a; border-color: #7eb8da; color: #fff; }
+.canvas-wrap {
+  position: relative;
+  display: inline-block;
+}
+canvas#mainCanvas {
+  border: 1px solid #2a2a4a;
+  border-radius: 4px;
+  cursor: crosshair;
+}
+#tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(22, 33, 62, 0.95);
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.78em;
+  line-height: 1.5;
+  color: #ddd;
+  display: none;
+  white-space: nowrap;
+  z-index: 10;
+}
+#tooltip .tt-label { color: #888; }
+#tooltip .tt-val { color: #7eb8da; }
+#tooltip .tt-danger { color: #ff6b6b; }
+.caption {
+  max-width: 700px;
+  margin-top: 14px;
+  font-size: 0.8em;
+  line-height: 1.6;
+  color: #777;
+  text-align: center;
+}
+.caption strong { color: #aaa; font-weight: 500; }
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.legend-bar {
+  width: 200px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid #2a2a4a;
+}
+.legend-label { font-size: 0.75em; color: #888; }
+.overlay-toggles {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.overlay-toggles label {
+  font-size: 0.8em;
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.overlay-toggles input { accent-color: #7eb8da; }
+.traj-info {
+  font-size: 0.8em;
+  color: #888;
+  margin-bottom: 4px;
+  min-height: 1.2em;
+}
+.traj-info .step { color: #7eb8da; }
+.traj-info .val { color: #6fcf97; }
+#startN {
+  width: 80px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.85em;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>The Torus Sieve: Dangerous Cells on <em>(Z/3<sup>k</sup>Z)²</em></h1>
+<div class="subtitle">Cell error = a &minus; log₂3 &middot; b &ensp;|&ensp; Danger = proximity to 0 (mod 3<sup>k</sup>)</div>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Scale k:</label>
+    <input type="range" id="kSlider" min="1" max="7" value="3" step="1">
+    <span class="value" id="kVal">k=3 (27×27)</span>
+  </div>
+  <div class="control-group">
+    <label>Start n:</label>
+    <input type="number" id="startN" value="27" min="1" max="99999999">
+  </div>
+  <div class="control-group">
+    <button id="btnPlay" class="active">&#9654; Play</button>
+    <button id="btnPause">&#10074;&#10074; Pause</button>
+    <button id="btnReset">&#8634; Reset</button>
+  </div>
+  <div class="control-group">
+    <label>Speed:</label>
+    <input type="range" id="speedSlider" min="1" max="30" value="8">
+    <span class="value" id="speedVal">8 steps/s</span>
+  </div>
+</div>
+
+<div class="overlay-toggles">
+  <label><input type="checkbox" id="showFoliation" checked> Foliation line</label>
+  <label><input type="checkbox" id="showConvergents" checked> Convergents</label>
+  <label><input type="checkbox" id="showTrajectory" checked> Trajectory</label>
+</div>
+
+<div class="traj-info" id="trajInfo">&nbsp;</div>
+
+<div class="legend">
+  <span class="legend-label">Safe</span>
+  <canvas id="legendBar" class="legend-bar" width="200" height="12"></canvas>
+  <span class="legend-label">Danger</span>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="mainCanvas" width="700" height="700"></canvas>
+  <div id="tooltip"></div>
+</div>
+
+<div class="caption">
+  Each pixel represents a cell <strong>(a, b)</strong> on the torus <strong>(Z/3<sup>k</sup>Z)²</strong>.
+  The <strong>cell error</strong> a &minus; log₂3&middot;b determines whether the Collatz trajectory
+  gains a large or small power of 2 at that step. <strong style="color:#ff6b6b;">Dangerous cells</strong>
+  (red/yellow) have cell error near zero &mdash; the trajectory stays near the critical line
+  with v₂ &approx; 1. <strong style="color:#4a7ab5;">Safe cells</strong> (blue/purple) push the
+  trajectory away, giving v₂ &ge; 2. The <span style="color:#6fcf97;">green trajectory</span> shows
+  the Collatz walk for the chosen starting number. White dots mark
+  <strong>continued-fraction convergents</strong> of log₂3, which are the hardest points for
+  Baker-type bounds to repel.
+</div>
+
+<script>
+"use strict";
+
+// --- Constants ---
+const LOG2_3 = Math.log2(3);  // ≈ 1.58496
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const SIZE = 700;
+
+// --- Continued fraction convergents of log₂3 ---
+// log₂3 = [1; 1, 1, 2, 2, 3, 1, 5, 2, 23, 2, 2, 1, ...]
+// convergents p/q: 1/1, 2/1, 3/2, 8/5, 19/12, 65/41, 84/53, 485/306, 1054/665
+const CONVERGENTS = [
+  [1,1], [2,1], [3,2], [8,5], [19,12], [65,41], [84,53],
+  [485,306], [1054,665], [24727,15601], [50508,31867],
+  [125743,79335], [176251,111202]
+];
+
+// --- Colormap: blue→purple→red→yellow (danger) ---
+function dangerColor(d) {
+  // d in [0, 0.5], 0=most dangerous, 0.5=safest
+  // Invert so 0=safe, 1=dangerous for interpolation
+  const t = 1 - d * 2;  // t in [0,1], 1=dangerous
+  let r, g, b;
+  if (t < 0.25) {
+    // deep blue → medium blue
+    const s = t / 0.25;
+    r = 15 + s * 20;
+    g = 15 + s * 30;
+    b = 60 + s * 80;
+  } else if (t < 0.5) {
+    // medium blue → purple
+    const s = (t - 0.25) / 0.25;
+    r = 35 + s * 80;
+    g = 45 - s * 15;
+    b = 140 + s * 30;
+  } else if (t < 0.75) {
+    // purple → red
+    const s = (t - 0.5) / 0.25;
+    r = 115 + s * 120;
+    g = 30 + s * 15;
+    b = 170 - s * 120;
+  } else {
+    // red → yellow
+    const s = (t - 0.75) / 0.25;
+    r = 235 + s * 20;
+    g = 45 + s * 180;
+    b = 50 - s * 30;
+  }
+  return [Math.round(r), Math.round(g), Math.round(b)];
+}
+
+// Precompute 256-entry LUT
+const COLOR_LUT = new Uint8Array(256 * 3);
+for (let i = 0; i < 256; i++) {
+  const d = (i / 255) * 0.5;
+  const [r, g, b] = dangerColor(d);
+  COLOR_LUT[i*3] = r;
+  COLOR_LUT[i*3+1] = g;
+  COLOR_LUT[i*3+2] = b;
+}
+
+// --- Draw legend ---
+(function drawLegend() {
+  const lc = document.getElementById('legendBar').getContext('2d');
+  for (let x = 0; x < 200; x++) {
+    const d = ((199 - x) / 199) * 0.5;
+    const idx = Math.round((d / 0.5) * 255);
+    lc.fillStyle = `rgb(${COLOR_LUT[idx*3]},${COLOR_LUT[idx*3+1]},${COLOR_LUT[idx*3+2]})`;
+    lc.fillRect(x, 0, 1, 12);
+  }
+})();
+
+// --- State ---
+let currentK = 3;
+let gridSize = Math.pow(3, currentK);
+let playing = true;
+let speed = 8;
+let trajStep = 0;
+let trajectory = [];
+let startN = 27;
+let lastFrameTime = 0;
+let accumTime = 0;
+
+// Offscreen canvas for grid
+const offscreen = document.createElement('canvas');
+const offCtx = offscreen.getContext('2d');
+
+// --- Compute danger for cell (a,b) ---
+function cellDanger(a, b, mod) {
+  // error = (a - log2_3 * b) mod mod
+  let err = a - LOG2_3 * b;
+  err = err % mod;
+  if (err < 0) err += mod;
+  // danger = min(err, mod - err) / mod, in [0, 0.5)
+  return Math.min(err, mod - err) / mod;
+}
+
+// --- Render grid to offscreen ---
+function renderGrid() {
+  const n = gridSize;
+  offscreen.width = n;
+  offscreen.height = n;
+  const imgData = offCtx.createImageData(n, n);
+  const data = imgData.data;
+  const mod = n;  // 3^k
+
+  for (let b = 0; b < n; b++) {
+    for (let a = 0; a < n; a++) {
+      const d = cellDanger(a, b, mod);
+      const idx = Math.min(255, Math.round((d / 0.5) * 255));
+      const px = (b * n + a) * 4;
+      data[px]   = COLOR_LUT[idx*3];
+      data[px+1] = COLOR_LUT[idx*3+1];
+      data[px+2] = COLOR_LUT[idx*3+2];
+      data[px+3] = 255;
+    }
+  }
+  offCtx.putImageData(imgData, 0, 0);
+}
+
+// --- Compute Collatz trajectory ---
+function computeTrajectory(n0) {
+  const traj = [];
+  let x = BigInt(n0);
+  let nu2 = 0, nu3 = 0;
+  traj.push({ nu2, nu3, x: Number(x) });
+  const limit = 10000;
+  let steps = 0;
+  while (x !== 1n && steps < limit) {
+    if (x % 2n === 0n) {
+      x = x / 2n;
+      nu2++;
+    } else {
+      x = 3n * x + 1n;
+      nu3++;
+    }
+    traj.push({ nu2, nu3, x: Number(x) });
+    steps++;
+  }
+  // Continue a few steps in the 4→2→1 cycle for visual
+  for (let i = 0; i < 12 && steps < limit; i++) {
+    if (x % 2n === 0n) {
+      x = x / 2n;
+      nu2++;
+    } else {
+      x = 3n * x + 1n;
+      nu3++;
+    }
+    traj.push({ nu2, nu3, x: Number(x) });
+    steps++;
+  }
+  return traj;
+}
+
+// --- Draw everything ---
+function draw() {
+  const scale = SIZE / gridSize;
+
+  // Draw grid (nearest-neighbor scaling for crisp pixels)
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(offscreen, 0, 0, SIZE, SIZE);
+
+  // --- Overlays ---
+  const showFol = document.getElementById('showFoliation').checked;
+  const showConv = document.getElementById('showConvergents').checked;
+  const showTraj = document.getElementById('showTrajectory').checked;
+
+  // Foliation line: b = a / log₂3, wrapping on torus
+  if (showFol) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    // Draw multiple wraps
+    const slope = 1 / LOG2_3;
+    for (let wrap = -3; wrap <= gridSize + 3; wrap++) {
+      ctx.beginPath();
+      for (let px = 0; px < SIZE; px++) {
+        const a = px / SIZE * gridSize;
+        const b = (slope * a + wrap * gridSize);
+        const by = (b % gridSize + gridSize) % gridSize;
+        const py = by / gridSize * SIZE;
+        if (px === 0) ctx.moveTo(px, py);
+        else {
+          // Only connect if not wrapping
+          const prevA = (px - 1) / SIZE * gridSize;
+          const prevB = (slope * prevA + wrap * gridSize);
+          const prevBy = (prevB % gridSize + gridSize) % gridSize;
+          if (Math.abs(by - prevBy) < gridSize * 0.5) {
+            ctx.lineTo(px, py);
+          } else {
+            ctx.moveTo(px, py);
+          }
+        }
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Convergents
+  if (showConv) {
+    ctx.save();
+    for (const [p, q] of CONVERGENTS) {
+      const a = p % gridSize;
+      const b = q % gridSize;
+      const px = (a + 0.5) / gridSize * SIZE;
+      const py = (b + 0.5) / gridSize * SIZE;
+      const r = Math.max(4, Math.min(8, 80 / gridSize));
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Label for small k
+      if (gridSize <= 81) {
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.font = `${Math.max(9, 14 - currentK)}px sans-serif`;
+        ctx.fillText(`${p}/${q}`, px + r + 2, py - r + 2);
+      }
+    }
+    ctx.restore();
+  }
+
+  // Trajectory
+  if (showTraj && trajectory.length > 1) {
+    const steps = Math.min(trajStep, trajectory.length - 1);
+    ctx.save();
+
+    // Draw path
+    ctx.strokeStyle = 'rgba(111, 207, 151, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let prevPx = null, prevPy = null;
+    for (let i = 0; i <= steps; i++) {
+      const t = trajectory[i];
+      const a = ((t.nu2 % gridSize) + gridSize) % gridSize;
+      const b = ((t.nu3 % gridSize) + gridSize) % gridSize;
+      const px = (a + 0.5) / gridSize * SIZE;
+      const py = (b + 0.5) / gridSize * SIZE;
+      if (i === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        // Don't draw segment if it wraps around
+        if (prevPx !== null &&
+            Math.abs(px - prevPx) < SIZE * 0.5 &&
+            Math.abs(py - prevPy) < SIZE * 0.5) {
+          ctx.lineTo(px, py);
+        } else {
+          ctx.moveTo(px, py);
+        }
+      }
+      prevPx = px;
+      prevPy = py;
+    }
+    ctx.stroke();
+
+    // Draw current position dot
+    if (steps >= 0) {
+      const t = trajectory[steps];
+      const a = ((t.nu2 % gridSize) + gridSize) % gridSize;
+      const b = ((t.nu3 % gridSize) + gridSize) % gridSize;
+      const px = (a + 0.5) / gridSize * SIZE;
+      const py = (b + 0.5) / gridSize * SIZE;
+      const dotR = Math.max(4, Math.min(10, 100 / gridSize));
+
+      // Glow
+      ctx.beginPath();
+      ctx.arc(px, py, dotR + 3, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(111, 207, 151, 0.3)';
+      ctx.fill();
+
+      // Dot
+      ctx.beginPath();
+      ctx.arc(px, py, dotR, 0, 2 * Math.PI);
+      ctx.fillStyle = '#6fcf97';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Update info
+      const info = document.getElementById('trajInfo');
+      const d = cellDanger(a, b, gridSize);
+      info.innerHTML = `Step <span class="step">${steps}</span> / ${trajectory.length - 1}` +
+        ` &ensp;|&ensp; x = <span class="val">${t.x > 1e12 ? t.x.toExponential(2) : t.x}</span>` +
+        ` &ensp;|&ensp; (v₂, v₃) = (<span class="step">${t.nu2}</span>, <span class="step">${t.nu3}</span>)` +
+        ` &ensp;|&ensp; cell (<span class="step">${a}</span>, <span class="step">${b}</span>)` +
+        ` &ensp;|&ensp; danger = <span class="tt-danger" style="color:${d < 0.1 ? '#ff6b6b' : '#7eb8da'}">${d.toFixed(4)}</span>`;
+    }
+    ctx.restore();
+  }
+
+  // Axis labels
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('a (v₂ mod 3^k) →', SIZE - 130, SIZE - 8);
+  ctx.save();
+  ctx.translate(12, 130);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('b (v₃ mod 3^k) →', 0, 0);
+  ctx.restore();
+  ctx.restore();
+}
+
+// --- Animation loop ---
+function animate(timestamp) {
+  if (!lastFrameTime) lastFrameTime = timestamp;
+  const dt = timestamp - lastFrameTime;
+  lastFrameTime = timestamp;
+
+  if (playing && trajectory.length > 0) {
+    accumTime += dt;
+    const interval = 1000 / speed;
+    while (accumTime >= interval) {
+      accumTime -= interval;
+      if (trajStep < trajectory.length - 1) {
+        trajStep++;
+      } else {
+        playing = false;
+        document.getElementById('btnPlay').classList.remove('active');
+        break;
+      }
+    }
+  }
+
+  draw();
+  requestAnimationFrame(animate);
+}
+
+// --- Event handlers ---
+document.getElementById('kSlider').addEventListener('input', function() {
+  currentK = parseInt(this.value);
+  gridSize = Math.pow(3, currentK);
+  document.getElementById('kVal').textContent = `k=${currentK} (${gridSize}×${gridSize})`;
+  renderGrid();
+  draw();
+});
+
+document.getElementById('speedSlider').addEventListener('input', function() {
+  speed = parseInt(this.value);
+  document.getElementById('speedVal').textContent = `${speed} steps/s`;
+});
+
+document.getElementById('btnPlay').addEventListener('click', function() {
+  if (trajStep >= trajectory.length - 1) {
+    trajStep = 0;
+    accumTime = 0;
+  }
+  playing = true;
+  this.classList.add('active');
+  document.getElementById('btnPause').classList.remove('active');
+});
+
+document.getElementById('btnPause').addEventListener('click', function() {
+  playing = false;
+  this.classList.add('active');
+  document.getElementById('btnPlay').classList.remove('active');
+});
+
+document.getElementById('btnReset').addEventListener('click', function() {
+  trajStep = 0;
+  accumTime = 0;
+  playing = false;
+  document.getElementById('btnPlay').classList.remove('active');
+  document.getElementById('btnPause').classList.remove('active');
+  draw();
+});
+
+document.getElementById('startN').addEventListener('change', function() {
+  const v = parseInt(this.value);
+  if (v >= 1) {
+    startN = v;
+    trajectory = computeTrajectory(startN);
+    trajStep = 0;
+    accumTime = 0;
+    draw();
+  }
+});
+
+['showFoliation', 'showConvergents', 'showTrajectory'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => draw());
+});
+
+// --- Tooltip ---
+canvas.addEventListener('mousemove', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const a = Math.floor(mx / SIZE * gridSize);
+  const b = Math.floor(my / SIZE * gridSize);
+  if (a < 0 || a >= gridSize || b < 0 || b >= gridSize) {
+    document.getElementById('tooltip').style.display = 'none';
+    return;
+  }
+  const mod = gridSize;
+  let err = a - LOG2_3 * b;
+  err = ((err % mod) + mod) % mod;
+  const d = Math.min(err, mod - err) / mod;
+
+  const tt = document.getElementById('tooltip');
+  tt.innerHTML =
+    `<span class="tt-label">cell</span> <span class="tt-val">(${a}, ${b})</span><br>` +
+    `<span class="tt-label">cellError</span> <span class="tt-val">${(a - LOG2_3 * b).toFixed(4)}</span><br>` +
+    `<span class="tt-label">error mod ${mod}</span> <span class="tt-val">${err.toFixed(4)}</span><br>` +
+    `<span class="tt-label">danger</span> <span class="tt-danger">${d.toFixed(4)}</span>`;
+  tt.style.display = 'block';
+
+  // Position tooltip
+  let tx = mx + 15;
+  let ty = my - 50;
+  if (tx + 180 > SIZE) tx = mx - 185;
+  if (ty < 0) ty = my + 15;
+  tt.style.left = tx + 'px';
+  tt.style.top = ty + 'px';
+});
+
+canvas.addEventListener('mouseleave', function() {
+  document.getElementById('tooltip').style.display = 'none';
+});
+
+// --- Init ---
+trajectory = computeTrajectory(startN);
+renderGrid();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

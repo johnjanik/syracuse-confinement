@@ -1,0 +1,56 @@
+# Lean 4 build artifacts
+lean4/.lake/
+
+# Compiled C binaries (rebuild with make)
+c_scripts/branch_locus
+c_scripts/branch_locus_sieved
+c_scripts/v2_danger
+c_scripts/gpu_branch
+c_scripts/collatz_scatter
+c_scripts/collatz_tree
+c_scripts/collatz_tree_anim
+c_scripts/collatz_tree_big
+c_scripts/parity_sft
+c_scripts/profinite_compat
+c_scripts/gen_sieve
+c_scripts/analyze_sieve
+c_scripts/sieve_bench
+c_scripts/deficit_analysis
+
+# Large binary data files
+c_scripts/branch_state.bin
+c_scripts/branch_state.bin.tmp
+c_scripts/sieve_*.bin
+
+# All CSV data files (regenerable from source)
+c_scripts/*.csv
+
+# All binary data files
+c_scripts/*.bin
+
+# Generated frames and video
+c_scripts/frames/
+
+# Embedded third-party repo
+c_scripts/xbarina/
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz

@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solenoid Pipe — Collatz on the (2,3)-Solenoid</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a1a;
+  color: #c0c8e0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+#canvas-container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+canvas { display: block; }
+
+/* Controls panel */
+#controls {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: rgba(10, 10, 30, 0.92);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 240px;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  font-size: 13px;
+}
+#controls h2 {
+  font-size: 15px;
+  color: #70a0ff;
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.ctrl-row label { color: #8090b0; font-size: 12px; }
+.ctrl-row input[type="number"] {
+  width: 80px;
+  background: rgba(20, 25, 50, 0.8);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  color: #c0d0ff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: right;
+}
+.ctrl-row select {
+  width: 80px;
+  background: rgba(20, 25, 50, 0.8);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  color: #c0d0ff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.ctrl-row input[type="range"] {
+  width: 90px;
+  accent-color: #5080e0;
+}
+.btn-row { display: flex; gap: 6px; margin-bottom: 7px; flex-wrap: wrap; }
+.btn {
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  color: #a0b8e0;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { background: rgba(60, 90, 180, 0.6); color: #d0e0ff; }
+.btn.active { background: rgba(60, 100, 220, 0.6); color: #fff; border-color: rgba(100, 150, 255, 0.5); }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.toggle-row label {
+  color: #8090b0;
+  font-size: 11px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+.toggle-row input[type="checkbox"] {
+  accent-color: #5080e0;
+  cursor: pointer;
+}
+.divider {
+  border-top: 1px solid rgba(80, 120, 200, 0.15);
+  margin: 8px 0;
+}
+
+/* Info panel (right side) */
+#info-panel {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: rgba(10, 10, 30, 0.92);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 280px;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  font-size: 13px;
+}
+#info-panel h3 {
+  font-size: 13px;
+  color: #70a0ff;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.info-grid .lbl { color: #607090; }
+.info-grid .val { color: #c0d8ff; text-align: right; font-family: 'Consolas', monospace; }
+.val.danger { color: #ff4060; }
+.val.safe { color: #40c0ff; }
+#deficit-chart {
+  width: 100%;
+  height: 100px;
+  border: 1px solid rgba(80, 120, 200, 0.2);
+  border-radius: 6px;
+  background: rgba(5, 5, 20, 0.5);
+}
+#deficit-label {
+  font-size: 11px;
+  color: #607090;
+  text-align: center;
+  margin-top: 3px;
+}
+
+/* Title overlay */
+#title-bar {
+  position: absolute;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 30, 0.8);
+  border: 1px solid rgba(80, 120, 200, 0.2);
+  border-radius: 8px;
+  padding: 6px 20px;
+  z-index: 10;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+#title-bar .title {
+  font-size: 14px;
+  color: #7090d0;
+  font-weight: 600;
+}
+#title-bar .subtitle {
+  font-size: 11px;
+  color: #506080;
+}
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div id="controls">
+  <h2>Solenoid Pipe</h2>
+  <div class="ctrl-row">
+    <label>Starting n</label>
+    <input type="number" id="input-n" value="27" min="1" max="100000">
+  </div>
+  <div class="ctrl-row">
+    <label>Torus scale N</label>
+    <select id="input-N">
+      <option value="3">3</option>
+      <option value="9" selected>9</option>
+      <option value="27">27</option>
+    </select>
+  </div>
+  <div class="ctrl-row">
+    <label>Speed</label>
+    <input type="range" id="input-speed" min="1" max="20" value="5">
+  </div>
+  <div class="btn-row">
+    <button class="btn active" id="btn-play">&#9654; Play</button>
+    <button class="btn" id="btn-pause">&#9646;&#9646; Pause</button>
+    <button class="btn" id="btn-reset">&#8634; Reset</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn" id="btn-autorotate">Auto-rotate</button>
+    <button class="btn" id="btn-follow">Follow</button>
+    <button class="btn" id="btn-fiber">Zoom to fiber</button>
+  </div>
+  <div class="divider"></div>
+  <div class="toggle-row">
+    <input type="checkbox" id="toggle-foliation" checked>
+    <label for="toggle-foliation">Irrational foliation</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="toggle-danger" checked>
+    <label for="toggle-danger">Danger zones</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="toggle-pipe" checked>
+    <label for="toggle-pipe">Confinement pipe</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="toggle-deficit" checked>
+    <label for="toggle-deficit">Deficit gauge</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="toggle-torus" checked>
+    <label for="toggle-torus">Torus wireframe</label>
+  </div>
+</div>
+
+<div id="info-panel">
+  <h3>Trajectory State</h3>
+  <div class="info-grid">
+    <span class="lbl">Step t</span><span class="val" id="val-step">0</span>
+    <span class="lbl">Value</span><span class="val" id="val-value">27</span>
+    <span class="lbl">v₂ (this step)</span><span class="val" id="val-v2">—</span>
+    <span class="lbl">ν₂ (cumul)</span><span class="val" id="val-nu2">0</span>
+    <span class="lbl">ν₃ (cumul)</span><span class="val" id="val-nu3">0</span>
+    <span class="lbl">Deficit δ(t)</span><span class="val" id="val-deficit">0</span>
+    <span class="lbl">Max |δ|</span><span class="val" id="val-maxdeficit">0</span>
+    <span class="lbl">Zone</span><span class="val" id="val-zone">—</span>
+  </div>
+  <h3>Deficit δ(t) vs t</h3>
+  <canvas id="deficit-chart"></canvas>
+  <div id="deficit-label">3·ν₃(t) − t</div>
+</div>
+
+<div id="title-bar">
+  <div class="title">Collatz Trajectory on the (2,3)-Solenoid</div>
+  <div class="subtitle">n = <span id="title-n">27</span> · Scale N = <span id="title-N">9</span></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// Inline minimal OrbitControls (from Three.js examples, trimmed)
+// ============================================================
+THREE.OrbitControls = function(object, domElement) {
+  this.object = object;
+  this.domElement = domElement;
+  this.enabled = true;
+  this.target = new THREE.Vector3();
+  this.enableDamping = true;
+  this.dampingFactor = 0.08;
+  this.enableZoom = true;
+  this.zoomSpeed = 1.0;
+  this.minDistance = 1;
+  this.maxDistance = 50;
+  this.enableRotate = true;
+  this.rotateSpeed = 0.8;
+  this.autoRotate = false;
+  this.autoRotateSpeed = 1.0;
+
+  const scope = this;
+  const STATE = { NONE: -1, ROTATE: 0, ZOOM: 1, PAN: 2 };
+  let state = STATE.NONE;
+
+  let spherical = new THREE.Spherical();
+  let sphericalDelta = new THREE.Spherical();
+  let scale = 1;
+  const panOffset = new THREE.Vector3();
+  const rotateStart = new THREE.Vector2();
+  const rotateEnd = new THREE.Vector2();
+  const rotateDelta = new THREE.Vector2();
+
+  this.update = function() {
+    const offset = new THREE.Vector3();
+    const quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0,1,0));
+    const quatInverse = quat.clone().invert();
+
+    offset.copy(object.position).sub(scope.target);
+    offset.applyQuaternion(quat);
+    spherical.setFromVector3(offset);
+
+    if (scope.autoRotate && state === STATE.NONE) {
+      sphericalDelta.theta -= 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+    }
+
+    spherical.theta += sphericalDelta.theta;
+    spherical.phi += sphericalDelta.phi;
+    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+    spherical.radius *= scale;
+    spherical.radius = Math.max(scope.minDistance, Math.min(scope.maxDistance, spherical.radius));
+
+    scope.target.add(panOffset);
+    offset.setFromSpherical(spherical);
+    offset.applyQuaternion(quatInverse);
+    object.position.copy(scope.target).add(offset);
+    object.lookAt(scope.target);
+
+    sphericalDelta.theta *= (1 - scope.dampingFactor);
+    sphericalDelta.phi *= (1 - scope.dampingFactor);
+    scale = 1;
+    panOffset.set(0,0,0);
+  };
+
+  function onMouseDown(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (event.button === 0) {
+      state = STATE.ROTATE;
+      rotateStart.set(event.clientX, event.clientY);
+    } else if (event.button === 2) {
+      state = STATE.PAN;
+      rotateStart.set(event.clientX, event.clientY);
+    }
+    document.addEventListener('mousemove', onMouseMove, false);
+    document.addEventListener('mouseup', onMouseUp, false);
+  }
+  function onMouseMove(event) {
+    if (!scope.enabled) return;
+    rotateEnd.set(event.clientX, event.clientY);
+    rotateDelta.subVectors(rotateEnd, rotateStart);
+    if (state === STATE.ROTATE) {
+      sphericalDelta.theta -= 2 * Math.PI * rotateDelta.x / domElement.clientHeight * scope.rotateSpeed;
+      sphericalDelta.phi -= 2 * Math.PI * rotateDelta.y / domElement.clientHeight * scope.rotateSpeed;
+    } else if (state === STATE.PAN) {
+      const dist = object.position.distanceTo(scope.target);
+      const fov = object.fov * Math.PI / 180;
+      const h = 2 * dist * Math.tan(fov / 2);
+      const right = new THREE.Vector3();
+      const up = new THREE.Vector3();
+      right.crossVectors(object.up, new THREE.Vector3().subVectors(scope.target, object.position).normalize()).normalize();
+      up.copy(object.up);
+      panOffset.add(right.multiplyScalar(-rotateDelta.x * h / domElement.clientHeight));
+      panOffset.add(up.multiplyScalar(rotateDelta.y * h / domElement.clientHeight));
+    }
+    rotateStart.copy(rotateEnd);
+  }
+  function onMouseUp() {
+    state = STATE.NONE;
+    document.removeEventListener('mousemove', onMouseMove, false);
+    document.removeEventListener('mouseup', onMouseUp, false);
+  }
+  function onWheel(event) {
+    if (!scope.enabled || !scope.enableZoom) return;
+    event.preventDefault();
+    if (event.deltaY > 0) scale *= Math.pow(0.95, scope.zoomSpeed);
+    else scale /= Math.pow(0.95, scope.zoomSpeed);
+  }
+  // Touch support
+  let touchStartDist = 0;
+  function onTouchStart(event) {
+    if (!scope.enabled) return;
+    if (event.touches.length === 1) {
+      state = STATE.ROTATE;
+      rotateStart.set(event.touches[0].clientX, event.touches[0].clientY);
+    } else if (event.touches.length === 2) {
+      state = STATE.ZOOM;
+      const dx = event.touches[0].clientX - event.touches[1].clientX;
+      const dy = event.touches[0].clientY - event.touches[1].clientY;
+      touchStartDist = Math.sqrt(dx*dx + dy*dy);
+    }
+  }
+  function onTouchMove(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (state === STATE.ROTATE && event.touches.length === 1) {
+      rotateEnd.set(event.touches[0].clientX, event.touches[0].clientY);
+      rotateDelta.subVectors(rotateEnd, rotateStart);
+      sphericalDelta.theta -= 2 * Math.PI * rotateDelta.x / domElement.clientHeight * scope.rotateSpeed;
+      sphericalDelta.phi -= 2 * Math.PI * rotateDelta.y / domElement.clientHeight * scope.rotateSpeed;
+      rotateStart.copy(rotateEnd);
+    } else if (state === STATE.ZOOM && event.touches.length === 2) {
+      const dx = event.touches[0].clientX - event.touches[1].clientX;
+      const dy = event.touches[0].clientY - event.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      scale *= touchStartDist / dist;
+      touchStartDist = dist;
+    }
+  }
+  function onTouchEnd() { state = STATE.NONE; }
+
+  domElement.addEventListener('mousedown', onMouseDown, false);
+  domElement.addEventListener('wheel', onWheel, {passive: false});
+  domElement.addEventListener('contextmenu', e => e.preventDefault(), false);
+  domElement.addEventListener('touchstart', onTouchStart, {passive: false});
+  domElement.addEventListener('touchmove', onTouchMove, {passive: false});
+  domElement.addEventListener('touchend', onTouchEnd, false);
+};
+
+// ============================================================
+// Collatz computation
+// ============================================================
+function computeCollatzTrajectory(n) {
+  const traj = [];
+  let val = n;
+  let nu2 = 0, nu3 = 0;
+  traj.push({ t: 0, val, nu2, nu3, v2: 0, deficit: 0 });
+
+  let maxSteps = 10000;
+  let t = 0;
+  while (val !== 1 && t < maxSteps) {
+    if (val % 2 === 0) {
+      // Count consecutive divisions by 2
+      let v2count = 0;
+      while (val % 2 === 0) {
+        val = val / 2;
+        v2count++;
+      }
+      nu2 += v2count;
+      t += v2count;
+      for (let i = 0; i < v2count; i++) {
+        const stepNu2 = nu2 - v2count + i + 1;
+        const deficit = 3 * nu3 - (t - v2count + i + 1);
+        traj.push({
+          t: t - v2count + i + 1,
+          val: -1, // intermediate
+          nu2: stepNu2,
+          nu3,
+          v2: v2count,
+          deficit
+        });
+      }
+      traj[traj.length - 1].val = val;
+    } else if (val !== 1) {
+      val = 3 * val + 1;
+      nu3++;
+      t++;
+      // Now divide by 2 as many times as possible
+      let v2count = 0;
+      while (val % 2 === 0) {
+        val = val / 2;
+        v2count++;
+      }
+      nu2 += v2count;
+      t += v2count;
+      // Record the odd step
+      const deficit_odd = 3 * nu3 - (t - v2count);
+      traj.push({
+        t: t - v2count,
+        val: -1,
+        nu2: nu2 - v2count,
+        nu3,
+        v2: 0,
+        deficit: deficit_odd
+      });
+      // Record the even steps
+      for (let i = 0; i < v2count; i++) {
+        const stepNu2 = nu2 - v2count + i + 1;
+        const deficit = 3 * nu3 - (t - v2count + i + 1);
+        traj.push({
+          t: t - v2count + i + 1,
+          val: -1,
+          nu2: stepNu2,
+          nu3,
+          v2: v2count,
+          deficit
+        });
+      }
+      traj[traj.length - 1].val = val;
+    }
+  }
+  // Add a few steps in the 4→2→1 cycle
+  if (val === 1) {
+    for (let extra = 0; extra < 12; extra++) {
+      if (val === 1) { val = 4; nu3++; t++; }
+      while (val % 2 === 0) { val /= 2; nu2++; t++; }
+      traj.push({ t, val, nu2, nu3, v2: 2, deficit: 3*nu3 - t });
+    }
+  }
+  return traj;
+}
+
+// Simpler trajectory: step-by-step (one operation per step)
+function computeTrajectorySimple(n) {
+  const steps = [];
+  let val = n, nu2 = 0, nu3 = 0, t = 0;
+  steps.push({ t, val, nu2, nu3, deficit: 0, isOdd: false, v2: 0 });
+
+  const maxSteps = 5000;
+  while (t < maxSteps) {
+    if (val === 1 && t > 0) {
+      // Enter the cycle: 1 → 4 → 2 → 1
+      val = 4; nu3++; t++;
+      steps.push({ t, val, nu2, nu3, deficit: 3*nu3 - t, isOdd: true, v2: 0 });
+      // 4→2
+      val = 2; nu2++; t++;
+      steps.push({ t, val, nu2, nu3, deficit: 3*nu3 - t, isOdd: false, v2: 2 });
+      // 2→1
+      val = 1; nu2++; t++;
+      steps.push({ t, val, nu2, nu3, deficit: 3*nu3 - t, isOdd: false, v2: 2 });
+      if (t > n * 2 + 100) break;
+      continue;
+    }
+    if (val % 2 === 0) {
+      // Count v2 for this division sequence
+      let tempVal = val, v2 = 0;
+      while (tempVal % 2 === 0) { tempVal /= 2; v2++; }
+      val = val / 2;
+      nu2++; t++;
+      steps.push({ t, val, nu2, nu3, deficit: 3*nu3 - t, isOdd: false, v2 });
+    } else {
+      val = 3 * val + 1;
+      nu3++; t++;
+      // Compute v2 of the result
+      let tempVal = val, v2 = 0;
+      while (tempVal % 2 === 0) { tempVal /= 2; v2++; }
+      steps.push({ t, val, nu2, nu3, deficit: 3*nu3 - t, isOdd: true, v2 });
+    }
+  }
+  return steps;
+}
+
+// ============================================================
+// Three.js scene
+// ============================================================
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x0a0a1a, 1);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0a0a1a, 0.02);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(6, 4, 6);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 2;
+controls.maxDistance = 30;
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0x202040, 0.5);
+scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0x4060a0, 0.8);
+dirLight.position.set(5, 8, 5);
+scene.add(dirLight);
+const pointLight = new THREE.PointLight(0x3050ff, 0.6, 20);
+pointLight.position.set(-3, 3, -3);
+scene.add(pointLight);
+
+// ============================================================
+// Torus parameters
+// ============================================================
+const R = 3; // major radius
+const r = 1; // minor radius
+
+function torusPoint(theta, phi, rOffset) {
+  const ro = r + (rOffset || 0);
+  return new THREE.Vector3(
+    (R + ro * Math.cos(phi)) * Math.cos(theta),
+    ro * Math.sin(phi),
+    (R + ro * Math.cos(phi)) * Math.sin(theta)
+  );
+}
+
+// ============================================================
+// Torus wireframe
+// ============================================================
+let torusMesh;
+function createTorus() {
+  if (torusMesh) scene.remove(torusMesh);
+  const geom = new THREE.TorusGeometry(R, r, 48, 96);
+  const mat = new THREE.MeshPhongMaterial({
+    color: 0x1a2a50,
+    transparent: true,
+    opacity: 0.15,
+    wireframe: true,
+    side: THREE.DoubleSide,
+  });
+  torusMesh = new THREE.Mesh(geom, mat);
+  torusMesh.rotation.x = Math.PI / 2;
+  scene.add(torusMesh);
+
+  // Solid inner torus for depth
+  const solidGeom = new THREE.TorusGeometry(R, r * 0.98, 48, 96);
+  const solidMat = new THREE.MeshPhongMaterial({
+    color: 0x080818,
+    transparent: true,
+    opacity: 0.6,
+    side: THREE.DoubleSide,
+  });
+  const solidTorus = new THREE.Mesh(solidGeom, solidMat);
+  solidTorus.rotation.x = Math.PI / 2;
+  torusMesh.add(solidTorus);
+}
+createTorus();
+
+// ============================================================
+// State
+// ============================================================
+let currentN = 27;
+let scaleN = 9;
+let trajectory = [];
+let animStep = 0;
+let playing = true;
+let speed = 5;
+let followMode = false;
+let fiberMode = false;
+
+// Scene objects we'll rebuild
+let trajectoryLine = null;
+let trajectoryPoints = [];
+let foliationLine = null;
+let dangerZones = [];
+let pipeMesh = null;
+let movingDot = null;
+let trajectoryTube = null;
+
+// ============================================================
+// Build trajectory and scene objects
+// ============================================================
+function rebuildTrajectory() {
+  trajectory = computeTrajectorySimple(currentN);
+  animStep = 0;
+
+  // Remove old objects
+  if (trajectoryLine) scene.remove(trajectoryLine);
+  if (trajectoryTube) scene.remove(trajectoryTube);
+  if (movingDot) scene.remove(movingDot);
+  trajectoryLine = null;
+  trajectoryTube = null;
+
+  // Precompute torus positions for trajectory
+  trajectoryPoints = trajectory.map(s => {
+    const theta = 2 * Math.PI * (s.nu2 % scaleN) / scaleN;
+    const phi = 2 * Math.PI * (s.nu3 % scaleN) / scaleN;
+    return { pos: torusPoint(theta, phi, 0.02), step: s };
+  });
+
+  // Create moving dot
+  const dotGeom = new THREE.SphereGeometry(0.06, 16, 16);
+  const dotMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa });
+  movingDot = new THREE.Mesh(dotGeom, dotMat);
+  if (trajectoryPoints.length > 0) {
+    movingDot.position.copy(trajectoryPoints[0].pos);
+  }
+  scene.add(movingDot);
+
+  // Point light on moving dot
+  const dotLight = new THREE.PointLight(0x00ff88, 0.4, 3);
+  movingDot.add(dotLight);
+
+  // Rebuild foliation, danger zones, pipe
+  rebuildFoliation();
+  rebuildDangerZones();
+  rebuildPipe();
+  updateInfoPanel(trajectory[0]);
+  drawDeficitChart(0);
+}
+
+// ============================================================
+// Irrational foliation: helix at slope log₂3
+// ============================================================
+function rebuildFoliation() {
+  if (foliationLine) scene.remove(foliationLine);
+  const LOG2_3 = Math.log(3) / Math.log(2);
+  const pts = [];
+  const numTurns = 10;
+  const stepsPerTurn = 200;
+  for (let i = 0; i <= numTurns * stepsPerTurn; i++) {
+    const theta = 2 * Math.PI * i / stepsPerTurn;
+    const phi = 2 * Math.PI * LOG2_3 * i / stepsPerTurn;
+    pts.push(torusPoint(theta, phi, 0.01));
+  }
+  const geom = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.12,
+    linewidth: 1,
+  });
+  foliationLine = new THREE.Line(geom, mat);
+  scene.add(foliationLine);
+}
+
+// ============================================================
+// Danger zones: thin red bands near rational-slope regions
+// ============================================================
+function rebuildDangerZones() {
+  dangerZones.forEach(dz => scene.remove(dz));
+  dangerZones = [];
+
+  // Danger zones at φ positions where cellError is small
+  // These correspond to ν₃ mod N positions near multiples of N/3
+  const numBands = scaleN;
+  for (let i = 0; i < numBands; i++) {
+    // Danger when v₂ = 1 corresponds to certain φ values
+    // Place bands at φ = 2πk/N for k related to danger
+    const phi0 = 2 * Math.PI * i / numBands;
+    const bandWidth = 0.04; // thin
+    const pts = [];
+    const segments = 120;
+    for (let j = 0; j <= segments; j++) {
+      const theta = 2 * Math.PI * j / segments;
+      pts.push(torusPoint(theta, phi0 - bandWidth, 0.03));
+    }
+    for (let j = segments; j >= 0; j--) {
+      const theta = 2 * Math.PI * j / segments;
+      pts.push(torusPoint(theta, phi0 + bandWidth, 0.03));
+    }
+
+    // Create a ring geometry for the danger band
+    const ringPts = [];
+    for (let j = 0; j <= segments; j++) {
+      const theta = 2 * Math.PI * j / segments;
+      ringPts.push(torusPoint(theta, phi0, 0.04));
+    }
+    const ringGeom = new THREE.BufferGeometry().setFromPoints(ringPts);
+    const ringMat = new THREE.LineBasicMaterial({
+      color: 0xff2040,
+      transparent: true,
+      opacity: 0.25,
+      linewidth: 2,
+    });
+    const ring = new THREE.Line(ringGeom, ringMat);
+    scene.add(ring);
+    dangerZones.push(ring);
+  }
+
+  // Also add longitudinal danger bands (theta bands)
+  for (let i = 0; i < scaleN; i++) {
+    const theta0 = 2 * Math.PI * i / scaleN;
+    const ringPts = [];
+    const segments = 80;
+    for (let j = 0; j <= segments; j++) {
+      const phi = 2 * Math.PI * j / segments;
+      ringPts.push(torusPoint(theta0, phi, 0.04));
+    }
+    const ringGeom = new THREE.BufferGeometry().setFromPoints(ringPts);
+    const ringMat = new THREE.LineBasicMaterial({
+      color: 0xff2040,
+      transparent: true,
+      opacity: 0.12,
+      linewidth: 1,
+    });
+    const ring = new THREE.Line(ringGeom, ringMat);
+    scene.add(ring);
+    dangerZones.push(ring);
+  }
+}
+
+// ============================================================
+// Confinement pipe: translucent tube around equilibrium path
+// ============================================================
+function rebuildPipe() {
+  if (pipeMesh) scene.remove(pipeMesh);
+
+  // Compute max |deficit| for pipe radius
+  let maxDef = 1;
+  for (const s of trajectory) {
+    if (Math.abs(s.deficit) > maxDef) maxDef = Math.abs(s.deficit);
+  }
+
+  // Pipe is a tube around the foliation line
+  const LOG2_3 = Math.log(3) / Math.log(2);
+  const pts = [];
+  const numTurns = 8;
+  const stepsPerTurn = 60;
+  for (let i = 0; i <= numTurns * stepsPerTurn; i++) {
+    const theta = 2 * Math.PI * i / stepsPerTurn;
+    const phi = 2 * Math.PI * LOG2_3 * i / stepsPerTurn;
+    pts.push(torusPoint(theta, phi, 0));
+  }
+
+  // Create tube using TubeGeometry
+  const path = new THREE.CatmullRomCurve3(pts, false);
+  // Pipe width proportional to max deficit scaled to torus
+  const pipeRadius = Math.min(0.5, 0.03 * maxDef + 0.05);
+  const tubeGeom = new THREE.TubeGeometry(path, numTurns * stepsPerTurn, pipeRadius, 8, false);
+  const tubeMat = new THREE.MeshPhongMaterial({
+    color: 0x2050cc,
+    transparent: true,
+    opacity: 0.08,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  pipeMesh = new THREE.Mesh(tubeGeom, tubeMat);
+  scene.add(pipeMesh);
+}
+
+// ============================================================
+// Trajectory drawing (incremental)
+// ============================================================
+function updateTrajectoryLine(upTo) {
+  if (trajectoryTube) scene.remove(trajectoryTube);
+
+  if (upTo < 1) return;
+  const n = Math.min(upTo, trajectoryPoints.length);
+
+  // Build a colored line
+  const positions = [];
+  const colors = [];
+  for (let i = 0; i < n; i++) {
+    const p = trajectoryPoints[i];
+    positions.push(p.pos.x, p.pos.y, p.pos.z);
+    // Color: blue/cyan for safe (v2 >= 2), red for danger (v2 = 1), orange for odd
+    const s = p.step;
+    let cr, cg, cb;
+    if (s.v2 === 1) {
+      // Danger: red
+      const intensity = Math.min(1, 0.5 + Math.abs(s.deficit) * 0.03);
+      cr = 1.0; cg = 0.15 * (1 - intensity); cb = 0.2 * (1 - intensity);
+    } else if (s.isOdd) {
+      // Odd step: orange-yellow
+      cr = 1.0; cg = 0.6; cb = 0.1;
+    } else {
+      // Safe: cyan/green
+      const intensity = Math.min(1, 0.3 + Math.abs(s.deficit) * 0.02);
+      cr = 0.1; cg = 0.8 + 0.2 * (1 - intensity); cb = 1.0;
+    }
+    colors.push(cr, cg, cb);
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const mat = new THREE.LineBasicMaterial({ vertexColors: true, linewidth: 2 });
+  trajectoryTube = new THREE.Line(geom, mat);
+  scene.add(trajectoryTube);
+}
+
+// ============================================================
+// Info panel update
+// ============================================================
+function updateInfoPanel(step) {
+  if (!step) return;
+  document.getElementById('val-step').textContent = step.t;
+  document.getElementById('val-value').textContent = step.val >= 0 ? step.val : '…';
+  document.getElementById('val-v2').textContent = step.v2;
+  document.getElementById('val-nu2').textContent = step.nu2;
+  document.getElementById('val-nu3').textContent = step.nu3;
+  document.getElementById('val-deficit').textContent = step.deficit;
+
+  const defEl = document.getElementById('val-deficit');
+  defEl.className = 'val ' + (step.v2 === 1 ? 'danger' : 'safe');
+
+  let maxDef = 0;
+  for (let i = 0; i <= Math.min(animStep, trajectory.length - 1); i++) {
+    if (Math.abs(trajectory[i].deficit) > maxDef) maxDef = Math.abs(trajectory[i].deficit);
+  }
+  document.getElementById('val-maxdeficit').textContent = maxDef;
+
+  const zoneEl = document.getElementById('val-zone');
+  if (step.v2 === 1) {
+    zoneEl.textContent = 'DANGER';
+    zoneEl.className = 'val danger';
+  } else {
+    zoneEl.textContent = 'Safe';
+    zoneEl.className = 'val safe';
+  }
+}
+
+// ============================================================
+// Deficit chart (canvas 2D)
+// ============================================================
+const deficitCanvas = document.getElementById('deficit-chart');
+const defCtx = deficitCanvas.getContext('2d');
+
+function drawDeficitChart(upTo) {
+  const W = deficitCanvas.clientWidth;
+  const H = deficitCanvas.clientHeight;
+  deficitCanvas.width = W * 2;
+  deficitCanvas.height = H * 2;
+  defCtx.scale(2, 2);
+  defCtx.clearRect(0, 0, W, H);
+
+  const n = Math.min(upTo + 1, trajectory.length);
+  if (n < 2) return;
+
+  // Find range
+  let minD = 0, maxD = 0;
+  for (let i = 0; i < n; i++) {
+    const d = trajectory[i].deficit;
+    if (d < minD) minD = d;
+    if (d > maxD) maxD = d;
+  }
+  maxD = Math.max(maxD, 1);
+  minD = Math.min(minD, -1);
+  const range = maxD - minD;
+
+  // Zero line
+  const zeroY = H - ((0 - minD) / range) * (H - 16) - 8;
+  defCtx.strokeStyle = 'rgba(100,130,200,0.2)';
+  defCtx.lineWidth = 0.5;
+  defCtx.beginPath();
+  defCtx.moveTo(0, zeroY);
+  defCtx.lineTo(W, zeroY);
+  defCtx.stroke();
+
+  // Draw deficit line
+  defCtx.lineWidth = 1.2;
+  defCtx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * W;
+    const y = H - ((trajectory[i].deficit - minD) / range) * (H - 16) - 8;
+    const s = trajectory[i];
+    if (i === 0) {
+      defCtx.moveTo(x, y);
+    } else {
+      // Color segments
+      defCtx.strokeStyle = s.v2 === 1 ? '#ff3050' : '#40a0ff';
+      defCtx.lineTo(x, y);
+      defCtx.stroke();
+      defCtx.beginPath();
+      defCtx.moveTo(x, y);
+    }
+  }
+
+  // Labels
+  defCtx.fillStyle = '#506080';
+  defCtx.font = '9px sans-serif';
+  defCtx.fillText(maxD.toString(), 2, 10);
+  defCtx.fillText(minD.toString(), 2, H - 2);
+}
+
+// ============================================================
+// Animation loop
+// ============================================================
+let lastTime = 0;
+let accumulator = 0;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(time - lastTime, 50);
+  lastTime = time;
+
+  if (playing && trajectory.length > 0) {
+    accumulator += dt * speed * 0.02;
+    while (accumulator >= 1 && animStep < trajectory.length - 1) {
+      animStep++;
+      accumulator -= 1;
+    }
+  }
+
+  // Update trajectory rendering
+  updateTrajectoryLine(animStep);
+
+  // Update moving dot
+  if (movingDot && trajectoryPoints[animStep]) {
+    const tp = trajectoryPoints[animStep];
+    movingDot.position.copy(tp.pos);
+
+    // Color the dot
+    const s = tp.step;
+    if (s.v2 === 1) {
+      movingDot.material.color.setHex(0xff2040);
+      movingDot.children[0].color.setHex(0xff2040);
+    } else {
+      movingDot.material.color.setHex(0x00ffaa);
+      movingDot.children[0].color.setHex(0x00ff88);
+    }
+  }
+
+  // Follow mode
+  if (followMode && movingDot) {
+    controls.target.lerp(movingDot.position, 0.05);
+  }
+
+  // Update info
+  if (trajectory[animStep]) {
+    updateInfoPanel(trajectory[animStep]);
+    drawDeficitChart(animStep);
+  }
+
+  // Toggle visibility
+  if (foliationLine) foliationLine.visible = document.getElementById('toggle-foliation').checked;
+  dangerZones.forEach(dz => dz.visible = document.getElementById('toggle-danger').checked);
+  if (pipeMesh) pipeMesh.visible = document.getElementById('toggle-pipe').checked;
+  if (torusMesh) torusMesh.visible = document.getElementById('toggle-torus').checked;
+
+  const showDeficit = document.getElementById('toggle-deficit').checked;
+  document.getElementById('deficit-chart').style.display = showDeficit ? 'block' : 'none';
+  document.getElementById('deficit-label').style.display = showDeficit ? 'block' : 'none';
+
+  // Pulse danger zones
+  const pulse = 0.15 + 0.1 * Math.sin(time * 0.003);
+  dangerZones.forEach(dz => {
+    if (dz.material) dz.material.opacity = pulse;
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// UI event handlers
+// ============================================================
+document.getElementById('input-n').addEventListener('change', function() {
+  currentN = Math.max(1, parseInt(this.value) || 27);
+  document.getElementById('title-n').textContent = currentN;
+  rebuildTrajectory();
+});
+
+document.getElementById('input-N').addEventListener('change', function() {
+  scaleN = parseInt(this.value);
+  document.getElementById('title-N').textContent = scaleN;
+  rebuildTrajectory();
+});
+
+document.getElementById('input-speed').addEventListener('input', function() {
+  speed = parseInt(this.value);
+});
+
+document.getElementById('btn-play').addEventListener('click', function() {
+  playing = true;
+  this.classList.add('active');
+  document.getElementById('btn-pause').classList.remove('active');
+});
+
+document.getElementById('btn-pause').addEventListener('click', function() {
+  playing = false;
+  this.classList.add('active');
+  document.getElementById('btn-play').classList.remove('active');
+});
+
+document.getElementById('btn-reset').addEventListener('click', function() {
+  animStep = 0;
+  accumulator = 0;
+  playing = true;
+  document.getElementById('btn-play').classList.add('active');
+  document.getElementById('btn-pause').classList.remove('active');
+});
+
+document.getElementById('btn-autorotate').addEventListener('click', function() {
+  controls.autoRotate = !controls.autoRotate;
+  controls.autoRotateSpeed = 1.5;
+  this.classList.toggle('active');
+  if (fiberMode) exitFiberMode();
+});
+
+document.getElementById('btn-follow').addEventListener('click', function() {
+  followMode = !followMode;
+  this.classList.toggle('active');
+  if (fiberMode) exitFiberMode();
+});
+
+document.getElementById('btn-fiber').addEventListener('click', function() {
+  if (fiberMode) {
+    exitFiberMode();
+  } else {
+    enterFiberMode();
+  }
+});
+
+function enterFiberMode() {
+  fiberMode = true;
+  document.getElementById('btn-fiber').classList.add('active');
+  // Zoom into a cross-section: look at the torus from the side,
+  // targeting the current point on the trajectory
+  if (movingDot) {
+    const p = movingDot.position.clone();
+    // Position camera to look at cross-section
+    const dir = p.clone().normalize();
+    camera.position.copy(p.clone().add(dir.multiplyScalar(2)));
+    controls.target.copy(p);
+  }
+}
+
+function exitFiberMode() {
+  fiberMode = false;
+  document.getElementById('btn-fiber').classList.remove('active');
+  camera.position.set(6, 4, 6);
+  controls.target.set(0, 0, 0);
+}
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ============================================================
+// Initialize
+// ============================================================
+rebuildTrajectory();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

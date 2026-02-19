@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hensel Attrition — Binary Clock of Collatz Danger</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --panel: #111827;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --dim: #64748b;
+    --red: #ef4444;
+    --red-glow: #dc2626;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --green-glow: #16a34a;
+    --orange: #f59e0b;
+    --mono: 'Courier New', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.4rem;
+    color: var(--red);
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  .main-area {
+    display: flex;
+    gap: 16px;
+  }
+
+  .left-panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    transition: width 0.3s, opacity 0.3s;
+  }
+
+  .sidebar.hidden {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .panel-title {
+    font-size: 0.7rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  /* === Binary Display === */
+  .binary-section {
+    text-align: center;
+  }
+
+  .binary-label {
+    font-size: 0.75rem;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+
+  .binary-row {
+    display: inline-flex;
+    justify-content: center;
+    gap: 2px;
+    flex-wrap: nowrap;
+    margin-bottom: 4px;
+  }
+
+  .bit {
+    width: 26px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: background 0.35s, color 0.35s, box-shadow 0.35s, transform 0.2s;
+  }
+
+  .bit.fuel {
+    background: rgba(239, 68, 68, 0.18);
+    color: var(--red);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+  }
+
+  .bit.safe {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--blue);
+  }
+
+  .bit.zero-leading {
+    background: rgba(30, 41, 59, 0.5);
+    color: #334155;
+  }
+
+  .bit.even-bit {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--green);
+  }
+
+  .bit.consumed {
+    animation: consume 0.5s ease-out;
+  }
+
+  @keyframes consume {
+    0% { transform: scale(1); background: rgba(239, 68, 68, 0.18); }
+    40% { transform: scale(1.25); background: rgba(239, 68, 68, 0.6); box-shadow: 0 0 14px rgba(239, 68, 68, 0.6); }
+    100% { transform: scale(1); }
+  }
+
+  .bit.flash-green {
+    animation: flashGreen 0.7s ease-out;
+  }
+
+  @keyframes flashGreen {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.2); background: rgba(34, 197, 94, 0.5); box-shadow: 0 0 14px rgba(34, 197, 94, 0.5); }
+    100% { transform: scale(1); }
+  }
+
+  .fuel-bracket {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 22px;
+    margin-top: 4px;
+  }
+
+  .fuel-indicator {
+    font-size: 0.7rem;
+    color: var(--red);
+    text-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+    transition: color 0.3s;
+  }
+
+  .fuel-indicator.empty {
+    color: var(--green);
+    text-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+  }
+
+  /* === Bit indices === */
+  .bit-indices {
+    display: inline-flex;
+    justify-content: center;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  .bit-index {
+    width: 26px;
+    text-align: center;
+    font-size: 0.45rem;
+    color: #334155;
+  }
+
+  /* === Step animation overlay === */
+  .step-display {
+    text-align: center;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .step-op {
+    font-size: 0.8rem;
+    padding: 3px 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .step-op.active-mul {
+    background: rgba(245, 158, 11, 0.25);
+    color: var(--orange);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  }
+
+  .step-op.active-add {
+    background: rgba(239, 68, 68, 0.25);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  }
+
+  .step-op.active-div {
+    background: rgba(59, 130, 246, 0.25);
+    color: var(--blue);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+  }
+
+  .step-op.inactive {
+    opacity: 0.2;
+    border: 1px solid transparent;
+  }
+
+  /* === Stats === */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    transition: color 0.3s;
+  }
+
+  .stat-value.fuel-color { color: var(--red); }
+  .stat-value.step-color { color: var(--blue); }
+  .stat-value.val-color { color: var(--text); }
+  .stat-value.escape-color { color: var(--green); text-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+
+  .stat-label {
+    font-size: 0.55rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* === Danger meter === */
+  .danger-meter {
+    margin-top: 10px;
+  }
+
+  .meter-bar-bg {
+    height: 10px;
+    background: #1e293b;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .meter-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.4s ease, background 0.4s ease;
+    background: linear-gradient(90deg, var(--orange), var(--red));
+  }
+
+  .meter-bar-fill.safe-fill {
+    background: linear-gradient(90deg, var(--blue), var(--green));
+  }
+
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.5rem;
+    color: var(--dim);
+    margin-top: 3px;
+  }
+
+  /* === Escape banner === */
+  .escape-banner {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--green);
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+    padding: 6px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .escape-banner.visible {
+    opacity: 1;
+  }
+
+  /* === Controls === */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  button:hover {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  button.primary {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: var(--blue);
+  }
+
+  button.primary:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.3);
+  }
+
+  button.preset {
+    font-size: 0.6rem;
+    padding: 4px 8px;
+  }
+
+  button.preset.active {
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .input-group label {
+    font-size: 0.6rem;
+    color: var(--dim);
+  }
+
+  input[type="number"] {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    width: 100px;
+    padding: 4px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    outline: none;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--blue);
+  }
+
+  input[type="range"] {
+    width: 80px;
+    accent-color: var(--blue);
+  }
+
+  .speed-label {
+    font-size: 0.55rem;
+    color: var(--dim);
+    min-width: 30px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+
+  /* === Probability sidebar === */
+  .prob-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .prob-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 20px;
+    transition: opacity 0.3s;
+  }
+
+  .prob-label {
+    font-size: 0.55rem;
+    color: var(--dim);
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .prob-bar-bg {
+    flex: 1;
+    height: 14px;
+    background: #1e293b;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .prob-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+
+  .prob-value {
+    font-size: 0.5rem;
+    color: var(--dim);
+    width: 48px;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .prob-caption {
+    font-size: 0.55rem;
+    color: var(--dim);
+    line-height: 1.5;
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  .prob-highlight {
+    color: var(--red);
+  }
+
+  /* === Trajectory log === */
+  .trajectory-log {
+    max-height: 170px;
+    overflow-y: auto;
+    font-size: 0.6rem;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 8px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+    align-items: baseline;
+  }
+
+  .log-entry.escape-row {
+    background: rgba(34, 197, 94, 0.08);
+  }
+
+  .log-step {
+    color: var(--dim);
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .log-val {
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .log-val.even-val {
+    color: var(--green);
+  }
+
+  .log-fuel {
+    color: var(--red);
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+
+  .log-fuel.out { color: var(--green); }
+
+  .log-v2 {
+    font-size: 0.5rem;
+    color: var(--dim);
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+  }
+
+  .log-v2.danger {
+    color: var(--red);
+    font-weight: bold;
+  }
+
+  .log-header {
+    font-size: 0.5rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .log-header span:nth-child(1) { width: 24px; text-align: right; }
+  .log-header span:nth-child(2) { flex: 1; }
+  .log-header span:nth-child(3) { width: 20px; text-align: center; }
+  .log-header span:nth-child(4) { width: 36px; text-align: center; }
+
+  /* === Theorem box === */
+  .theorem-box {
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    font-size: 0.6rem;
+    line-height: 1.6;
+    color: var(--dim);
+  }
+
+  .theorem-box strong {
+    color: var(--text);
+  }
+
+  .theorem-box .math {
+    color: var(--orange);
+  }
+
+  /* === Responsive === */
+  @media (max-width: 900px) {
+    .main-area { flex-direction: column; }
+    .sidebar { width: 100%; }
+    .sidebar.hidden { width: 100%; height: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div>
+    <h1>HENSEL ATTRITION</h1>
+    <div class="subtitle">How trailing 1-bits fuel Collatz danger &mdash; and how the fuel runs out</div>
+  </div>
+
+  <div class="main-area">
+    <div class="left-panel">
+
+      <!-- Binary display -->
+      <div class="panel binary-section">
+        <div class="panel-title">Binary Representation</div>
+        <div class="binary-label">x = <span id="decimalValue">127</span></div>
+        <div style="text-align:center;">
+          <div class="bit-indices" id="bitIndices"></div>
+          <div class="binary-row" id="binaryRow"></div>
+        </div>
+        <div class="fuel-bracket">
+          <span class="fuel-indicator" id="fuelIndicator">2-adic fuel: 7 bits</span>
+        </div>
+
+        <div class="step-display" id="stepDisplay">
+          <span class="step-op inactive" id="opMul">&times;3</span>
+          <span class="step-op inactive" id="opAdd">+1</span>
+          <span class="step-op inactive" id="opDiv">&divide;2</span>
+        </div>
+
+        <div class="escape-banner" id="escapeBanner"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="panel">
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-value fuel-color" id="fuelCount">7</div>
+            <div class="stat-label">Fuel (trailing 1s)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value step-color" id="stepCount">0</div>
+            <div class="stat-label">Danger steps (v&#x2082;=1)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value val-color" id="currentVal">127</div>
+            <div class="stat-label">Current value</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value fuel-color" id="initialFuel">7</div>
+            <div class="stat-label">Initial fuel</div>
+          </div>
+        </div>
+
+        <div class="danger-meter">
+          <div class="meter-bar-bg">
+            <div class="meter-bar-fill" id="dangerFill" style="width: 100%"></div>
+          </div>
+          <div class="meter-labels">
+            <span>SAFE</span>
+            <span id="dangerLabel">DANGER: 100%</span>
+            <span>MAX FUEL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="panel">
+        <div class="controls">
+          <button class="primary" id="btnPlay">&#9654; Play</button>
+          <button id="btnStep">Step</button>
+          <button id="btnReset">Reset</button>
+
+          <div class="divider"></div>
+
+          <div class="input-group">
+            <label>x&#x2080;:</label>
+            <input type="number" id="inputStart" value="127" min="1" max="4294967295">
+          </div>
+
+          <div class="divider"></div>
+
+          <button class="preset" data-val="15">d=3 (15)</button>
+          <button class="preset" data-val="63">d=5 (63)</button>
+          <button class="preset active" data-val="127">d=7 (127)</button>
+          <button class="preset" data-val="1023">d=10 (1023)</button>
+          <button class="preset" data-val="27">n=27</button>
+
+          <div class="divider"></div>
+
+          <input type="range" id="speedSlider" min="1" max="10" value="5">
+          <span class="speed-label" id="speedLabel">5x</span>
+
+          <button id="btnToggleSidebar" style="margin-left:auto;">Prob &#9654;</button>
+        </div>
+      </div>
+
+      <!-- Trajectory log -->
+      <div class="panel">
+        <div class="panel-title">Trajectory Log</div>
+        <div class="log-header">
+          <span>#</span>
+          <span>Value</span>
+          <span>Fuel</span>
+          <span>v&#x2082;</span>
+        </div>
+        <div class="trajectory-log" id="trajectoryLog"></div>
+      </div>
+
+      <!-- Theorem -->
+      <div class="panel theorem-box">
+        <strong>Hensel's Lemma for Collatz:</strong> Starting from odd <span class="math">x</span>,
+        the next <span class="math">d</span> half-steps T(x) = (3x+1)/2 all produce odd results
+        (i.e., <span class="math">v&#x2082; = 1</span> at each step)
+        <strong>if and only if</strong> <span class="math">2<sup>d+1</sup> | (x + 1)</span>.
+        <br><br>
+        In binary, <span class="math">x</span> must end in at least <span class="math">d + 1</span> consecutive <strong style="color:var(--red)">1</strong>-bits.
+        Each dangerous step <em>consumes</em> one bit of fuel.
+        Among odd numbers, only <span class="math">1/2<sup>d</sup></span> can sustain <span class="math">d</span> dangerous steps.
+      </div>
+    </div>
+
+    <!-- Probability sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="panel" style="height:100%;">
+        <div class="panel-title">P(fuel &ge; d) = 2<sup>-d</sup></div>
+        <div class="prob-bars" id="probBars"></div>
+        <div class="prob-caption">
+          Among odd numbers, only
+          <span class="prob-highlight">1 in 2<sup>d</sup></span>
+          can sustain <em>d</em> consecutive v&#x2082;=1 steps.
+          <br><br>
+          Fuel &ge; 10 &rarr; fewer than <span class="prob-highlight">0.1%</span>
+          <br>
+          Fuel &ge; 20 &rarr; fewer than <span class="prob-highlight">0.0001%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  // ===== Constants =====
+  const NUM_BITS = 32;
+
+  // ===== State =====
+  let currentX = 127n;
+  let startX = 127n;
+  let dangerSteps = 0;        // count of v₂=1 steps in current run
+  let totalSteps = 0;         // total half-steps taken
+  let initialFuel = 0;
+  let hasEscaped = false;     // first v₂>1 (or even result) seen
+  let playing = false;
+  let animPhase = null;       // null | 'mul' | 'add' | 'div'
+  let phaseTimer = null;
+  let playTimer = null;
+  let speed = 5;
+  let sidebarVisible = true;
+
+  // ===== DOM refs =====
+  const $ = id => document.getElementById(id);
+  const binaryRow = $('binaryRow');
+  const bitIndices = $('bitIndices');
+  const decimalValue = $('decimalValue');
+  const fuelIndicator = $('fuelIndicator');
+  const fuelCountEl = $('fuelCount');
+  const stepCountEl = $('stepCount');
+  const currentValEl = $('currentVal');
+  const initialFuelEl = $('initialFuel');
+  const dangerFill = $('dangerFill');
+  const dangerLabel = $('dangerLabel');
+  const escapeBanner = $('escapeBanner');
+  const opMul = $('opMul');
+  const opAdd = $('opAdd');
+  const opDiv = $('opDiv');
+  const btnPlay = $('btnPlay');
+  const btnStep = $('btnStep');
+  const btnReset = $('btnReset');
+  const inputStart = $('inputStart');
+  const speedSlider = $('speedSlider');
+  const speedLabel = $('speedLabel');
+  const btnToggleSidebar = $('btnToggleSidebar');
+  const sidebar = $('sidebar');
+  const probBars = $('probBars');
+  const trajectoryLog = $('trajectoryLog');
+
+  // ===== Math utilities =====
+  function trailingOnes(n) {
+    if (n <= 0n) return 0;
+    let c = 0, v = n;
+    while ((v & 1n) === 1n) { c++; v >>= 1n; }
+    return c;
+  }
+
+  function v2val(n) {
+    if (n === 0n) return 0;
+    let c = 0, v = n;
+    while ((v & 1n) === 0n) { c++; v >>= 1n; }
+    return c;
+  }
+
+  function isOdd(n) { return (n & 1n) === 1n; }
+
+  function formatBig(n) {
+    const s = n.toString();
+    if (s.length <= 12) return s;
+    return s.slice(0, 7) + '..' + s.slice(-4) + ' (' + s.length + 'd)';
+  }
+
+  // ===== Binary bit display =====
+  function initBitDisplay() {
+    binaryRow.innerHTML = '';
+    bitIndices.innerHTML = '';
+    for (let i = NUM_BITS - 1; i >= 0; i--) {
+      const idx = document.createElement('div');
+      idx.className = 'bit-index';
+      idx.textContent = i;
+      bitIndices.appendChild(idx);
+
+      const bit = document.createElement('div');
+      bit.className = 'bit zero-leading';
+      bit.id = 'bit-' + i;
+      bit.textContent = '0';
+      binaryRow.appendChild(bit);
+    }
+  }
+
+  function updateBitDisplay(n, animate) {
+    const fuel = isOdd(n) ? trailingOnes(n) : 0;
+    // Find bit-width of n
+    let bitWidth = 0;
+    let tmp = n;
+    while (tmp > 0n) { bitWidth++; tmp >>= 1n; }
+
+    for (let i = 0; i < NUM_BITS; i++) {
+      const el = document.getElementById('bit-' + i);
+      const b = Number((n >> BigInt(i)) & 1n);
+      el.textContent = b;
+      el.classList.remove('consumed', 'flash-green');
+
+      if (i >= bitWidth) {
+        el.className = 'bit zero-leading';
+      } else if (isOdd(n) && i < fuel) {
+        el.className = 'bit fuel';
+      } else if (isOdd(n)) {
+        el.className = 'bit safe';
+      } else {
+        el.className = 'bit even-bit';
+      }
+    }
+
+    if (animate === 'escape') {
+      for (let i = 0; i < Math.min(bitWidth, NUM_BITS); i++) {
+        document.getElementById('bit-' + i).classList.add('flash-green');
+      }
+    }
+  }
+
+  // ===== Probability sidebar =====
+  function initProbBars() {
+    probBars.innerHTML = '';
+    for (let d = 0; d <= 15; d++) {
+      const row = document.createElement('div');
+      row.className = 'prob-row';
+      row.id = 'prob-row-' + d;
+
+      const label = document.createElement('div');
+      label.className = 'prob-label';
+      label.textContent = 'd=' + d;
+
+      const barBg = document.createElement('div');
+      barBg.className = 'prob-bar-bg';
+
+      const barFill = document.createElement('div');
+      barFill.className = 'prob-bar-fill';
+      barFill.id = 'prob-fill-' + d;
+      const prob = 1 / Math.pow(2, d);
+      barFill.style.width = Math.max(prob * 100, 0.5) + '%';
+      barFill.style.background = probColor(d, false);
+
+      barBg.appendChild(barFill);
+
+      const value = document.createElement('div');
+      value.className = 'prob-value';
+      value.id = 'prob-val-' + d;
+      value.textContent = d === 0 ? '100%' :
+        d <= 3 ? (prob * 100).toFixed(1) + '%' :
+        d <= 7 ? (prob * 100).toFixed(2) + '%' :
+        d <= 10 ? (prob * 100).toFixed(3) + '%' :
+        '1/2^' + d;
+
+      row.appendChild(label);
+      row.appendChild(barBg);
+      row.appendChild(value);
+      probBars.appendChild(row);
+    }
+  }
+
+  function probColor(d, highlight) {
+    if (highlight) return 'var(--red)';
+    const hue = Math.max(0, 220 - d * 18);
+    const light = Math.max(30, 55 - d * 2);
+    return 'hsl(' + hue + ', 70%, ' + light + '%)';
+  }
+
+  function highlightProbBar(fuel) {
+    for (let d = 0; d <= 15; d++) {
+      const fill = document.getElementById('prob-fill-' + d);
+      const row = document.getElementById('prob-row-' + d);
+      if (d === fuel && fuel > 0) {
+        fill.style.background = 'var(--red)';
+        fill.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.5)';
+        row.style.opacity = '1';
+      } else if (d < fuel) {
+        fill.style.background = 'rgba(239, 68, 68, 0.4)';
+        fill.style.boxShadow = 'none';
+        row.style.opacity = '0.7';
+      } else {
+        fill.style.background = probColor(d, false);
+        fill.style.boxShadow = 'none';
+        row.style.opacity = d <= fuel + 3 ? '0.5' : '0.3';
+      }
+    }
+  }
+
+  // ===== Trajectory log =====
+  function addLogEntry(step, val, fuel, v2str, isEscape) {
+    const entry = document.createElement('div');
+    entry.className = 'log-entry' + (isEscape ? ' escape-row' : '');
+
+    const stepEl = document.createElement('span');
+    stepEl.className = 'log-step';
+    stepEl.textContent = step;
+
+    const valEl = document.createElement('span');
+    valEl.className = 'log-val' + (!isOdd(val) ? ' even-val' : '');
+    valEl.textContent = formatBig(val);
+
+    const fuelEl = document.createElement('span');
+    fuelEl.className = 'log-fuel' + (fuel <= 1 ? ' out' : '');
+    fuelEl.textContent = isOdd(val) ? fuel : '—';
+
+    const v2El = document.createElement('span');
+    v2El.className = 'log-v2' + (v2str === 'v₂=1' ? ' danger' : '');
+    v2El.textContent = v2str || '—';
+
+    entry.appendChild(stepEl);
+    entry.appendChild(valEl);
+    entry.appendChild(fuelEl);
+    entry.appendChild(v2El);
+    trajectoryLog.appendChild(entry);
+    trajectoryLog.scrollTop = trajectoryLog.scrollHeight;
+  }
+
+  // ===== Display update =====
+  function updateDisplay(animate) {
+    const odd = isOdd(currentX);
+    const fuel = odd ? trailingOnes(currentX) : 0;
+
+    updateBitDisplay(currentX, animate);
+    decimalValue.textContent = formatBig(currentX);
+    fuelCountEl.textContent = odd ? fuel : '—';
+    stepCountEl.textContent = dangerSteps;
+    currentValEl.textContent = formatBig(currentX);
+
+    // Danger meter based on fuel
+    if (odd && initialFuel > 1) {
+      // fuel ranges from initialFuel down to 1 (then escape)
+      // Map fuel to percentage: initialFuel → 100%, 1 → 0%
+      const pct = Math.max(0, ((fuel - 1) / (initialFuel - 1)) * 100);
+      dangerFill.style.width = Math.max(pct, 2) + '%';
+      if (pct > 50) {
+        dangerFill.className = 'meter-bar-fill';
+        dangerLabel.textContent = 'DANGER: ' + Math.round(pct) + '%';
+      } else if (pct > 0) {
+        dangerFill.className = 'meter-bar-fill';
+        dangerLabel.textContent = 'DRAINING: ' + Math.round(pct) + '%';
+      } else {
+        dangerFill.className = 'meter-bar-fill safe-fill';
+        dangerLabel.textContent = 'ESCAPED';
+      }
+    } else if (!odd) {
+      dangerFill.className = 'meter-bar-fill safe-fill';
+      dangerFill.style.width = '2%';
+      dangerLabel.textContent = 'EVEN — ESCAPED';
+    } else {
+      dangerFill.style.width = '2%';
+      dangerFill.className = 'meter-bar-fill safe-fill';
+      dangerLabel.textContent = fuel <= 1 ? 'MINIMAL FUEL' : 'DANGER';
+    }
+
+    // Fuel indicator text
+    if (odd && fuel > 1) {
+      fuelIndicator.className = 'fuel-indicator';
+      fuelIndicator.textContent = '\u25B6 2-adic fuel: ' + fuel + ' bits (' + (fuel - 1) + ' danger steps remain)';
+    } else if (odd && fuel === 1) {
+      fuelIndicator.className = 'fuel-indicator';
+      fuelIndicator.textContent = '\u25B6 fuel: 1 bit (next step escapes to even)';
+    } else if (!odd) {
+      fuelIndicator.className = 'fuel-indicator empty';
+      fuelIndicator.textContent = '\u2713 EVEN \u2014 fuel exhausted, v\u2082 > 1';
+    } else {
+      fuelIndicator.className = 'fuel-indicator empty';
+      fuelIndicator.textContent = 'fuel: 0';
+    }
+
+    highlightProbBar(odd ? fuel : 0);
+  }
+
+  // ===== Step operations =====
+  function setOpHighlight(phase) {
+    opMul.className = 'step-op ' + (phase === 'mul' ? 'active-mul' : 'inactive');
+    opAdd.className = 'step-op ' + (phase === 'add' ? 'active-add' : 'inactive');
+    opDiv.className = 'step-op ' + (phase === 'div' ? 'active-div' : 'inactive');
+  }
+
+  // The half-step: T(x) = (3x+1)/2 for odd x, or x/2 for even x
+  function doStep() {
+    if (animPhase) return;
+
+    const prevX = currentX;
+    const odd = isOdd(currentX);
+
+    if (!odd) {
+      // Even: just divide by 2 (instant, no animation)
+      currentX = currentX >> 1n;
+      totalSteps++;
+      const newFuel = isOdd(currentX) ? trailingOnes(currentX) : 0;
+      addLogEntry(totalSteps, currentX, newFuel, '÷2', false);
+      updateDisplay(null);
+      if (playing) scheduleNext();
+      return;
+    }
+
+    // Odd: animate the three sub-steps ×3, +1, ÷2
+    const baseDelay = Math.max(80, 500 - speed * 45);
+    animPhase = 'mul';
+    setOpHighlight('mul');
+    btnStep.disabled = true;
+
+    phaseTimer = setTimeout(() => {
+      // Phase 2: +1 (carry propagation — the heart of attrition)
+      animPhase = 'add';
+      setOpHighlight('add');
+
+      phaseTimer = setTimeout(() => {
+        // Phase 3: ÷2
+        animPhase = 'div';
+        setOpHighlight('div');
+
+        phaseTimer = setTimeout(() => {
+          // Compute result
+          const threex1 = 3n * prevX + 1n;
+          const result = threex1 >> 1n;  // always divide by exactly 2
+          const valuation = v2val(threex1);  // how many 2s in 3x+1
+
+          currentX = result;
+          totalSteps++;
+
+          const resultIsOdd = isOdd(result);
+          const newFuel = resultIsOdd ? trailingOnes(result) : 0;
+          const isEscapeStep = !resultIsOdd;
+
+          if (valuation === 1) {
+            dangerSteps++;
+          }
+
+          addLogEntry(totalSteps, currentX, newFuel,
+            'v\u2082=' + valuation, isEscapeStep);
+
+          if (isEscapeStep && !hasEscaped) {
+            hasEscaped = true;
+            escapeBanner.innerHTML =
+              'ESCAPE! Result is <strong>even</strong> \u2014 ' +
+              initialFuel + ' bits of fuel consumed in ' +
+              dangerSteps + ' danger step' + (dangerSteps !== 1 ? 's' : '') +
+              ' (v\u2082=' + valuation + ')';
+            escapeBanner.classList.add('visible');
+            updateDisplay('escape');
+            stopPlaying();
+          } else {
+            // Check for reaching 1
+            if (currentX === 1n && totalSteps > 0) {
+              escapeBanner.innerHTML =
+                'Reached <strong>1</strong>! Collatz verified for x\u2080 = ' +
+                formatBig(startX) + ' in ' + totalSteps + ' steps';
+              escapeBanner.classList.add('visible');
+              updateDisplay('escape');
+              stopPlaying();
+            } else {
+              updateDisplay(null);
+              if (playing) scheduleNext();
+            }
+          }
+
+          animPhase = null;
+          setOpHighlight(null);
+          btnStep.disabled = false;
+        }, baseDelay);
+      }, baseDelay);
+    }, baseDelay);
+  }
+
+  function scheduleNext() {
+    const delay = Math.max(150, 1100 - speed * 95);
+    playTimer = setTimeout(doStep, delay);
+  }
+
+  function startPlaying() {
+    playing = true;
+    btnPlay.textContent = '\u23F8 Pause';
+    doStep();
+  }
+
+  function stopPlaying() {
+    playing = false;
+    btnPlay.textContent = '\u25B6 Play';
+    if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+  }
+
+  function reset(newX) {
+    stopPlaying();
+    if (phaseTimer) { clearTimeout(phaseTimer); phaseTimer = null; }
+    animPhase = null;
+    setOpHighlight(null);
+    btnStep.disabled = false;
+
+    if (newX !== undefined) {
+      startX = BigInt(newX);
+      // Ensure starting value is odd
+      if ((startX & 1n) === 0n) startX = startX | 1n;
+      if (startX < 1n) startX = 1n;
+    }
+
+    currentX = startX;
+    dangerSteps = 0;
+    totalSteps = 0;
+    initialFuel = trailingOnes(currentX);
+    hasEscaped = false;
+
+    initialFuelEl.textContent = initialFuel;
+    escapeBanner.textContent = '';
+    escapeBanner.classList.remove('visible');
+    trajectoryLog.innerHTML = '';
+
+    addLogEntry(0, currentX, initialFuel, null, false);
+    updateDisplay(null);
+  }
+
+  // ===== Event handlers =====
+  btnPlay.addEventListener('click', () => {
+    if (playing) stopPlaying();
+    else startPlaying();
+  });
+
+  btnStep.addEventListener('click', () => {
+    if (!animPhase) doStep();
+  });
+
+  btnReset.addEventListener('click', () => {
+    const val = parseInt(inputStart.value) || 127;
+    reset(val);
+  });
+
+  inputStart.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const val = parseInt(inputStart.value) || 127;
+      reset(val);
+    }
+  });
+
+  document.querySelectorAll('.preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = parseInt(btn.dataset.val);
+      inputStart.value = val;
+      document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      reset(val);
+    });
+  });
+
+  speedSlider.addEventListener('input', () => {
+    speed = parseInt(speedSlider.value);
+    speedLabel.textContent = speed + 'x';
+  });
+
+  btnToggleSidebar.addEventListener('click', () => {
+    sidebarVisible = !sidebarVisible;
+    sidebar.classList.toggle('hidden', !sidebarVisible);
+    btnToggleSidebar.textContent = sidebarVisible ? 'Prob \u25B6' : '\u25C0 Prob';
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === ' ' || e.key === 'p') {
+      e.preventDefault();
+      if (playing) stopPlaying();
+      else startPlaying();
+    } else if (e.key === 's' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (!animPhase) doStep();
+    } else if (e.key === 'r') {
+      e.preventDefault();
+      reset();
+    }
+  });
+
+  // ===== Init =====
+  initBitDisplay();
+  initProbBars();
+  reset(127);
+})();
+</script>
+</body>
+</html>

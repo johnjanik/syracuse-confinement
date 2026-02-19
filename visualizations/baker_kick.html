@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Baker Kick — Collatz Trajectory on the Torus</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a14;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
+#sidebar{width:300px;padding:16px;background:#12121e;border-right:1px solid #2a2a3a;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+#sidebar h1{font-size:18px;color:#88ccff;margin-bottom:4px}
+#sidebar h2{font-size:13px;color:#7799bb;font-weight:normal;margin-bottom:8px}
+.ctrl-group{background:#1a1a2e;border-radius:6px;padding:10px}
+.ctrl-group label{display:block;font-size:12px;color:#8899aa;margin-bottom:4px}
+.ctrl-group input[type=number],.ctrl-group select{width:100%;background:#0e0e1a;border:1px solid #334;color:#ddd;padding:4px 8px;border-radius:4px;font-size:13px}
+.btn-row{display:flex;gap:6px}
+.btn{flex:1;padding:6px 0;background:#1e3a5f;border:1px solid #2a5a8f;color:#aaccee;border-radius:4px;cursor:pointer;font-size:13px;text-align:center}
+.btn:hover{background:#2a4a7f}
+.btn.active{background:#2a6a3f;border-color:#3a8a5f}
+input[type=range]{width:100%;accent-color:#4488cc}
+.toggle-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#8899aa}
+.toggle-row input{accent-color:#4488cc}
+#gauge-box{background:#1a1a2e;border-radius:6px;padding:10px}
+#gauge-box .gauge-label{font-size:11px;color:#6688aa;margin-bottom:2px}
+#gauge-box .gauge-val{font-size:22px;font-weight:bold;font-family:'Courier New',monospace}
+.pos-val{color:#44dd88}.neg-val{color:#ff6666}.zero-val{color:#888}
+#info-box{background:#1a1a2e;border-radius:6px;padding:10px;font-size:11px;color:#667788;line-height:1.5}
+#info-box b{color:#88aacc}
+#canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+canvas{border-radius:4px}
+#step-display{position:absolute;top:12px;right:16px;font-size:13px;color:#6688aa;font-family:'Courier New',monospace}
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <h1>Baker Kick Trajectory</h1>
+  <h2>Collatz on the (Z/NZ)² torus</h2>
+
+  <div class="ctrl-group">
+    <label>Starting number n</label>
+    <input type="number" id="inp-n" value="837799" min="1" max="10000000">
+  </div>
+  <div class="ctrl-group">
+    <label>Torus scale N</label>
+    <select id="inp-N">
+      <option value="9">9</option>
+      <option value="27" selected>27</option>
+      <option value="81">81</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <div class="btn-row">
+      <div class="btn" id="btn-play">Play</div>
+      <div class="btn" id="btn-pause">Pause</div>
+      <div class="btn" id="btn-step">Step</div>
+      <div class="btn" id="btn-reset">Reset</div>
+    </div>
+  </div>
+  <div class="ctrl-group">
+    <label>Speed: <span id="speed-val">5</span> steps/sec</label>
+    <input type="range" id="inp-speed" min="1" max="60" value="5">
+  </div>
+  <div class="ctrl-group">
+    <div class="toggle-row"><input type="checkbox" id="tog-foli" checked><label for="tog-foli">Foliation line (a = log₂3 × b)</label></div>
+    <div class="toggle-row"><input type="checkbox" id="tog-kick" checked><label for="tog-kick">Kick vectors</label></div>
+    <div class="toggle-row"><input type="checkbox" id="tog-gauge" checked><label for="tog-gauge">Cell error gauge</label></div>
+    <div class="toggle-row"><input type="checkbox" id="tog-danger" checked><label for="tog-danger">Danger zone glow</label></div>
+    <div class="toggle-row"><input type="checkbox" id="tog-trail" checked><label for="tog-trail">Trajectory trail</label></div>
+  </div>
+
+  <div id="gauge-box">
+    <div class="gauge-label">Cell Error (cumulative)</div>
+    <div class="gauge-val zero-val" id="gauge-err">0.000</div>
+    <div class="gauge-label" style="margin-top:8px">Deficit = ν₃ − t/3</div>
+    <div class="gauge-val zero-val" id="gauge-deficit">0.000</div>
+    <div class="gauge-label" style="margin-top:8px">Position (ν₂ mod N, ν₃ mod N)</div>
+    <div class="gauge-val zero-val" id="gauge-pos">(0, 0)</div>
+  </div>
+
+  <div id="info-box">
+    <b>Baker's theorem:</b> |a − log₂3·b| &gt; C/max(|a|,|b|)<sup>κ</sup><br>
+    Dangerous cells cluster near the foliation line but can never sit exactly on it.<br><br>
+    <b>Baker Kick:</b> During a v₂=1 run of d steps, cell error shifts by d×(1−log₂3) ≈ −0.585d.<br>
+    The trajectory is pushed <em>away</em> from the dangerous region.<br><br>
+    <b>Green</b> = safe steps, <b>Red glow</b> = dangerous zone, <b>Arrow</b> = kick direction.
+  </div>
+</div>
+
+<div id="canvas-wrap">
+  <canvas id="cv"></canvas>
+  <div id="step-display">t=0 | ν₂=0 ν₃=0</div>
+</div>
+
+<script>
+"use strict";
+
+const LOG2_3 = Math.log2(3); // ~1.58496
+const KICK_SHIFT = 1 - LOG2_3; // ~-0.58496
+
+// --- Collatz trajectory precomputation ---
+function collatzTrajectory(n, maxSteps = 2000) {
+  const steps = []; // each: {val, isOdd, nu2, nu3, cellErr}
+  let x = n, nu2 = 0, nu3 = 0, cellErr = 0;
+  steps.push({val: x, isOdd: false, nu2, nu3, cellErr, t: 0});
+  for (let t = 1; t <= maxSteps && x > 1; t++) {
+    if (x % 2 === 0) {
+      x = x / 2;
+      nu2++;
+      steps.push({val: x, isOdd: false, nu2, nu3, cellErr, t});
+    } else {
+      x = 3 * x + 1;
+      nu3++;
+      cellErr += KICK_SHIFT;
+      steps.push({val: x, isOdd: true, nu2, nu3, cellErr, t});
+    }
+  }
+  // If reached 1, add a few cycle steps for visual
+  for (let extra = 0; extra < 20 && x >= 1; extra++) {
+    const t = steps.length;
+    if (x % 2 === 0) { x = x / 2; nu2++; steps.push({val:x,isOdd:false,nu2,nu3,cellErr,t}); }
+    else { x = 3*x+1; nu3++; cellErr+=KICK_SHIFT; steps.push({val:x,isOdd:true,nu2,nu3,cellErr,t}); }
+  }
+  return steps;
+}
+
+// --- Danger level for a cell (a,b) mod N ---
+function dangerLevel(a, b, N) {
+  // Distance to nearest point on foliation a = log2(3)*b (mod N)
+  let minDist = Infinity;
+  for (let wrap_a = -1; wrap_a <= 1; wrap_a++) {
+    for (let wrap_b = -1; wrap_b <= 1; wrap_b++) {
+      const aa = a + wrap_a * N;
+      const bb = b + wrap_b * N;
+      // Distance from (aa, bb) to line a = log2(3)*b  =>  a - log2(3)*b = 0
+      const dist = Math.abs(aa - LOG2_3 * bb) / Math.sqrt(1 + LOG2_3 * LOG2_3);
+      if (dist < minDist) minDist = dist;
+    }
+  }
+  // Normalize: 0 = on line (max danger), 1 = far away
+  const maxPossible = N / (2 * Math.sqrt(1 + LOG2_3 * LOG2_3));
+  const normalized = minDist / maxPossible;
+  return Math.max(0, 1 - normalized);
+}
+
+// --- Canvas setup ---
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+let N = 27, startN = 27;
+let traj = [];
+let currentStep = 0;
+let playing = false;
+let speed = 5;
+let lastStepTime = 0;
+
+// Trail: store recent positions
+const TRAIL_MAX = 50;
+let trail = []; // [{x, y, isOdd, kickMag}]
+
+// Kick vectors to draw (fade over time)
+let kicks = []; // [{x, y, dx, dy, age}]
+
+// Toggles
+let showFoli = true, showKick = true, showGauge = true, showDanger = true, showTrail = true;
+
+// Precomputed danger grid
+let dangerGrid = [];
+
+function recomputeDanger() {
+  dangerGrid = [];
+  for (let a = 0; a < N; a++) {
+    dangerGrid[a] = [];
+    for (let b = 0; b < N; b++) {
+      dangerGrid[a][b] = dangerLevel(a, b, N);
+    }
+  }
+}
+
+function resize() {
+  const wrap = document.getElementById('canvas-wrap');
+  const sz = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40);
+  cv.width = sz; cv.height = sz;
+}
+
+function cellSize() { return cv.width / N; }
+
+function cellCenter(a, b) {
+  const cs = cellSize();
+  return { x: a * cs + cs / 2, y: b * cs + cs / 2 };
+}
+
+// --- Drawing ---
+function drawBackground() {
+  const cs = cellSize();
+  for (let a = 0; a < N; a++) {
+    for (let b = 0; b < N; b++) {
+      const d = dangerGrid[a][b];
+      if (showDanger && d > 0.3) {
+        // Red glow for dangerous cells
+        const intensity = Math.pow((d - 0.3) / 0.7, 1.5);
+        const r = Math.floor(40 + 120 * intensity);
+        const g = Math.floor(15 + 10 * intensity);
+        const bv = Math.floor(20 + 15 * intensity);
+        ctx.fillStyle = `rgb(${r},${g},${bv})`;
+      } else {
+        // Dark blue for safe cells
+        const safe = 1 - d;
+        const r = Math.floor(8 + 8 * safe);
+        const g = Math.floor(10 + 20 * safe);
+        const bv = Math.floor(20 + 40 * safe);
+        ctx.fillStyle = `rgb(${r},${g},${bv})`;
+      }
+      ctx.fillRect(a * cs, b * cs, cs - 0.5, cs - 0.5);
+    }
+  }
+}
+
+function drawFoliation() {
+  if (!showFoli) return;
+  const cs = cellSize();
+  ctx.save();
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  // Draw line a = log2(3) * b  =>  for b from 0 to N, a = log2(3)*b mod N
+  // Draw multiple wraps
+  for (let wrap = 0; wrap < Math.ceil(LOG2_3) + 1; wrap++) {
+    ctx.moveTo(0, wrap * N * cs / LOG2_3);
+    ctx.lineTo(N * cs, (wrap * N + N) * cs / LOG2_3);
+  }
+  // Clip to canvas
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawTrail() {
+  if (!showTrail || trail.length === 0) return;
+  const cs = cellSize();
+  // Draw trail lines with fading
+  for (let i = 1; i < trail.length; i++) {
+    const p0 = trail[i - 1], p1 = trail[i];
+    const alpha = 0.15 + 0.6 * (i / trail.length);
+    // Don't draw wrapping lines (distance > N/2)
+    const dx = Math.abs(p1.x - p0.x), dy = Math.abs(p1.y - p0.y);
+    if (dx > N / 2 || dy > N / 2) continue;
+    const c0 = cellCenter(p0.x, p0.y);
+    const c1 = cellCenter(p1.x, p1.y);
+    ctx.beginPath();
+    ctx.moveTo(c0.x, c0.y);
+    ctx.lineTo(c1.x, c1.y);
+    const col = p1.isOdd ? `rgba(255,100,80,${alpha})` : `rgba(80,220,140,${alpha})`;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  // Draw trail dots
+  for (let i = 0; i < trail.length; i++) {
+    const p = trail[i];
+    const alpha = 0.2 + 0.7 * (i / trail.length);
+    const c = cellCenter(p.x, p.y);
+    const col = p.isOdd ? `rgba(255,100,80,${alpha})` : `rgba(80,220,140,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, Math.max(2, cs * 0.12 * alpha), 0, Math.PI * 2);
+    ctx.fillStyle = col;
+    ctx.fill();
+  }
+}
+
+function drawKicks() {
+  if (!showKick) return;
+  const cs = cellSize();
+  for (let i = kicks.length - 1; i >= 0; i--) {
+    const k = kicks[i];
+    k.age++;
+    if (k.age > 120) { kicks.splice(i, 1); continue; }
+    const alpha = Math.max(0, 1 - k.age / 120);
+    const pulse = 1 + 0.3 * Math.sin(k.age * 0.15);
+    const c = cellCenter(k.x, k.y);
+    // Arrow from cell center in kick direction
+    const len = cs * 1.2 * pulse * Math.abs(k.mag);
+    // Kick is perpendicular to foliation line. Foliation direction = (1, log2(3)).
+    // Perpendicular = (log2(3), -1) normalized, pointing away from line.
+    const perpLen = Math.sqrt(1 + LOG2_3 * LOG2_3);
+    // Direction depends on which side we're on
+    const sign = k.mag < 0 ? -1 : 1;
+    const dx = sign * LOG2_3 / perpLen;
+    const dy = sign * (-1) / perpLen;
+
+    const ex = c.x + dx * len;
+    const ey = c.y + dy * len;
+
+    // Arrow shaft
+    ctx.beginPath();
+    ctx.moveTo(c.x, c.y);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = `rgba(255,220,60,${alpha * 0.9})`;
+    ctx.lineWidth = 2.5 * pulse;
+    ctx.stroke();
+
+    // Arrowhead
+    const headLen = 8 * pulse;
+    const angle = Math.atan2(ey - c.y, ex - c.x);
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex - headLen * Math.cos(angle - 0.4), ey - headLen * Math.sin(angle - 0.4));
+    ctx.lineTo(ex - headLen * Math.cos(angle + 0.4), ey - headLen * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = `rgba(255,220,60,${alpha})`;
+    ctx.fill();
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, cs * 0.6, 0, Math.PI * 2);
+    const grd = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, cs * 0.6);
+    grd.addColorStop(0, `rgba(255,200,40,${0.2 * alpha})`);
+    grd.addColorStop(1, `rgba(255,200,40,0)`);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+}
+
+function drawCurrentPos() {
+  if (currentStep >= traj.length) return;
+  const s = traj[currentStep];
+  const a = s.nu2 % N, b = s.nu3 % N;
+  const c = cellCenter(a, b);
+  const cs = cellSize();
+
+  // Outer glow
+  const grd = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, cs * 0.8);
+  if (s.isOdd) {
+    grd.addColorStop(0, 'rgba(255,80,60,0.6)');
+    grd.addColorStop(1, 'rgba(255,80,60,0)');
+  } else {
+    grd.addColorStop(0, 'rgba(60,255,120,0.6)');
+    grd.addColorStop(1, 'rgba(60,255,120,0)');
+  }
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, cs * 0.8, 0, Math.PI * 2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Inner dot
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, Math.max(4, cs * 0.25), 0, Math.PI * 2);
+  ctx.fillStyle = s.isOdd ? '#ff6644' : '#44ff88';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+function updateGauges() {
+  if (currentStep >= traj.length) return;
+  const s = traj[currentStep];
+  const errEl = document.getElementById('gauge-err');
+  const defEl = document.getElementById('gauge-deficit');
+  const posEl = document.getElementById('gauge-pos');
+
+  errEl.textContent = s.cellErr.toFixed(3);
+  errEl.className = 'gauge-val ' + (s.cellErr > 0.01 ? 'pos-val' : s.cellErr < -0.01 ? 'neg-val' : 'zero-val');
+
+  const deficit = s.nu3 - s.t / 3;
+  defEl.textContent = deficit.toFixed(3);
+  defEl.className = 'gauge-val ' + (deficit > 0.01 ? 'neg-val' : deficit < -0.01 ? 'pos-val' : 'zero-val');
+
+  posEl.textContent = `(${s.nu2 % N}, ${s.nu3 % N})`;
+  posEl.className = 'gauge-val zero-val';
+
+  document.getElementById('step-display').textContent =
+    `t=${s.t} | ν₂=${s.nu2} ν₃=${s.nu3} | n(t)=${s.val}`;
+}
+
+function advanceStep() {
+  if (currentStep >= traj.length - 1) { playing = false; return; }
+  currentStep++;
+  const s = traj[currentStep];
+  const a = s.nu2 % N, b = s.nu3 % N;
+
+  trail.push({ x: a, y: b, isOdd: s.isOdd });
+  if (trail.length > TRAIL_MAX) trail.shift();
+
+  // Add kick vector on odd steps
+  if (s.isOdd) {
+    kicks.push({ x: a, y: b, mag: KICK_SHIFT, age: 0 });
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  drawBackground();
+  drawFoliation();
+  drawTrail();
+  drawKicks();
+  drawCurrentPos();
+  if (showGauge) updateGauges();
+}
+
+function loop(ts) {
+  if (playing && ts - lastStepTime > 1000 / speed) {
+    advanceStep();
+    lastStepTime = ts;
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function resetSim() {
+  const nVal = parseInt(document.getElementById('inp-n').value) || 27;
+  N = parseInt(document.getElementById('inp-N').value) || 27;
+  startN = nVal;
+  traj = collatzTrajectory(nVal, 10000);
+  currentStep = 0;
+  trail = [];
+  kicks = [];
+  playing = false;
+  recomputeDanger();
+  resize();
+  updateGauges();
+}
+
+// --- Event listeners ---
+document.getElementById('btn-play').addEventListener('click', () => { playing = true; });
+document.getElementById('btn-pause').addEventListener('click', () => { playing = false; });
+document.getElementById('btn-step').addEventListener('click', () => { playing = false; advanceStep(); });
+document.getElementById('btn-reset').addEventListener('click', resetSim);
+
+document.getElementById('inp-speed').addEventListener('input', e => {
+  speed = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = speed;
+});
+document.getElementById('inp-n').addEventListener('change', resetSim);
+document.getElementById('inp-N').addEventListener('change', resetSim);
+
+document.getElementById('tog-foli').addEventListener('change', e => { showFoli = e.target.checked; });
+document.getElementById('tog-kick').addEventListener('change', e => { showKick = e.target.checked; });
+document.getElementById('tog-gauge').addEventListener('change', e => { showGauge = e.target.checked; });
+document.getElementById('tog-danger').addEventListener('change', e => { showDanger = e.target.checked; });
+document.getElementById('tog-trail').addEventListener('change', e => { showTrail = e.target.checked; });
+
+window.addEventListener('resize', resize);
+
+// --- Init ---
+resetSim();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
