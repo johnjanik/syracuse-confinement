@@ -335,7 +335,7 @@ private theorem nu2_increases_of_all_even (n T₂ k : ℕ)
 /-! ## Δ₃ = 0 case: impossible -/
 
 /-- A cycle with no odd steps is impossible: the identity forces 2^p = 1. -/
-private theorem no_cycle_delta3_zero (n : ℕ) (hn : n ≥ 1)
+theorem no_cycle_delta3_zero (n : ℕ) (hn : n ≥ 1)
     (T₂ p : ℕ) (hp : p ≥ 1)
     (hperiodic : collatzSeq n (T₂ + p) = collatzSeq n T₂)
     (hdelta : oddStepsInPeriod n T₂ p = 0) : False := by
@@ -479,7 +479,7 @@ private theorem odd_dvd_pow_two_eq_one {d k : ℕ}
   exact Nat.eq_one_of_dvd_one h1
 
 /-- The main Δ₃ = 1 result: the cycle contains 1. -/
-private theorem cycle_contains_one_of_delta3_one (n : ℕ) (hn : n ≥ 1)
+theorem cycle_contains_one_of_delta3_one (n : ℕ) (hn : n ≥ 1)
     (T₂ p : ℕ) (hp : p ≥ 1)
     (hperiodic : ∀ t, t ≥ T₂ → collatzSeq n (t + p) = collatzSeq n t)
     (hdelta : oddStepsInPeriod n T₂ p = 1) :
@@ -592,7 +592,7 @@ private theorem three_delta3_le_p (n T₂ p : ℕ) (K T₀ : ℕ) (hT₂ : T₂ 
 /-- The strict inequality case (2Δ₃ < Δ₂, i.e. 3Δ₃ < p): the universal bound
     a(t)·2^ν₂ ≤ n·4^ν₃ at t = T₂+k·p forces a(T₂) < 1 for large k,
     contradicting a(T₂) ≥ 1. -/
-private theorem no_cycle_strict_inequality (n : ℕ) (hn : n ≥ 1)
+theorem no_cycle_strict_inequality (n : ℕ) (hn : n ≥ 1)
     (T₂ p : ℕ) (_hp : p ≥ 1)
     (hperiodic : ∀ t, t ≥ T₂ → collatzSeq n (t + p) = collatzSeq n t)
     (hstrict : 3 * oddStepsInPeriod n T₂ p + 1 ≤ p) : False := by
@@ -686,7 +686,7 @@ private theorem collatzSeq_as_iterate (n T₂ k : ℕ) :
     When p = 3·Δ₃, the cycle equation gives c₀ = S/(4^Δ₃ - 3^Δ₃) where
     S ~ 3^Δ₃ grows, so c₀ doesn't shrink to zero. Baker's theorem on
     linear forms in logarithms rules out all non-trivial solutions. -/
-private theorem no_cycle_equality_case (n : ℕ) (hn : n ≥ 1)
+theorem no_cycle_equality_case (n : ℕ) (hn : n ≥ 1)
     (T₂ p : ℕ) (_hp : p ≥ 1)
     (hperiodic : ∀ t, t ≥ T₂ → collatzSeq n (t + p) = collatzSeq n t)
     (hpeq : p = 3 * oddStepsInPeriod n T₂ p)

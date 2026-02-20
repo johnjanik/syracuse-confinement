@@ -29,6 +29,8 @@ import Mathlib.NumberTheory.Real.Irrational
 import Mathlib.LinearAlgebra.Vandermonde
 import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.Analysis.Complex.AbsMax
+import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Topology.Sequences
 
 namespace Collatz
@@ -172,21 +174,122 @@ private lemma blaschke_product_nonneg (T : ℕ) (z : ℂ) :
 
 /-- Tight Blaschke factor bound: each factor ≤ (‖z‖ + k) / R where R = 2T+1.
 
-    Proof sketch: The Blaschke factor |R(z-a)/(R²-az)| is maximized over
-    |z| ≤ r at z = -r (real, opposite to the zero). At that point,
-    |b| = R(r+a)/(R²+ar). Since R²+ar ≥ R², this gives |b| ≤ (r+a)/R.
+    Proof: The Blaschke factor R·‖z-a‖/‖R²-a·z‖ satisfies
+      R·‖z-a‖/‖R²-a·z‖ ≤ R·(‖z‖+a)/(R²+a·‖z‖) ≤ (‖z‖+a)/R.
+    The first inequality (Möbius bound) follows by squaring and expanding:
+      (‖z‖+a)²·‖R²-a·z‖² - (R²+a·‖z‖)²·‖z-a‖²
+      = 2a(R²-‖z‖²)(‖z‖+Re(z))(R²-a²) ≥ 0
+    since ‖z‖ < R, a ≤ T < R, and Re(z) ≥ -‖z‖.
+    The second inequality follows from a·‖z‖ ≥ 0. -/
 
-    The maximum principle argument: |b(z,a)|² = R²(r²-2at+a²)/(R⁴-2aR²t+a²r²)
-    where t = Re(z). The derivative in t is proportional to -a(R²-r²)(R²-a²) < 0,
-    so |b|² is decreasing in t, maximized at t = -r.
-
-    Requires: Complex.norm computation, algebraic manipulation. -/
 private lemma blaschke_factor_le_ratio (T : ℕ) (_hT : T ≥ 2) (k : ℕ)
-    (hk : k ∈ Finset.range (T + 1)) (z : ℂ) (hz : ‖z‖ ≤ ↑T / 2) :
+    (_hk : k ∈ Finset.range (T + 1)) (z : ℂ) (_hz : ‖z‖ ≤ ↑T / 2) :
     (2 * (T : ℝ) + 1) * ‖z - (k : ℂ)‖ /
       ‖((2 * (T : ℝ) + 1) ^ 2 : ℂ) - (k : ℂ) * z‖ ≤
     (‖z‖ + ↑k) / (2 * ↑T + 1) := by
-  sorry
+  -- Basic setup
+  have hR_pos : (0 : ℝ) < 2 * (↑T : ℝ) + 1 := by positivity
+  have hk_le_T : k ≤ T := by rw [Finset.mem_range] at _hk; omega
+  have hkR : (↑k : ℝ) ≤ 2 * ↑T + 1 := by
+    have : (↑k : ℝ) ≤ ↑T := Nat.cast_le.mpr hk_le_T; linarith
+  have hrR : ‖z‖ ≤ 2 * (↑T : ℝ) + 1 := by linarith [_hz]
+  have hx_ge : -‖z‖ ≤ z.re := (abs_le.mp (Complex.abs_re_le_norm z)).1
+  -- ‖z‖² = z.re² + z.im²
+  have hrxy : z.re ^ 2 + z.im ^ 2 = ‖z‖ ^ 2 := by
+    rw [sq ‖z‖, Complex.norm_mul_self_eq_normSq, Complex.normSq_apply]; ring
+  have hx_le : z.re ≤ ‖z‖ := (abs_le.mp (Complex.abs_re_le_norm z)).2
+  -- Handle denominator = 0 (LHS = 0 ≤ RHS)
+  by_cases hdenom : ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ = 0
+  · simp only [hdenom, div_zero]
+    exact div_nonneg (by positivity) (by linarith)
+  -- Denominator > 0: cross-multiply via div_le_div_iff₀
+  · have hdenom_pos : 0 < ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ :=
+      lt_of_le_of_ne (norm_nonneg _) (Ne.symm hdenom)
+    rw [div_le_div_iff₀ hdenom_pos hR_pos]
+    -- Goal: (2T+1)*‖z-k‖*(2T+1) ≤ (‖z‖+k)*‖denom‖
+    -- Use nonneg_le_nonneg_of_sq_le_sq to reduce to squared inequality
+    apply nonneg_le_nonneg_of_sq_le_sq
+      (mul_nonneg (by positivity) (norm_nonneg _))
+    -- Goal: A*A ≤ B*B (where A = (2T+1)*‖z-k‖*(2T+1), B = (‖z‖+k)*‖denom‖)
+    -- Step 1: Expand products via ring
+    have hA2 : (2 * (↑T : ℝ) + 1) * ‖z - (↑k : ℂ)‖ * (2 * (↑T : ℝ) + 1) *
+        ((2 * (↑T : ℝ) + 1) * ‖z - (↑k : ℂ)‖ * (2 * (↑T : ℝ) + 1)) =
+        (2 * (↑T : ℝ) + 1) ^ 4 * (‖z - (↑k : ℂ)‖ * ‖z - (↑k : ℂ)‖) := by ring
+    have hB2 : (‖z‖ + ↑k) * ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ *
+        ((‖z‖ + ↑k) * ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖) =
+        (‖z‖ + ↑k) ^ 2 *
+        (‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ *
+         ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖) := by ring
+    -- Step 2: Expand norms via normSq
+    have hnum_sq : ‖z - (↑k : ℂ)‖ * ‖z - (↑k : ℂ)‖ = (z.re - ↑k) ^ 2 + z.im ^ 2 := by
+      rw [Complex.norm_mul_self_eq_normSq, Complex.normSq_apply]
+      simp only [Complex.sub_re, Complex.sub_im, Complex.natCast_re,
+                  Complex.natCast_im, sub_zero]; ring
+    have hdenom_sq : ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ *
+        ‖((2 * (↑T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ =
+        ((2 * (↑T : ℝ) + 1) ^ 2 - ↑k * z.re) ^ 2 + (↑k * z.im) ^ 2 := by
+      rw [Complex.norm_mul_self_eq_normSq, Complex.normSq_apply]
+      simp only [pow_succ, pow_zero, one_mul,
+        Complex.sub_re, Complex.sub_im, Complex.mul_re, Complex.mul_im,
+        Complex.add_re, Complex.add_im, Complex.one_re, Complex.one_im,
+        Complex.re_ofNat, Complex.im_ofNat,
+        Complex.ofReal_re, Complex.ofReal_im,
+        Complex.natCast_re, Complex.natCast_im,
+        sub_zero, zero_mul, mul_zero, add_zero, zero_add, mul_one]; ring
+    -- Step 3: Rewrite goal to pure real arithmetic
+    rw [hA2, hB2, hnum_sq, hdenom_sq]
+    -- Goal: (2T+1)⁴*((z.re-k)²+z.im²) ≤ (‖z‖+k)²*(((2T+1)²-k·z.re)²+(k·z.im)²)
+    -- Eliminate z.im² using z.im² = ‖z‖² - z.re²
+    have him2 : z.im ^ 2 = ‖z‖ ^ 2 - z.re ^ 2 := by linarith [hrxy]
+    -- Rewrite numerator normSq: (z.re-k)²+z.im² = ‖z‖²-2k·z.re+k²
+    have h_num : (z.re - (↑k : ℝ)) ^ 2 + z.im ^ 2 =
+        ‖z‖ ^ 2 - 2 * (↑k : ℝ) * z.re + (↑k : ℝ) ^ 2 := by nlinarith
+    -- Rewrite denominator normSq: ((2T+1)²-k·z.re)²+(k·z.im)²
+    --   = (2T+1)⁴-2k(2T+1)²·z.re+k²·‖z‖²
+    have h_den : ((2 * (↑T : ℝ) + 1) ^ 2 - (↑k : ℝ) * z.re) ^ 2 +
+        ((↑k : ℝ) * z.im) ^ 2 =
+        (2 * (↑T : ℝ) + 1) ^ 4 - 2 * (↑k : ℝ) * (2 * (↑T : ℝ) + 1) ^ 2 * z.re +
+        (↑k : ℝ) ^ 2 * ‖z‖ ^ 2 := by nlinarith [mul_pow (↑k : ℝ) z.im 2]
+    rw [h_num, h_den]
+    -- Goal is now pure polynomial in z.re, ‖z‖, ↑k, (2↑T+1)
+    -- Ring identity decomposes the difference as sum of two nonneg terms:
+    --   2k(‖z‖+x)(S-‖z‖²)(S-k²) + (2k‖z‖S+k²‖z‖²)(‖z‖²-2kx+k²)
+    -- where S = (2T+1)², x = z.re
+    have hpoly : (‖z‖ + (↑k : ℝ)) ^ 2 *
+        ((2 * (↑T : ℝ) + 1) ^ 4 - 2 * (↑k : ℝ) * (2 * (↑T : ℝ) + 1) ^ 2 * z.re +
+        (↑k : ℝ) ^ 2 * ‖z‖ ^ 2) -
+        (2 * (↑T : ℝ) + 1) ^ 4 *
+        (‖z‖ ^ 2 - 2 * (↑k : ℝ) * z.re + (↑k : ℝ) ^ 2) =
+        2 * (↑k : ℝ) * (‖z‖ + z.re) *
+        ((2 * (↑T : ℝ) + 1) ^ 2 - ‖z‖ ^ 2) *
+        ((2 * (↑T : ℝ) + 1) ^ 2 - (↑k : ℝ) ^ 2) +
+        (2 * (↑k : ℝ) * ‖z‖ * (2 * (↑T : ℝ) + 1) ^ 2 +
+        (↑k : ℝ) ^ 2 * ‖z‖ ^ 2) *
+        (‖z‖ ^ 2 - 2 * (↑k : ℝ) * z.re + (↑k : ℝ) ^ 2) := by ring
+    -- Each term nonneg
+    have hr_sq_le : ‖z‖ ^ 2 ≤ (2 * (↑T : ℝ) + 1) ^ 2 :=
+      sq_le_sq' (by linarith) hrR
+    have hk_sq_le : (↑k : ℝ) ^ 2 ≤ (2 * (↑T : ℝ) + 1) ^ 2 :=
+      sq_le_sq' (by linarith [Nat.cast_nonneg (α := ℝ) k]) hkR
+    have hf1 : 0 ≤ 2 * (↑k : ℝ) * (‖z‖ + z.re) *
+        ((2 * (↑T : ℝ) + 1) ^ 2 - ‖z‖ ^ 2) *
+        ((2 * (↑T : ℝ) + 1) ^ 2 - (↑k : ℝ) ^ 2) := by
+      apply mul_nonneg; apply mul_nonneg; apply mul_nonneg
+      · positivity
+      · linarith
+      · linarith
+      · linarith
+    have hf2 : 0 ≤ (2 * (↑k : ℝ) * ‖z‖ * (2 * (↑T : ℝ) + 1) ^ 2 +
+        (↑k : ℝ) ^ 2 * ‖z‖ ^ 2) *
+        (‖z‖ ^ 2 - 2 * (↑k : ℝ) * z.re + (↑k : ℝ) ^ 2) := by
+      apply mul_nonneg
+      · positivity
+      · -- ‖z‖^2 - 2k·z.re + k^2 = (‖z‖-k)^2 + 2k(‖z‖-z.re) ≥ 0
+        have hsq : 0 ≤ (‖z‖ - (↑k : ℝ)) ^ 2 := sq_nonneg _
+        have hdiff : 0 ≤ ‖z‖ - z.re := by linarith
+        have hknn : (0 : ℝ) ≤ ↑k := Nat.cast_nonneg (α := ℝ) k
+        linarith [mul_nonneg hknn hdiff]
+    linarith
 
 /-- The rising factorial ∏_{k=0}^{T} (r+k) ≤ T^(T+1) when 0 ≤ r ≤ T/2.
 
@@ -197,9 +300,50 @@ private lemma blaschke_factor_le_ratio (T : ℕ) (_hT : T ≥ 2) (k : ℕ)
     For the AM-GM setup: use uniform weights w_k = 1/(T+1), so ∑w = 1.
     Then (∏ (r+k)^{1/(T+1)}) ≤ (1/(T+1))∑(r+k) = r + T/2 ≤ T.
     Raising to the (T+1)-th power: ∏(r+k) ≤ T^(T+1). -/
-private lemma rising_factorial_le_pow (T : ℕ) (r : ℝ) (_hr : 0 ≤ r) (hrT : r ≤ ↑T / 2) :
+private lemma rising_factorial_le_pow (T : ℕ) (r : ℝ) (hr : 0 ≤ r) (hrT : r ≤ ↑T / 2) :
     ∏ k ∈ Finset.range (T + 1), (r + ↑k) ≤ (↑T : ℝ) ^ (T + 1) := by
-  sorry
+  -- Strategy: AM-GM with uniform weights w_k = 1/(T+1).
+  set n := T + 1 with hn_def
+  set s := Finset.range n
+  set z : ℕ → ℝ := fun k => r + ↑k
+  set w : ℕ → ℝ := fun _ => (1 : ℝ) / ↑n
+  have hz : ∀ k ∈ s, 0 ≤ z k := fun _ _ => by positivity
+  have hw : ∀ k ∈ s, 0 ≤ w k := fun _ _ => by positivity
+  have hn_pos : (0 : ℝ) < ↑n := by positivity
+  have hn_ne : (↑n : ℝ) ≠ 0 := ne_of_gt hn_pos
+  have hs_card : s.card = n := Finset.card_range n
+  have hw' : ∑ k ∈ s, w k = 1 := by
+    simp only [w, Finset.sum_const, nsmul_eq_mul, hs_card]
+    exact mul_one_div_cancel hn_ne
+  -- AM-GM: ∏ z_k^{w_k} ≤ ∑ w_k * z_k
+  have hamgm := Real.geom_mean_le_arith_mean_weighted s w z hw hw' hz
+  -- Bound the arithmetic mean by T
+  have hsum : ∑ k ∈ s, w k * z k ≤ ↑T := by
+    have hfactor : ∀ k ∈ s, w k * z k = (r + ↑k) / ↑n := by
+      intro k _; simp only [w, z, one_div, inv_mul_eq_div]
+    rw [Finset.sum_congr rfl hfactor, ← Finset.sum_div, div_le_iff₀ hn_pos]
+    -- ∑(r + k) = n*r + ∑ k
+    rw [show ∑ k ∈ s, (r + ↑k) = ↑n * r + ∑ k ∈ s, (↑k : ℝ) from by
+      rw [Finset.sum_add_distrib, Finset.sum_const, nsmul_eq_mul, hs_card]]
+    -- Gauss sum
+    have hgauss_nat : (∑ i ∈ s, i) * 2 = n * T := by
+      change (∑ i ∈ Finset.range n, i) * 2 = n * T
+      have h1 := Finset.sum_range_id_mul_two n
+      have h2 : n - 1 = T := by omega
+      rw [h2] at h1; exact h1
+    have hgauss_real : (∑ i ∈ s, (↑i : ℝ)) * 2 = ↑n * ↑T := by
+      have hcast : (∑ k ∈ s, (↑k : ℝ)) = (↑(∑ k ∈ s, k) : ℝ) := by push_cast; rfl
+      rw [hcast, show (2 : ℝ) = (↑(2 : ℕ) : ℝ) from by norm_num,
+          ← Nat.cast_mul, hgauss_nat, Nat.cast_mul]
+    nlinarith
+  -- ∏ z_k^{1/n} ≤ T
+  have hle : ∏ k ∈ s, z k ^ (w k) ≤ ↑T := le_trans hamgm hsum
+  -- ∏ z_k^{1/n} = (∏ z_k)^{1/n}
+  rw [Real.finset_prod_rpow s z hz] at hle
+  -- (∏ z_k)^{n⁻¹} ≤ T → ∏ z_k ≤ T^n
+  rw [one_div] at hle
+  rw [Real.rpow_inv_le_iff_of_pos (Finset.prod_nonneg hz) (Nat.cast_nonneg T) hn_pos] at hle
+  rwa [Real.rpow_natCast] at hle
 
 /-- Product bound: ∏_{k=0}^{T} (r+k)/(2T+1) ≤ (1/2)^(T+1) for 0 ≤ r ≤ T/2.
 
@@ -224,18 +368,68 @@ private lemma ratio_product_le_half_pow (T : ℕ) (_hT : T ≥ 2) (r : ℝ)
     _ ≤ (1 / 2 * (2 * ↑T + 1)) ^ (T + 1) :=
         pow_le_pow_left₀ (by positivity) (by linarith) _
 
+/-- Blaschke boundary identity: R·‖w-k‖ = ‖R²-kw‖ on ‖w‖ = R.
+    Proof by showing both sides squared are equal using ‖w‖² = R². -/
+private lemma blaschke_boundary_identity (R : ℝ) (hR : 0 < R)
+    (w : ℂ) (hw : ‖w‖ = R) (k : ℕ) :
+    R * ‖w - (↑k : ℂ)‖ = ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w‖ := by
+  have hR_nn : (0 : ℝ) ≤ R := le_of_lt hR
+  rw [← sq_eq_sq₀ (mul_nonneg hR_nn (norm_nonneg _)) (norm_nonneg _)]
+  have hrxy : w.re ^ 2 + w.im ^ 2 = R ^ 2 := by
+    have h1 : ‖w‖ * ‖w‖ = R * R := by rw [hw]
+    rw [Complex.norm_mul_self_eq_normSq, Complex.normSq_apply] at h1; nlinarith
+  have hL : (R * ‖w - (↑k : ℂ)‖) ^ 2 = R ^ 2 * ((w.re - ↑k) ^ 2 + w.im ^ 2) := by
+    have h1 : ‖w - (↑k : ℂ)‖ * ‖w - (↑k : ℂ)‖ = (w.re - ↑k) ^ 2 + w.im ^ 2 := by
+      rw [Complex.norm_mul_self_eq_normSq, Complex.normSq_apply,
+          Complex.sub_re, Complex.sub_im, Complex.natCast_re, Complex.natCast_im, sub_zero]; ring
+    nlinarith [sq_nonneg R]
+  have hR2 : ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w‖ ^ 2 =
+      (R ^ 2 - ↑k * w.re) ^ 2 + (↑k * w.im) ^ 2 := by
+    have h1 : ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w‖ *
+        ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w‖ =
+        (R ^ 2 - ↑k * w.re) ^ 2 + (↑k * w.im) ^ 2 := by
+      rw [Complex.norm_mul_self_eq_normSq, Complex.normSq_apply]
+      simp only [Complex.sub_re, Complex.sub_im, Complex.mul_re, Complex.mul_im,
+                  Complex.ofReal_re, Complex.ofReal_im, Complex.natCast_re, Complex.natCast_im,
+                  sub_zero, zero_mul, add_zero]; ring
+    nlinarith [sq_nonneg ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w‖]
+  rw [hL, hR2]
+  nlinarith [sq_nonneg (↑k * w.re - R ^ 2), sq_nonneg (↑k * w.im),
+             sq_nonneg (w.re - ↑k), sq_nonneg w.im, sq_nonneg (↑k : ℝ)]
+
+/-- Factor an entire function through its integer zeros via iterated dslope.
+    If f vanishes at 0, 1, ..., n-1, then f(w) = ∏_{k<n}(w-k) · H(w) for some entire H. -/
+private lemma factor_through_zeros (f : ℂ → ℂ) (hf : Differentiable ℂ f)
+    (n : ℕ) (hvanish : ∀ k : ℕ, k < n → f (↑k : ℂ) = 0) :
+    ∃ H : ℂ → ℂ, Differentiable ℂ H ∧
+      ∀ w, f w = (∏ k ∈ Finset.range n, (w - (↑k : ℂ))) * H w := by
+  induction n with
+  | zero => exact ⟨f, hf, fun w => by simp⟩
+  | succ n ih =>
+    obtain ⟨G, hG_diff, hG_eq⟩ := ih (fun k hk => hvanish k (Nat.lt_succ_of_lt hk))
+    have hGn : G (↑n : ℂ) = 0 := by
+      have hfn := hvanish n (Nat.lt_succ_iff.mpr le_rfl)
+      rw [hG_eq] at hfn
+      have hprod_ne : ∏ k ∈ Finset.range n, ((↑n : ℂ) - (↑k : ℂ)) ≠ 0 :=
+        Finset.prod_ne_zero_iff.mpr (fun k hk => by
+          rw [Finset.mem_range] at hk
+          simp only [sub_ne_zero, Ne, Nat.cast_inj]; omega)
+      exact (mul_eq_zero.mp hfn).resolve_left hprod_ne
+    refine ⟨dslope G (↑n : ℂ), ?_, fun w => ?_⟩
+    · rwa [← differentiableOn_univ, differentiableOn_dslope Filter.univ_mem,
+           differentiableOn_univ]
+    · have h := sub_smul_dslope G (↑n : ℂ) w
+      rw [smul_eq_mul, hGn, sub_zero] at h
+      rw [Finset.prod_range_succ, mul_assoc, h, ← hG_eq]
+
 /-- Poisson-Jensen inequality: an entire function with growth bound and
     integer zeros satisfies |f(z)| ≤ C·exp(σR) · blaschkeProduct.
 
-    Proof outline (Boas "Entire Functions" §2.10):
-    1. Define B(z) = ∏_{k=0}^{T} R(z-k)/(R²-kz) (complex Blaschke product)
-    2. g(z) = f(z)/B(z) is entire (zeros of f cancel poles of 1/B)
-    3. On |z| = R: |B(z)| = 1 (standard Blaschke identity), so |g| = |f| ≤ C·exp(σR)
-    4. Maximum modulus principle: |g(z)| ≤ C·exp(σR) for all |z| ≤ R
-    5. Therefore |f(z)| = |g(z)|·|B(z)| ≤ C·exp(σR) · blaschkeProduct(z)
-
-    Requires: removable singularity theorem, maximum modulus principle (Mathlib),
-    Blaschke boundary identity |B| = 1 on |z| = R. -/
+    Proof: Factor f(w) = ∏(w-k)·H(w) via iterated dslope.
+    Define g(w) = H(w)·∏(R²-kw)/R^{T+1}; g is entire.
+    On |w|=R, boundary identity gives |g|=|f| ≤ C·exp(σR).
+    Maximum modulus principle: |g(z)| ≤ C·exp(σR) for |z| ≤ R.
+    Assembly: |f(z)| = |g(z)|·blaschkeProduct(z). -/
 private lemma poisson_jensen_blaschke
     (f : ℂ → ℂ) (_hf : Differentiable ℂ f)
     (C σ : ℝ) (_hC : C > 0) (_hσ : σ > 0)
@@ -244,7 +438,123 @@ private lemma poisson_jensen_blaschke
     (_hvanish : ∀ t : ℕ, t ≤ T → f (t : ℂ) = 0)
     (z : ℂ) (_hz : ‖z‖ ≤ ↑T / 2) :
     ‖f z‖ ≤ C * Real.exp (σ * (2 * ↑T + 1)) * blaschkeProduct T z := by
-  sorry
+  set R := 2 * (T : ℝ) + 1 with hR_def
+  have hR_pos : (0 : ℝ) < R := by positivity
+  have hR_ne : R ≠ 0 := ne_of_gt hR_pos
+  have hR_nn : (0 : ℝ) ≤ R := le_of_lt hR_pos
+  have hrR : ‖z‖ ≤ R := by linarith [_hz]
+  -- Step 1: Factor f through its zeros at 0,1,...,T
+  obtain ⟨H, hH_diff, hH_eq⟩ := factor_through_zeros f _hf (T + 1)
+    (fun k hk => _hvanish k (by omega))
+  -- Step 2: Trivial case — some factor z - k = 0
+  by_cases hprod : ∏ k ∈ Finset.range (T + 1), (z - (↑k : ℂ)) = 0
+  · rw [hH_eq z, hprod, zero_mul, norm_zero]
+    exact mul_nonneg (mul_nonneg (le_of_lt _hC) (le_of_lt (Real.exp_pos _)))
+      (blaschke_product_nonneg T z)
+  -- Step 3: All factors nonzero
+  · have hfactors_ne : ∀ k ∈ Finset.range (T + 1), z - (↑k : ℂ) ≠ 0 :=
+      Finset.prod_ne_zero_iff.mp hprod
+    -- Define conjugate product Qc
+    set Qc : ℂ → ℂ := fun w => ∏ k ∈ Finset.range (T + 1),
+      (((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w) with hQc_def
+    -- Each denominator factor ‖R² - kz‖ > 0
+    have hQc_factors_pos : ∀ k ∈ Finset.range (T + 1),
+        0 < ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * z‖ := by
+      intro k hk
+      rw [Finset.mem_range] at hk
+      rw [norm_pos_iff]; intro heq
+      have heq' := sub_eq_zero.mp heq
+      by_cases hk0 : k = 0
+      · -- k=0: R² = 0*z = 0, contradiction
+        subst hk0; simp at heq'
+        linarith [sq_pos_of_pos hR_pos]
+      · have hk_pos : (0 : ℝ) < ↑k := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hk0)
+        have hT_pos : (0 : ℝ) < ↑T := by positivity
+        have hnorm : ↑k * ‖z‖ = R ^ 2 := by
+          have h1 : ‖(↑k : ℂ) * z‖ = R ^ 2 := by
+            rw [← heq']; simp [Complex.norm_real, abs_of_pos (pow_pos hR_pos 2)]
+          rwa [norm_mul, Complex.norm_natCast] at h1
+        have hz_eq : ‖z‖ = R ^ 2 / ↑k := by field_simp at hnorm ⊢; linarith
+        have hk_le : (↑k : ℝ) ≤ ↑T := by exact_mod_cast Nat.lt_succ_iff.mp hk
+        have h1 : R ^ 2 / ↑T ≤ R ^ 2 / ↑k :=
+          div_le_div_of_nonneg_left (by positivity : (0:ℝ) ≤ R ^ 2) hk_pos (by linarith)
+        have h2 : ↑T / 2 < R ^ 2 / ↑T := by
+          rw [div_lt_div_iff₀ (by positivity : (0:ℝ) < 2) hT_pos]
+          rw [hR_def]; nlinarith
+        linarith [hz_eq]
+    -- ‖Qc z‖ > 0
+    have hQc_pos : 0 < ‖Qc z‖ := by
+      show 0 < ‖∏ k ∈ Finset.range (T + 1), (((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * z)‖
+      rw [Complex.norm_prod]
+      exact Finset.prod_pos hQc_factors_pos
+    -- R^(T+1) > 0
+    have hR_pow_pos : (0 : ℝ) < R ^ (T + 1) := pow_pos hR_pos _
+    -- Define g = H · Qc / R^(T+1)
+    set g : ℂ → ℂ := fun w => H w * Qc w / ((↑R : ℂ) ^ (T + 1)) with hg_def
+    -- g is entire
+    have hQc_diff : Differentiable ℂ Qc := by
+      change Differentiable ℂ (fun w => ∏ k ∈ Finset.range (T + 1),
+        (((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w))
+      fun_prop
+    have hg_diff : Differentiable ℂ g := by
+      show Differentiable ℂ (fun w => H w * Qc w / ((↑R : ℂ) ^ (T + 1)))
+      exact (hH_diff.mul hQc_diff).div_const _
+    -- Helper: compute ‖g w‖ = ‖H w‖ * ‖Qc w‖ / R^(T+1)
+    have norm_g (w : ℂ) : ‖g w‖ = ‖H w‖ * ‖Qc w‖ / R ^ (T + 1) := by
+      show ‖H w * Qc w / ((↑R : ℂ) ^ (T + 1))‖ = _
+      simp [norm_div, norm_mul, norm_pow, Real.norm_of_nonneg hR_nn]
+    -- Step 4: Bound g on boundary |w| = R
+    have hg_boundary : ∀ w : ℂ, ‖w‖ = R → ‖g w‖ ≤ C * Real.exp (σ * R) := by
+      intro w hw
+      rw [norm_g]
+      -- ‖Qc w‖ = R^(T+1) * ∏ ‖w-k‖  (boundary identity)
+      have hQc_boundary : ‖Qc w‖ =
+          R ^ (T + 1) * ∏ k ∈ Finset.range (T + 1), ‖w - (↑k : ℂ)‖ := by
+        show ‖∏ k ∈ Finset.range (T + 1), (((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * w)‖ = _
+        rw [Complex.norm_prod, Finset.prod_congr rfl (fun k _ =>
+          (blaschke_boundary_identity R hR_pos w hw k).symm),
+          Finset.prod_mul_distrib, Finset.prod_const, Finset.card_range]
+      rw [hQc_boundary]
+      have hRpow_ne : R ^ (T + 1) ≠ 0 := ne_of_gt hR_pow_pos
+      field_simp
+      -- Goal: ‖H w‖ * ∏ ‖w-k‖ ≤ C * exp(σR)  =  ‖f w‖
+      have : ‖H w‖ * ∏ k ∈ Finset.range (T + 1), ‖w - (↑k : ℂ)‖ = ‖f w‖ := by
+        rw [hH_eq w, norm_mul, Complex.norm_prod]; ring
+      rw [this]
+      calc ‖f w‖ ≤ C * Real.exp (σ * ‖w‖) := _hgrowth w
+        _ = C * Real.exp (σ * R) := by rw [hw]
+    -- Step 5: Maximum modulus principle
+    have hg_bound : ‖g z‖ ≤ C * Real.exp (σ * R) := by
+      apply Complex.norm_le_of_forall_mem_frontier_norm_le Metric.isBounded_ball
+        hg_diff.diffContOnCl
+      · intro w hw
+        rw [frontier_ball (0 : ℂ) hR_ne, Metric.mem_sphere, dist_zero_right] at hw
+        exact hg_boundary w hw
+      · rw [closure_ball (0 : ℂ) hR_ne, Metric.mem_closedBall, dist_zero_right]
+        exact hrR
+    -- Step 6: Assembly — ‖f z‖ = ‖g z‖ * blaschkeProduct
+    suffices hkey : ‖f z‖ = ‖g z‖ * blaschkeProduct T z by
+      rw [hkey]; exact mul_le_mul_of_nonneg_right hg_bound (blaschke_product_nonneg T z)
+    -- ‖f z‖ = (∏ ‖z-k‖) * ‖H z‖
+    have hf_norm : ‖f z‖ = (∏ k ∈ Finset.range (T + 1), ‖z - (↑k : ℂ)‖) * ‖H z‖ := by
+      rw [hH_eq z, norm_mul, Complex.norm_prod]
+    -- ‖Qc z‖ as a product of norms
+    have hQc_norm : ‖Qc z‖ = ∏ k ∈ Finset.range (T + 1),
+        ‖((R ^ 2 : ℝ) : ℂ) - (↑k : ℂ) * z‖ := by
+      show ‖∏ k ∈ Finset.range (T + 1), _‖ = _; exact Complex.norm_prod ..
+    -- blaschkeProduct = R^(T+1) * ∏‖z-k‖ / ‖Qc z‖
+    have hbp_eq : blaschkeProduct T z =
+        R ^ (T + 1) * (∏ k ∈ Finset.range (T + 1), ‖z - (↑k : ℂ)‖) /
+        ‖Qc z‖ := by
+      unfold blaschkeProduct
+      -- Unify R with 2*T+1 in the Qc norm
+      have hQc_norm' : ‖Qc z‖ = ∏ k ∈ Finset.range (T + 1),
+          ‖((2 * (T : ℝ) + 1) ^ 2 : ℂ) - (↑k : ℂ) * z‖ := by
+        rw [hQc_norm]; congr 1; ext k; congr 1; congr 1; rw [hR_def]; push_cast; ring
+      rw [hQc_norm', Finset.prod_div_distrib, Finset.prod_mul_distrib]
+      congr 1; rw [Finset.prod_const, Finset.card_range]
+    rw [hf_norm, norm_g, hbp_eq]
+    field_simp
 
 /-- The Blaschke product is at most (1/2)^(T+1) for |z| ≤ T/2, R = 2T+1.
 

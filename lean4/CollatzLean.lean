@@ -31,6 +31,15 @@ import CollatzLean.SolenoidMixing
 import CollatzLean.SkewProduct
 import CollatzLean.CorrelationDecay
 import CollatzLean.BorelCantelli
-import CollatzLean.DenjoyKoksma
 import CollatzLean.UniqueErgodicity
+import CollatzLean.DenjoyKoksma
 import CollatzLean.SublinearDrift
+import CollatzLean.LinearFormThree
+import CollatzLean.SimultaneousApprox
+import CollatzLean.LittlewoodResidence
+import CollatzLean.LittlewoodInduction
+import CollatzLean.SpectralGap
+import CollatzLean.ArithmeticRigidity
+import CollatzLean.MetricConflict
+import CollatzLean.CarryBitScrambling
+import CollatzLean.FuelDynamics

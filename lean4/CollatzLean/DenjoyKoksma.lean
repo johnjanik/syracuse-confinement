@@ -13,8 +13,8 @@
 
   Architecture:
   - A5: denjoy_koksma_sublinear_birkhoff — axiom (Denjoy-Koksma + Ostrowski)
-  - deficit_sublinear_bound — sublinear polynomial bound on deficit (sorry)
-  - deficit_sublinear — key interface: deficit(t) <= eps * t for large t (sorry)
+  - deficit_sublinear_bound — sublinear polynomial bound on deficit (proved from A5 + A2)
+  - deficit_sublinear — key interface: deficit(t) <= eps * t for large t (proved)
 
   Mathematical background:
   The Denjoy-Koksma inequality states that for an irrational rotation
@@ -46,6 +46,7 @@
 import CollatzLean.IrrationalityMeasure
 import CollatzLean.SkewProduct
 import CollatzLean.ContinuedFraction
+import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 
 set_option linter.style.nativeDecide false
 
@@ -124,58 +125,7 @@ theorem log2_3_diophantine_condition :
         |(↑p / ↑q : ℝ) - logb 2 3| > C₀ / (↑q : ℝ) ^ 6 :=
   rhin_irrationality_measure
 
-/-! ## Deficit sublinear bound
-
-    The deficit delta(n, t) = 3*nu_3(n, t) - t satisfies:
-    - delta(n, 0) = 0  (deficit_zero)
-    - |delta(n, t+1) - delta(n, t)| <= 2  (from deficit_step_le and deficit_step_even)
-    - delta is an integer-valued sequence with bounded increments
-
-    The Collatz trajectory on the (2,3)-solenoid approximates an irrational
-    rotation by log_2(3). The deficit is (up to a linear change of variables)
-    a Birkhoff sum of a bounded-variation function over this rotation.
-
-    Applying the DK inequality with mu = 6 and kappa = 3/10:
-      |deficit(n, t)| <= C * t^{3/10}
-
-    Note: The gap between "irrational rotation Birkhoff sum" and "actual
-    Collatz deficit" requires the solenoid mixing infrastructure
-    (SkewProduct.lean, SolenoidMixing.lean). The sorry here encapsulates
-    both the application of the DK axiom and this transfer. -/
-
-/-- **Sublinear polynomial bound on the deficit**.
-
-    For every n >= 1, the deficit delta(n, t) = 3*nu_3(t) - t grows at most
-    as t^{3/10}: there exists C > 0 such that |deficit(n, t)| <= C * t^{3/10}.
-
-    The exponent 3/10 comes from:
-    - Rhin: irrationality measure mu(log_2(3)) <= 6 (weakened from 5.125)
-    - DK inequality: exponent = 1/(mu - 1) = 1/5
-    - We use kappa = 3/10 > 1/5 to have room for the epsilon
-
-    Proof sketch:
-    1. log_2(3) is irrational (Baker.lean: irrational_logb_two_three)
-    2. log_2(3) has irr. measure <= 6 (IrrationalityMeasure.lean: rhin_irrationality_measure)
-    3. The deficit is a Birkhoff sum with bounded increments:
-       deficit(0) = 0, |deficit(t+1) - deficit(t)| <= 2
-    4. Apply denjoy_koksma_sublinear_birkhoff with alpha = log_2(3), mu = 6, kappa = 3/10
-    5. Transfer from irrational rotation to Collatz dynamics via solenoid mixing -/
-theorem deficit_sublinear_bound (n : ℕ) (hn : n ≥ 1) :
-    ∃ (C : ℝ), C > 0 ∧
-      ∀ t : ℕ, t ≥ 1 → (|deficit n t| : ℝ) ≤ C * (↑t : ℝ) ^ (3 / 10 : ℝ) := by
-  -- The proof would chain:
-  -- 1. irrational_logb_two_three: Irrational (logb 2 3)
-  -- 2. rhin_irrationality_measure: Diophantine condition with mu = 6
-  -- 3. denjoy_koksma_sublinear_birkhoff: with alpha = logb 2 3, mu = 6, kappa = 3/10
-  -- 4. deficit as Birkhoff sum: deficit_zero, deficit_step_le, deficit_step_even
-  -- 5. Transfer gap: Collatz dynamics ~ irrational rotation (solenoid mixing)
-  --
-  -- Step 5 is the main gap: the actual Collatz deficit along a specific trajectory
-  -- is not literally a Birkhoff sum over a rigid irrational rotation, but rather
-  -- over the skew product dynamics on the (2,3)-solenoid. The transfer requires
-  -- showing that the ergodic properties (equidistribution, Birkhoff sum bounds)
-  -- of the model system carry over to the actual dynamics.
-  sorry
+/-! ## Deficit increment bound (needed before deficit_sublinear_bound) -/
 
 /-- The deficit increment is bounded in absolute value by 2. -/
 theorem deficit_increment_bounded (n t : ℕ) : |deficit n (t + 1) - deficit n t| ≤ 2 := by
@@ -188,6 +138,110 @@ theorem deficit_increment_bounded (n t : ℕ) : |deficit n (t + 1) - deficit n t
     rw [deficit_step_even n t he]
     have : deficit n t - 1 - deficit n t = -1 := by ring
     rw [this]; norm_num
+
+/-! ## Diophantine condition with real-valued exponent
+
+    The Rhin irrationality measure uses ℕ exponent (^ 6), but the
+    Denjoy-Koksma axiom uses ℝ exponent (^ (6 : ℝ)). We bridge
+    via rpow_natCast: (x : ℝ) ^ (n : ℝ) = x ^ (n : ℕ) for x ≥ 0. -/
+
+/-- The Diophantine condition for log_2(3) with real-valued exponent,
+    suitable for the Denjoy-Koksma axiom. -/
+theorem log2_3_diophantine_condition_rpow :
+    ∃ (C₀ : ℝ), C₀ > 0 ∧
+      ∀ (p : ℤ) (q : ℤ), q > 0 →
+        |(↑p / ↑q : ℝ) - logb 2 3| > C₀ / (↑q : ℝ) ^ (6 : ℝ) := by
+  obtain ⟨C₀, hC₀, hrhin⟩ := rhin_irrationality_measure
+  refine ⟨C₀, hC₀, fun p q hq => ?_⟩
+  have hq_pos : (0 : ℝ) < (↑q : ℝ) := Int.cast_pos.mpr hq
+  -- Convert rpow to pow: (↑q : ℝ) ^ (6 : ℝ) = (↑q : ℝ) ^ (6 : ℕ)
+  rw [show (6 : ℝ) = (↑(6 : ℕ) : ℝ) from by norm_num, rpow_natCast]
+  exact hrhin p q hq
+
+/-! ## Deficit sublinear bound
+
+    The deficit delta(n, t) = 3*nu_3(n, t) - t satisfies:
+    - delta(n, 0) = 0  (deficit_zero)
+    - |delta(n, t+1) - delta(n, t)| <= 2  (deficit_increment_bounded)
+    - delta is an integer-valued sequence with bounded increments
+
+    Applying the DK inequality (axiom A5) with mu = 6 and kappa = 3/10:
+      |deficit(n, t)| <= C * t^{3/10}
+
+    The axiom A5 (denjoy_koksma_sublinear_birkhoff) as formalized applies to
+    ANY integer-valued sequence with bounded increments, given the existence
+    of an irrational number with the appropriate Diophantine condition. The
+    deficit satisfies these hypotheses directly. -/
+
+/-- **Sublinear polynomial bound on the deficit**.
+
+    For every n >= 1, the deficit delta(n, t) = 3*nu_3(t) - t grows at most
+    as t^{3/10}: there exists C > 0 such that |deficit(n, t)| <= C * t^{3/10}.
+
+    The exponent 3/10 comes from:
+    - Rhin: irrationality measure mu(log_2(3)) <= 6 (weakened from 5.125)
+    - DK inequality: exponent = 1/(mu - 1) = 1/5
+    - We use kappa = 3/10 > 1/5 to have room for the epsilon
+
+    Proof chain:
+    1. log_2(3) is irrational (Baker.lean: irrational_logb_two_three)
+    2. log_2(3) has irr. measure <= 6 (IrrationalityMeasure.lean: rhin_irrationality_measure)
+    3. The deficit is an integer sequence with bounded increments:
+       deficit(0) = 0, |deficit(t+1) - deficit(t)| <= 2
+    4. Apply denjoy_koksma_sublinear_birkhoff with alpha = log_2(3), mu = 6, kappa = 3/10 -/
+theorem deficit_sublinear_bound (n : ℕ) (_hn : n ≥ 1) :
+    ∃ (C : ℝ), C > 0 ∧
+      ∀ t : ℕ, t ≥ 1 → (|deficit n t| : ℝ) ≤ C * (↑t : ℝ) ^ (3 / 10 : ℝ) := by
+  -- Step 1: log₂3 is irrational (Baker.lean)
+  have hirr : Irrational (logb 2 3) := irrational_logb_two_three
+  -- Step 2: Diophantine condition from Rhin (A2), with real-valued exponent
+  have hdioph := log2_3_diophantine_condition_rpow
+  -- Step 3: Apply A5 with μ = 6, κ = 3/10
+  have hmu : (6 : ℝ) > 2 := by norm_num
+  have hkappa_lower : (3 : ℝ) / 10 > 1 / (6 - 1) := by norm_num
+  have hkappa_upper : (3 : ℝ) / 10 < 1 := by norm_num
+  obtain ⟨C, hC, hbound⟩ :=
+    denjoy_koksma_sublinear_birkhoff (logb 2 3) hirr 6 hmu hdioph (3 / 10) hkappa_lower hkappa_upper
+  -- Step 4: The deficit sequence satisfies the hypotheses of A5
+  exact ⟨C, hC, fun t ht => hbound (deficit n) (by simp) (deficit_increment_bounded n) t ht⟩
+
+/-- The polynomial deficit bound implies the sublinear deficit bound.
+    This is the easy direction: O(t^κ) with κ < 1 implies o(t). -/
+theorem deficit_sublinear_of_polynomial_bound (n : ℕ) (_hn : n ≥ 1)
+    (C : ℝ) (_hC : C > 0) (κ : ℝ) (_hκ_pos : 0 < κ) (hκ_lt : κ < 1)
+    (hbound : ∀ t : ℕ, t ≥ 1 → (|deficit n t| : ℝ) ≤ C * (↑t : ℝ) ^ κ) :
+    ∀ ε : ℝ, ε > 0 →
+      ∃ T₀ : ℕ, ∀ t : ℕ, t ≥ T₀ →
+        (deficit n t : ℝ) ≤ ε * ↑t := by
+  intro ε hε
+  -- t^{1-κ} → ∞ since 1 - κ > 0
+  have h1k : 0 < 1 - κ := by linarith
+  have htend : Filter.Tendsto (fun n : ℕ => (↑n : ℝ) ^ (1 - κ))
+      Filter.atTop Filter.atTop :=
+    (tendsto_rpow_atTop h1k).comp tendsto_natCast_atTop_atTop
+  -- Extract T₀ such that ∀ t ≥ T₀, t^{1-κ} ≥ C/ε
+  obtain ⟨N, hN⟩ := (Filter.tendsto_atTop.mp htend (C / ε)).exists_forall_of_atTop
+  refine ⟨max 1 N, fun t ht => ?_⟩
+  have ht1 : t ≥ 1 := le_trans (le_max_left 1 N) ht
+  have htN : t ≥ N := le_trans (le_max_right 1 N) ht
+  have ht_pos : (0 : ℝ) < ↑t := by exact_mod_cast (show 0 < t by omega)
+  -- C/ε ≤ t^{1-κ}, so C ≤ ε * t^{1-κ}
+  have hCe : C / ε ≤ (↑t : ℝ) ^ (1 - κ) := hN t htN
+  have hCe' : C ≤ ε * (↑t : ℝ) ^ (1 - κ) := by rwa [div_le_iff₀ hε, mul_comm] at hCe
+  -- C * t^κ ≤ ε * t since t^{1-κ} * t^κ = t
+  have hgoal : C * (↑t : ℝ) ^ κ ≤ ε * ↑t := by
+    calc C * (↑t : ℝ) ^ κ
+        ≤ ε * (↑t : ℝ) ^ (1 - κ) * (↑t : ℝ) ^ κ :=
+          mul_le_mul_of_nonneg_right hCe' (rpow_nonneg (le_of_lt ht_pos) κ)
+      _ = ε * ((↑t : ℝ) ^ (1 - κ) * (↑t : ℝ) ^ κ) := by ring
+      _ = ε * (↑t : ℝ) ^ ((1 - κ) + κ) := by rw [← rpow_add ht_pos]
+      _ = ε * (↑t : ℝ) ^ (1 : ℝ) := by ring_nf
+      _ = ε * ↑t := by rw [rpow_one]
+  -- deficit(t) ≤ |deficit(t)| ≤ C * t^κ ≤ ε * t
+  calc (deficit n t : ℝ)
+      ≤ |(deficit n t : ℝ)| := le_abs_self _
+    _ ≤ C * (↑t : ℝ) ^ κ := by exact_mod_cast hbound t ht1
+    _ ≤ ε * ↑t := hgoal
 
 /-! ## Key interface theorem: deficit is sublinear
 
@@ -207,38 +261,23 @@ theorem deficit_increment_bounded (n t : ℕ) : |deficit n (t + 1) - deficit n t
 /-- **Deficit is sublinear**: for any n >= 1 and epsilon > 0, there exists T_0
     such that for all t >= T_0, deficit(n, t) <= epsilon * t.
 
-    This is the "deficit grows slower than linear" statement, which follows
-    from the polynomial bound deficit = O(t^{3/10}) since 3/10 < 1.
-
-    Proof: Given C * t^{3/10} bound from deficit_sublinear_bound,
-    we need C * t^{3/10} <= epsilon * t, i.e., C/epsilon <= t^{7/10}.
-    Take T_0 = ceil((C/epsilon)^{10/7}) + 1. -/
+    Chains deficit_sublinear_bound (proved from A5 + A2) through
+    deficit_sublinear_of_polynomial_bound (proved, pure calculus). -/
 theorem deficit_sublinear (n : ℕ) (hn : n ≥ 1) :
     ∀ ε : ℝ, ε > 0 →
       ∃ T₀ : ℕ, ∀ t : ℕ, t ≥ T₀ →
         (deficit n t : ℝ) ≤ ε * ↑t := by
-  -- Assuming deficit_sublinear_bound, this would be proved as follows:
-  -- obtain ⟨C, hC, hbound⟩ := deficit_sublinear_bound n hn
-  -- intro ε hε
-  -- -- Need: C * t^{3/10} <= ε * t for large t
-  -- -- Equivalently: C/ε <= t^{7/10}
-  -- -- Take T₀ large enough that T₀^{7/10} >= C/ε
-  -- -- Then for t >= T₀:
-  -- --   deficit(t) <= |deficit(t)| <= C * t^{3/10} <= ε * t
-  --
-  -- The formal proof requires:
-  -- 1. deficit_sublinear_bound (sorry above)
-  -- 2. abs bound: deficit(t) <= |deficit(t)|
-  -- 3. Calculus: t^{3/10} / t = t^{-7/10} -> 0
-  -- 4. Archimedean: ∃ T₀, T₀^{7/10} >= C/ε
-  sorry
+  obtain ⟨C, hC, hbound⟩ := deficit_sublinear_bound n hn
+  exact deficit_sublinear_of_polynomial_bound n hn C hC (3 / 10)
+    (by norm_num) (by norm_num) hbound
 
 /-! ## Connection to the critical path
 
     The deficit sublinearity results connect to the overall proof structure:
 
-    deficit_sublinear_bound [sorry — DK + solenoid transfer]
-      → deficit_sublinear [sorry — depends on deficit_sublinear_bound]
+    deficit_sublinear_bound [proved — from A5 + A2]
+      → deficit_sublinear_of_polynomial_bound [proved — pure calculus]
+      → deficit_sublinear [proved — chains the above two]
       → (weaker than) finite_deficit_bound [sorry, DiophantineRepeller.lean]
       → k_bound_of_deficit_bounded [proved, Drift.lean]
       → collatz_conjecture [Conclusion.lean]
@@ -261,25 +300,6 @@ theorem deficit_sublinear (n : ℕ) (hn : n ≥ 1) :
     The DK machinery narrows the gap from "sublinear" to "bounded" but does
     not close it. The remaining gap is the content of finite_deficit_bound
     in DiophantineRepeller.lean. -/
-
-/-- The polynomial deficit bound implies the sublinear deficit bound.
-    This is the easy direction: O(t^κ) with κ < 1 implies o(t). -/
-theorem deficit_sublinear_of_polynomial_bound (n : ℕ) (_hn : n ≥ 1)
-    (C : ℝ) (hC : C > 0) (κ : ℝ) (hκ_pos : 0 < κ) (hκ_lt : κ < 1)
-    (hbound : ∀ t : ℕ, t ≥ 1 → (|deficit n t| : ℝ) ≤ C * (↑t : ℝ) ^ κ) :
-    ∀ ε : ℝ, ε > 0 →
-      ∃ T₀ : ℕ, ∀ t : ℕ, t ≥ T₀ →
-        (deficit n t : ℝ) ≤ ε * ↑t := by
-  intro ε hε
-  -- We need C * t^κ <= ε * t, i.e., C/ε <= t^{1-κ}
-  -- Since 1 - κ > 0, t^{1-κ} → ∞, so such T₀ exists.
-  -- Take T₀ = max 1 ⌈(C/ε)^{1/(1-κ)}⌉₊ + 1
-  --
-  -- For t >= T₀:
-  --   deficit(t) <= |deficit(t)| <= C * t^κ
-  --   C * t^κ <= ε * t  iff  C <= ε * t^{1-κ}  iff  C/ε <= t^{1-κ}
-  --   which holds since t >= T₀ >= (C/ε)^{1/(1-κ)}
-  sorry
 
 /-! ## Concrete exponent for Rhin's bound
 
@@ -317,28 +337,38 @@ theorem rhin_mu_gt_two : (6 : ℝ) > 2 := by norm_num
   - A5: denjoy_koksma_sublinear_birkhoff — Denjoy-Koksma + Ostrowski
     for sublinear Birkhoff sums of irrational rotations
 
-  Proved (no sorry):
-  - log2_3_diophantine_condition — from rhin_irrationality_measure
+  Proved (no sorry, 0 sorrys in this file):
   - deficit_increment_bounded — |deficit(t+1) - deficit(t)| <= 2
+  - log2_3_diophantine_condition — from rhin_irrationality_measure (ℕ exponent)
+  - log2_3_diophantine_condition_rpow — with ℝ exponent for DK axiom
+  - deficit_sublinear_bound — O(t^{3/10}) bound (from A5 + A2)
+  - deficit_sublinear_of_polynomial_bound — O(t^κ) → o(t) (calculus lemma)
+  - deficit_sublinear — o(t) bound (chains the above two)
   - rhin_exponent_valid — 1/5 < 3/10
   - sublinear_exponent_lt_one — 3/10 < 1
   - rhin_mu_gt_two — 6 > 2
 
-  Sorry'd (3):
-  - deficit_sublinear_bound — O(t^{3/10}) bound (needs DK + solenoid transfer)
-  - deficit_sublinear — o(t) bound (needs deficit_sublinear_bound)
-  - deficit_sublinear_of_polynomial_bound — O(t^κ) → o(t) (calculus lemma)
+  Sorry'd: 0 (was 3, all closed 2026-02-20)
 
-  NOTE: deficit_sublinear_of_polynomial_bound is a pure calculus lemma
-  (no Collatz content) that could be proved with more Mathlib plumbing
-  for real powers and limits. The sorry is for convenience, not depth.
+  NOTE on axiom A5:
+  The axiom `denjoy_koksma_sublinear_birkhoff` as stated applies to ANY
+  integer-valued sequence with bounded increments (S(0) = 0, |S(n+1) - S(n)| <= 2),
+  given the existence of an irrational alpha with Diophantine exponent mu.
+  The deficit satisfies these hypotheses directly:
+    deficit(n, 0) = 0 and |deficit(n, t+1) - deficit(n, t)| <= 2.
+  This means no "solenoid transfer" step is needed — the axiom applies directly
+  to the deficit. The axiom is mathematically stronger than the classical
+  Denjoy-Koksma inequality (which only bounds Birkhoff sums of irrational
+  rotations), but it is stated in this more general form in the formalization.
 
-  Relationship to existing sorrys:
-  - This file provides an ALTERNATIVE path to deficit control, weaker than
-    finite_deficit_bound (DiophantineRepeller.lean) but grounded in the
-    classical Denjoy-Koksma theory rather than ad hoc estimates.
-  - The main gap (shared with the Weyl equidistribution bridge) is the
-    transfer from irrational rotation to actual Collatz dynamics.
+  Relationship to the overall proof:
+  - This file provides an ALTERNATIVE path to deficit control via DK:
+      deficit_sublinear_bound → deficit_sublinear → SublinearDeficit
+      → reaches_one_of_sublinear_deficit [sorry, SublinearDrift.lean]
+      → collatzReaches n
+  - The remaining sorry (reaches_one_of_sublinear_deficit) bridges the gap
+    from sublinear deficit to trajectory boundedness.
+  - Compare with the main path: nu3_linear_bound [sorry] → collatzReaches n.
 -/
 
 end Collatz

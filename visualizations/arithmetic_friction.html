@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arithmetic Friction: The Geometry of the Syracuse Skew Product</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.scene-btn {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 6px 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.scene-btn:hover { background: #30363d; }
+.scene-btn.active {
+  background: #1f6feb;
+  border-color: #1f6feb;
+  color: #fff;
+}
+#playBtn {
+  background: #238636;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+#playBtn:hover { background: #2ea043; }
+#speedSlider {
+  width: 100px;
+  accent-color: #1f6feb;
+}
+#sceneTitle {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  color: #58a6ff;
+  font-weight: bold;
+}
+#canvasWrap {
+  flex: 1;
+  position: relative;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+<body>
+<div id="controls">
+  <button class="scene-btn active" data-scene="1">1: Fuel Tank</button>
+  <button class="scene-btn" data-scene="2">2: Torus</button>
+  <button class="scene-btn" data-scene="3">3: Friction</button>
+  <button class="scene-btn" data-scene="4">4: Ergodicity</button>
+  <span style="color:#30363d">|</span>
+  <button id="playBtn">Pause</button>
+  <label style="font-size:12px;color:#8b949e;">Speed:</label>
+  <input id="speedSlider" type="range" min="1" max="10" value="4">
+  <span id="sceneTitle">Scene 1: The 2-adic Fuel Tank</span>
+</div>
+<div id="canvasWrap">
+  <canvas id="c"></canvas>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS & GLOBALS
+// ============================================================
+const LOG2_3 = Math.log(3) / Math.log(2); // ~1.5849625007211563
+const CF_CONVERGENTS = [[1,1],[2,1],[3,2],[8,5],[19,12],[65,41],[84,53],[485,306]];
+
+const COL_DANGER  = '#FF3131';
+const COL_SAFE    = '#00FFFF';
+const COL_FOLIATION = '#ffffff';
+const COL_PARTICLE = '#32CD32';
+const COL_FRICTION = '#FFD700';
+const COL_BG      = '#0d1117';
+const COL_BG2     = '#161b22';
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H; // canvas pixel dimensions
+let playing = true;
+let speed = 4;
+let currentScene = 1;
+let globalTime = 0; // master clock in frames
+let sceneStartTime = 0;
+let autoAdvanceTimer = 0;
+
+const sceneTitles = {
+  1: 'Scene 1: The 2-adic Fuel Tank',
+  2: 'Scene 2: The 3-adic Rotation',
+  3: 'Scene 3: The Arithmetic Friction',
+  4: 'Scene 4: Unique Ergodicity'
+};
+
+// ============================================================
+// COLLATZ UTILITIES
+// ============================================================
+function v2(n) {
+  if (n === 0) return 0;
+  let c = 0;
+  while (n % 2 === 0) { n /= 2; c++; }
+  return c;
+}
+
+function trailingOnes(n) {
+  let c = 0;
+  while (n & 1) { n >>= 1; c++; }
+  return c;
+}
+
+function syracuse(n) {
+  // n must be odd
+  let m = 3 * n + 1;
+  let v = 0;
+  while (m % 2 === 0) { m /= 2; v++; }
+  return { next: m, v2: v };
+}
+
+function collatzTrajectory(n, maxSteps) {
+  maxSteps = maxSteps || 1000;
+  let steps = [{ n: n, v2val: 0, oddStep: 0, cumV2: 0 }];
+  let oddCount = 0;
+  let cumV2 = 0;
+  for (let i = 0; i < maxSteps; i++) {
+    if (n === 1) break;
+    if (n % 2 === 0) {
+      n = n / 2;
+      // even steps not tracked as odd steps
+    } else {
+      let r = syracuse(n);
+      oddCount++;
+      cumV2 += r.v2;
+      n = r.next;
+      steps.push({ n: n, v2val: r.v2, oddStep: oddCount, cumV2: cumV2 });
+    }
+  }
+  return steps;
+}
+
+// Syracuse-only trajectory (odd numbers only)
+function syracuseTrajectory(n, maxSteps) {
+  maxSteps = maxSteps || 500;
+  let steps = [];
+  let cumV2 = 0;
+  // n should be odd
+  if (n % 2 === 0) n = n + 1;
+  steps.push({ n: n, v2val: 0, oddStep: 0, cumV2: 0, trailing1s: trailingOnes(n) });
+  for (let t = 0; t < maxSteps; t++) {
+    if (n === 1 && t > 0) break;
+    let r = syracuse(n);
+    cumV2 += r.v2;
+    n = r.next;
+    steps.push({ n: n, v2val: r.v2, oddStep: t + 1, cumV2: cumV2, trailing1s: trailingOnes(n) });
+  }
+  return steps;
+}
+
+// ============================================================
+// PRECOMPUTED DATA
+// ============================================================
+
+// Scene 1: n=127 trajectory
+const scene1Steps = [];
+(function() {
+  let n = 127;
+  scene1Steps.push({ n: n, v2val: 0, threNp1: 0, trailing: trailingOnes(n) });
+  for (let i = 0; i < 20 && n !== 1; i++) {
+    let m = 3 * n + 1;
+    let v = 0;
+    let tmp = m;
+    while (tmp % 2 === 0) { tmp /= 2; v++; }
+    let next = tmp;
+    scene1Steps.push({ n: next, v2val: v, threNp1: m, trailing: trailingOnes(next), prev: n, rawProduct: 3 * n, rawPlus1: m });
+    n = next;
+  }
+})();
+
+// Scene 2: n=27 trajectory on torus
+const scene2Traj = syracuseTrajectory(27, 200);
+
+// Scene 3: n=8191 = 2^13 - 1 trajectory
+const scene3Traj = syracuseTrajectory(8191, 300);
+
+// Scene 4: many trajectories
+const scene4Starts = [];
+for (let i = 3; i <= 401; i += 2) scene4Starts.push(i);
+const scene4Trajs = scene4Starts.map(n => syracuseTrajectory(n, 500));
+
+// ============================================================
+// DRAWING UTILITIES
+// ============================================================
+function frac(x) {
+  return x - Math.floor(x);
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+function glow(color, blur) {
+  ctx.shadowColor = color;
+  ctx.shadowBlur = blur;
+}
+
+function noGlow() {
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+}
+
+function fillBg() {
+  ctx.fillStyle = COL_BG;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawText(text, x, y, size, color, align, gBlur) {
+  ctx.save();
+  ctx.font = size + 'px "Courier New", monospace';
+  ctx.fillStyle = color || '#c9d1d9';
+  ctx.textAlign = align || 'center';
+  ctx.textBaseline = 'middle';
+  if (gBlur) glow(color, gBlur);
+  ctx.fillText(text, x, y);
+  noGlow();
+  ctx.restore();
+}
+
+function toBinary(n, bits) {
+  let s = n.toString(2);
+  while (s.length < bits) s = '0' + s;
+  return s;
+}
+
+// ============================================================
+// SCENE 1: THE 2-ADIC FUEL TANK
+// ============================================================
+function drawScene1(dt) {
+  fillBg();
+  const t = dt; // time in seconds since scene start
+  const BITS = 16;
+  const STEP_DURATION = 2.5; // seconds per step
+  const stepIdx = Math.min(Math.floor(t / STEP_DURATION), scene1Steps.length - 1);
+  const stepFrac = (t / STEP_DURATION) - stepIdx;
+
+  const step = scene1Steps[stepIdx];
+  const nextStep = stepIdx < scene1Steps.length - 1 ? scene1Steps[stepIdx + 1] : null;
+
+  // Title
+  drawText('The 2-adic Fuel Tank', W / 2, 36, 22, '#58a6ff', 'center', 8);
+  drawText('Hensel Attrition: trailing 1s are consumed by the +1 carry chain', W / 2, 62, 13, '#8b949e');
+
+  // Binary display area
+  const bitW = Math.min(38, (W - 300) / BITS);
+  const bitH = 42;
+  const startX = (W - BITS * bitW) / 2;
+  const bitY = H * 0.22;
+
+  const binary = toBinary(step.n, BITS);
+  const trail1 = step.trailing;
+
+  // Draw bits
+  for (let i = 0; i < BITS; i++) {
+    const bit = binary[BITS - 1 - i]; // i=0 is LSB
+    const x = startX + (BITS - 1 - i) * bitW;
+    const isTrailing1 = (i < trail1 && bit === '1');
+    const isOther1 = (!isTrailing1 && bit === '1');
+
+    let color = COL_SAFE;
+    if (isTrailing1) color = COL_DANGER;
+    else if (isOther1) color = '#ffffff';
+    else color = COL_SAFE;
+
+    ctx.fillStyle = '#161b22';
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = 1;
+    ctx.fillRect(x + 1, bitY, bitW - 2, bitH);
+    ctx.strokeRect(x + 1, bitY, bitW - 2, bitH);
+
+    // Glow for trailing 1s
+    if (isTrailing1) {
+      glow(COL_DANGER, 12 + 6 * Math.sin(globalTime * 0.08));
+    }
+    ctx.fillStyle = color;
+    ctx.font = '20px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(bit, x + bitW / 2, bitY + bitH / 2);
+    noGlow();
+  }
+
+  // Bit index labels
+  ctx.font = '10px "Courier New", monospace';
+  ctx.fillStyle = '#484f58';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < BITS; i++) {
+    const x = startX + (BITS - 1 - i) * bitW;
+    ctx.fillText('b' + i, x + bitW / 2, bitY + bitH + 14);
+  }
+
+  // Labels
+  if (trail1 > 0) {
+    const labelX = startX + (BITS - 1) * bitW + bitW / 2;
+    const labelX2 = startX + (BITS - trail1) * bitW + bitW / 2;
+    const midX = (labelX + labelX2) / 2;
+    // Brace under trailing 1s
+    ctx.strokeStyle = COL_DANGER;
+    ctx.lineWidth = 2;
+    glow(COL_DANGER, 6);
+    ctx.beginPath();
+    ctx.moveTo(labelX2 - bitW / 2 + 4, bitY + bitH + 26);
+    ctx.lineTo(labelX + bitW / 2 - 4, bitY + bitH + 26);
+    ctx.stroke();
+    noGlow();
+    drawText('2-adic Fuel: ' + trail1 + ' trailing 1s', midX, bitY + bitH + 42, 12, COL_DANGER, 'center', 4);
+  }
+
+  // Fuel gauge on right
+  const gaugeX = W - 80;
+  const gaugeY = bitY - 10;
+  const gaugeH = bitH + 60;
+  const gaugeW = 28;
+  const maxFuel = 7; // max trailing 1s for n=127
+  const fuelLevel = trail1 / maxFuel;
+
+  ctx.fillStyle = '#161b22';
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.fillRect(gaugeX, gaugeY, gaugeW, gaugeH);
+  ctx.strokeRect(gaugeX, gaugeY, gaugeW, gaugeH);
+
+  // Fill level
+  const fillH = gaugeH * fuelLevel;
+  glow(COL_DANGER, 8);
+  ctx.fillStyle = COL_DANGER + '99';
+  ctx.fillRect(gaugeX + 2, gaugeY + gaugeH - fillH, gaugeW - 4, fillH - 2);
+  noGlow();
+
+  drawText('FUEL', gaugeX + gaugeW / 2, gaugeY - 14, 11, COL_DANGER, 'center', 4);
+  drawText(trail1 + '/' + maxFuel, gaugeX + gaugeW / 2, gaugeY + gaugeH + 16, 11, '#8b949e');
+
+  // Step info panel
+  const infoY = H * 0.52;
+  drawText('Step ' + stepIdx + ' / ' + (scene1Steps.length - 1), W / 2, infoY, 16, '#8b949e');
+  drawText('n = ' + step.n, W / 2, infoY + 28, 20, '#e6edf3', 'center', 0);
+  drawText('binary: ' + toBinary(step.n, BITS), W / 2, infoY + 54, 14, '#8b949e');
+
+  if (stepIdx > 0) {
+    const prev = scene1Steps[stepIdx - 1];
+    drawText('3 \u00D7 ' + prev.n + ' + 1 = ' + step.threNp1, W / 2, infoY + 82, 14, COL_FRICTION, 'center', 4);
+    drawText('v\u2082(' + step.threNp1 + ') = ' + step.v2val, W / 2, infoY + 106, 14,
+      step.v2val === 1 ? COL_DANGER : COL_SAFE, 'center', 6);
+
+    if (step.v2val === 1) {
+      drawText('DANGER: v\u2082 = 1 \u2014 only one bit of fuel burned', W / 2, infoY + 134, 13, COL_DANGER, 'center', 4);
+    } else {
+      glow(COL_SAFE, 10);
+      drawText('ESCAPE! v\u2082 = ' + step.v2val + ' \u2014 trajectory breaks free', W / 2, infoY + 134, 13, COL_SAFE, 'center', 6);
+      noGlow();
+    }
+  }
+
+  // +1 friction spark animation during transition
+  if (stepFrac > 0.3 && stepFrac < 0.7 && nextStep && stepIdx < scene1Steps.length - 1) {
+    const sparkIntensity = Math.sin((stepFrac - 0.3) / 0.4 * Math.PI);
+    const lsbX = startX + (BITS - 1) * bitW + bitW / 2;
+    glow(COL_FRICTION, 20 * sparkIntensity);
+    ctx.fillStyle = COL_FRICTION;
+    ctx.beginPath();
+    ctx.arc(lsbX, bitY + bitH / 2, 6 + 8 * sparkIntensity, 0, Math.PI * 2);
+    ctx.fill();
+    noGlow();
+
+    // Spark particles
+    for (let p = 0; p < 8; p++) {
+      const angle = (p / 8) * Math.PI * 2 + globalTime * 0.05;
+      const dist = 15 + 25 * sparkIntensity;
+      const px = lsbX + Math.cos(angle) * dist;
+      const py = bitY + bitH / 2 + Math.sin(angle) * dist;
+      glow(COL_FRICTION, 6);
+      ctx.fillStyle = COL_FRICTION;
+      ctx.beginPath();
+      ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fill();
+      noGlow();
+    }
+
+    drawText('+1', lsbX, bitY - 16, 14, COL_FRICTION, 'center', 8);
+  }
+
+  // Timeline at bottom
+  const tlY = H - 60;
+  const tlX1 = 60;
+  const tlX2 = W - 60;
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(tlX1, tlY);
+  ctx.lineTo(tlX2, tlY);
+  ctx.stroke();
+
+  for (let i = 0; i < scene1Steps.length; i++) {
+    const x = tlX1 + (i / (scene1Steps.length - 1)) * (tlX2 - tlX1);
+    const isCurrent = i === stepIdx;
+    const s = scene1Steps[i];
+    const isEscape = i > 0 && s.v2val >= 2;
+
+    ctx.fillStyle = isCurrent ? '#ffffff' : (isEscape ? COL_SAFE : (i > 0 && s.v2val === 1 ? COL_DANGER : '#484f58'));
+    if (isCurrent) glow('#ffffff', 8);
+    ctx.beginPath();
+    ctx.arc(x, tlY, isCurrent ? 7 : 4, 0, Math.PI * 2);
+    ctx.fill();
+    noGlow();
+
+    if (isCurrent || i === 0 || isEscape) {
+      drawText('' + s.n, x, tlY + 20, 10, isCurrent ? '#ffffff' : '#8b949e', 'center');
+    }
+  }
+
+  drawText('Each v\u2082=1 step burns one bit of 2-adic fuel', W / 2, H - 24, 12, '#484f58');
+}
+
+// ============================================================
+// SCENE 2: THE 3-ADIC ROTATION
+// ============================================================
+function drawScene2(dt) {
+  fillBg();
+  const t = dt;
+
+  drawText('The 3-adic Rotation', W / 2, 36, 22, '#58a6ff', 'center', 8);
+  drawText('Trajectory of n=27 on the torus [0,1)\u00B2 with Diophantine resonances', W / 2, 62, 13, '#8b949e');
+
+  // Torus area
+  const margin = 90;
+  const torusSize = Math.min(W - 2 * margin - 160, H - 160);
+  const tx = (W - 160) / 2 - torusSize / 2;
+  const ty = 90;
+
+  // Draw torus background
+  ctx.fillStyle = '#0a0e14';
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.fillRect(tx, ty, torusSize, torusSize);
+  ctx.strokeRect(tx, ty, torusSize, torusSize);
+
+  // Periodic boundary markers
+  ctx.font = '10px "Courier New", monospace';
+  ctx.fillStyle = '#484f58';
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 4; i++) {
+    const f = i / 4;
+    ctx.fillText(f.toFixed(2), tx + f * torusSize, ty - 6);
+    ctx.textAlign = 'right';
+    ctx.fillText(f.toFixed(2), tx - 6, ty + f * torusSize + 4);
+    ctx.textAlign = 'center';
+  }
+
+  // Irrational foliation: y = log2(3) * x + c (mod 1)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(tx, ty, torusSize, torusSize);
+  ctx.clip();
+
+  ctx.setLineDash([4, 6]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 0.7;
+  for (let c = -3; c <= 3; c += 0.1) {
+    ctx.beginPath();
+    for (let px = 0; px <= torusSize; px += 2) {
+      const xv = px / torusSize;
+      const yv = frac(LOG2_3 * xv + c);
+      const py = yv * torusSize;
+      if (px === 0) ctx.moveTo(tx + px, ty + py);
+      else ctx.lineTo(tx + px, ty + py);
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Dangerous Islands at CF convergent positions
+  for (let ci = 0; ci < CF_CONVERGENTS.length; ci++) {
+    const [p, q] = CF_CONVERGENTS[ci];
+    const approx = p / q;
+    const residual = Math.abs(frac(q * LOG2_3) - 0); // how close q*log2(3) is to integer
+    const residual2 = Math.min(frac(q * LOG2_3), 1 - frac(q * LOG2_3));
+    const ix = frac(q * LOG2_3);
+    const iy = frac(p * 0.618033988749895 + ci * 0.2); // spread vertically using golden ratio
+    const radius = Math.min(torusSize * 0.12, torusSize * (0.6 / q));
+
+    // Pulsing
+    const pulse = 1 + 0.15 * Math.sin(globalTime * 0.04 + ci);
+
+    // Red glow circle
+    const grad = ctx.createRadialGradient(
+      tx + ix * torusSize, ty + iy * torusSize, 0,
+      tx + ix * torusSize, ty + iy * torusSize, radius * pulse
+    );
+    grad.addColorStop(0, 'rgba(255,49,49,0.5)');
+    grad.addColorStop(0.5, 'rgba(255,49,49,0.2)');
+    grad.addColorStop(1, 'rgba(255,49,49,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(tx + ix * torusSize, ty + iy * torusSize, radius * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Label
+    if (q <= 53) {
+      drawText(p + '/' + q, tx + ix * torusSize, ty + iy * torusSize - radius * pulse - 8, 10,
+        COL_DANGER, 'center', 4);
+    }
+  }
+
+  // "Safe Sea" label
+  drawText('Safe Sea', tx + torusSize * 0.75, ty + torusSize * 0.15, 14, COL_SAFE + '88', 'center', 6);
+  drawText('Diophantine', tx + torusSize * 0.22, ty + torusSize * 0.5, 11, COL_DANGER + 'aa', 'center', 4);
+  drawText('Resonances', tx + torusSize * 0.22, ty + torusSize * 0.55, 11, COL_DANGER + 'aa', 'center', 4);
+
+  // Animate trajectory particle
+  const maxVisible = Math.min(scene2Traj.length, Math.floor(t / 0.12) + 1);
+
+  // Fading trail
+  for (let i = 1; i < maxVisible; i++) {
+    const s = scene2Traj[i];
+    const tIdx = s.oddStep;
+    const xv = frac(tIdx * LOG2_3);
+    const yv = frac(s.cumV2 / (2 * scene2Traj.length));
+    const alpha = Math.max(0.05, 1 - (maxVisible - i) / 40);
+
+    ctx.fillStyle = `rgba(50,205,50,${alpha * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(tx + xv * torusSize, ty + yv * torusSize, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Current particle
+  if (maxVisible > 0) {
+    const cur = scene2Traj[Math.min(maxVisible - 1, scene2Traj.length - 1)];
+    const cxv = frac(cur.oddStep * LOG2_3);
+    const cyv = frac(cur.cumV2 / (2 * scene2Traj.length));
+    const px = tx + cxv * torusSize;
+    const py = ty + cyv * torusSize;
+
+    glow(COL_PARTICLE, 16);
+    ctx.fillStyle = COL_PARTICLE;
+    ctx.beginPath();
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fill();
+    noGlow();
+
+    // Check if near a dangerous island
+    let nearDanger = false;
+    for (let ci = 0; ci < CF_CONVERGENTS.length; ci++) {
+      const [p, q] = CF_CONVERGENTS[ci];
+      const ix = frac(q * LOG2_3);
+      const iy = frac(p * 0.618033988749895 + ci * 0.2);
+      const dx = cxv - ix;
+      const dy = cyv - iy;
+      if (Math.sqrt(dx * dx + dy * dy) < 0.1) {
+        nearDanger = true;
+        break;
+      }
+    }
+
+    if (nearDanger && cur.v2val === 1) {
+      glow(COL_DANGER, 20);
+      ctx.strokeStyle = COL_DANGER;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(px, py, 10, 0, Math.PI * 2);
+      ctx.stroke();
+      noGlow();
+    }
+
+    // Info
+    drawText('Step ' + cur.oddStep + '/' + (scene2Traj.length - 1), tx + torusSize + 40, ty + 20, 12, '#8b949e', 'left');
+    drawText('n = ' + cur.n, tx + torusSize + 40, ty + 40, 12, '#e6edf3', 'left');
+    drawText('v\u2082 = ' + cur.v2val, tx + torusSize + 40, ty + 60, 12,
+      cur.v2val === 1 ? COL_DANGER : COL_SAFE, 'left', 4);
+    drawText('\u03A3v\u2082 = ' + cur.cumV2, tx + torusSize + 40, ty + 80, 12, '#8b949e', 'left');
+  }
+
+  ctx.restore();
+
+  // Axis labels
+  drawText('x = frac(t \u00B7 log\u2082 3)', tx + torusSize / 2, ty + torusSize + 24, 12, '#8b949e');
+  ctx.save();
+  ctx.translate(tx - 28, ty + torusSize / 2);
+  ctx.rotate(-Math.PI / 2);
+  drawText('y = frac(\u03A3v\u2082 / 2T)', 0, 0, 12, '#8b949e');
+  ctx.restore();
+
+  drawText('CF convergents of log\u2082(3) create resonance islands that attract dangerous orbits', W / 2, H - 24, 12, '#484f58');
+}
+
+// ============================================================
+// SCENE 3: THE ARITHMETIC FRICTION
+// ============================================================
+function drawScene3(dt) {
+  fillBg();
+  const t = dt;
+  const BITS = 16;
+  const STEP_DURATION = 1.8;
+  const traj = scene3Traj;
+  const stepIdx = Math.min(Math.floor(t / STEP_DURATION), traj.length - 1);
+  const stepFrac = (t / STEP_DURATION) - stepIdx;
+  const step = traj[stepIdx];
+
+  drawText('The Arithmetic Friction', W / 2, 28, 20, '#58a6ff', 'center', 8);
+
+  // Split screen
+  const midX = W / 2;
+
+  // LEFT: Binary representation
+  const leftTitle = 'Binary Structure';
+  drawText(leftTitle, midX / 2, 54, 14, '#8b949e');
+
+  // Divider
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(midX, 44);
+  ctx.lineTo(midX, H - 40);
+  ctx.stroke();
+
+  // Binary bits
+  const bitsToShow = Math.min(BITS, 16);
+  const bitW = Math.min(28, (midX - 60) / bitsToShow);
+  const bitH = 32;
+  const bStartX = (midX - bitsToShow * bitW) / 2;
+  const bitY = 80;
+
+  // Clamp n for display
+  const displayN = step.n;
+  const binary = toBinary(displayN, bitsToShow);
+  const trail1 = step.trailing1s || trailingOnes(displayN);
+
+  for (let i = 0; i < bitsToShow; i++) {
+    const bit = binary[bitsToShow - 1 - i];
+    const x = bStartX + (bitsToShow - 1 - i) * bitW;
+    const isTrailing1 = (i < trail1 && bit === '1');
+
+    let color = COL_SAFE;
+    if (isTrailing1) color = COL_DANGER;
+    else if (bit === '1') color = '#ffffff';
+
+    ctx.fillStyle = '#0f1318';
+    ctx.fillRect(x + 1, bitY, bitW - 2, bitH);
+
+    if (isTrailing1) glow(COL_DANGER, 8);
+    ctx.fillStyle = color;
+    ctx.font = '14px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(bit, x + bitW / 2, bitY + bitH / 2);
+    noGlow();
+  }
+
+  // n value and v2
+  drawText('n = ' + displayN, midX / 2, bitY + bitH + 24, 14, '#e6edf3', 'center');
+  if (stepIdx > 0) {
+    const v2str = 'v\u2082 = ' + step.v2val;
+    const v2color = step.v2val === 1 ? COL_DANGER : COL_SAFE;
+    drawText(v2str, midX / 2, bitY + bitH + 48, 14, v2color, 'center', 6);
+
+    if (step.v2val === 1) {
+      drawText('DANGER', midX / 2, bitY + bitH + 70, 12, COL_DANGER, 'center', 8);
+    } else {
+      drawText('SAFE (v\u2082=' + step.v2val + ')', midX / 2, bitY + bitH + 70, 12, COL_SAFE, 'center', 6);
+    }
+  }
+
+  // Friction spark on left
+  if (step.v2val === 1 && stepFrac > 0.2 && stepFrac < 0.6) {
+    const sparkI = Math.sin((stepFrac - 0.2) / 0.4 * Math.PI);
+    const sparkX = bStartX + (bitsToShow - 1) * bitW + bitW / 2;
+    const sparkY = bitY + bitH / 2;
+
+    glow(COL_FRICTION, 24 * sparkI);
+    ctx.fillStyle = COL_FRICTION;
+    ctx.beginPath();
+    ctx.arc(sparkX, sparkY, 5 + 10 * sparkI, 0, Math.PI * 2);
+    ctx.fill();
+    noGlow();
+
+    // Spark rays
+    for (let r = 0; r < 6; r++) {
+      const angle = (r / 6) * Math.PI * 2 + globalTime * 0.06;
+      const len = 15 + 20 * sparkI;
+      ctx.strokeStyle = COL_FRICTION + 'aa';
+      ctx.lineWidth = 1.5;
+      glow(COL_FRICTION, 4);
+      ctx.beginPath();
+      ctx.moveTo(sparkX, sparkY);
+      ctx.lineTo(sparkX + Math.cos(angle) * len, sparkY + Math.sin(angle) * len);
+      ctx.stroke();
+      noGlow();
+    }
+
+    drawText('+1 friction', midX / 2, bitY - 14, 12, COL_FRICTION, 'center', 6);
+  }
+
+  // Trail of v2 values below bits
+  const trailY = bitY + bitH + 100;
+  const trailLen = Math.min(stepIdx, 30);
+  const trailStartStep = Math.max(0, stepIdx - trailLen);
+  drawText('v\u2082 history:', midX / 2, trailY - 16, 11, '#484f58', 'center');
+  for (let i = trailStartStep; i <= stepIdx && i < traj.length; i++) {
+    const relI = i - trailStartStep;
+    const cx = 20 + relI * 14;
+    if (cx > midX - 20) break;
+    const s = traj[i];
+    if (i === 0) continue;
+    const color = s.v2val === 1 ? COL_DANGER : COL_SAFE;
+    ctx.fillStyle = color;
+    ctx.font = '10px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('' + s.v2val, cx, trailY);
+  }
+
+  // RIGHT: Torus view
+  drawText('Torus Position', midX + (W - midX) / 2, 54, 14, '#8b949e');
+
+  const torusSize = Math.min(W / 2 - 60, H - 200);
+  const torusX = midX + ((W - midX) - torusSize) / 2;
+  const torusY = 74;
+
+  ctx.fillStyle = '#0a0e14';
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.fillRect(torusX, torusY, torusSize, torusSize);
+  ctx.strokeRect(torusX, torusY, torusSize, torusSize);
+
+  // Clip for torus
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(torusX, torusY, torusSize, torusSize);
+  ctx.clip();
+
+  // Foliation lines
+  ctx.setLineDash([3, 5]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 0.5;
+  for (let c = -3; c <= 3; c += 0.15) {
+    ctx.beginPath();
+    for (let px = 0; px <= torusSize; px += 3) {
+      const xv = px / torusSize;
+      const yv = frac(LOG2_3 * xv + c);
+      if (px === 0) ctx.moveTo(torusX + px, torusY + yv * torusSize);
+      else ctx.lineTo(torusX + px, torusY + yv * torusSize);
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Dangerous islands
+  for (let ci = 0; ci < CF_CONVERGENTS.length; ci++) {
+    const [p, q] = CF_CONVERGENTS[ci];
+    const ix = frac(q * LOG2_3);
+    const iy = frac(p * 0.618033988749895 + ci * 0.2);
+    const radius = Math.min(torusSize * 0.08, torusSize * (0.4 / q));
+
+    const grad = ctx.createRadialGradient(
+      torusX + ix * torusSize, torusY + iy * torusSize, 0,
+      torusX + ix * torusSize, torusY + iy * torusSize, radius
+    );
+    grad.addColorStop(0, 'rgba(255,49,49,0.4)');
+    grad.addColorStop(1, 'rgba(255,49,49,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(torusX + ix * torusSize, torusY + iy * torusSize, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Trail on torus
+  for (let i = 1; i <= stepIdx && i < traj.length; i++) {
+    const s = traj[i];
+    const xv = frac(s.oddStep * LOG2_3);
+    const yv = frac(s.cumV2 / (2 * traj.length));
+    const alpha = Math.max(0.05, 1 - (stepIdx - i) / 30);
+
+    ctx.fillStyle = `rgba(50,205,50,${alpha * 0.6})`;
+    ctx.beginPath();
+    ctx.arc(torusX + xv * torusSize, torusY + yv * torusSize, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Current particle
+  if (stepIdx > 0 && stepIdx < traj.length) {
+    const cur = traj[stepIdx];
+    const cxv = frac(cur.oddStep * LOG2_3);
+    const cyv = frac(cur.cumV2 / (2 * traj.length));
+    const px = torusX + cxv * torusSize;
+    const py = torusY + cyv * torusSize;
+
+    glow(COL_PARTICLE, 14);
+    ctx.fillStyle = COL_PARTICLE;
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI * 2);
+    ctx.fill();
+    noGlow();
+
+    // Baker kick arrow during friction
+    if (step.v2val === 1 && stepFrac > 0.2 && stepFrac < 0.6) {
+      const kickI = Math.sin((stepFrac - 0.2) / 0.4 * Math.PI);
+      // Arrow pointing away from nearest island
+      let nearIx = cxv, nearIy = cyv, minD = 999;
+      for (let ci = 0; ci < CF_CONVERGENTS.length; ci++) {
+        const [p, q] = CF_CONVERGENTS[ci];
+        const ix = frac(q * LOG2_3);
+        const iy = frac(p * 0.618033988749895 + ci * 0.2);
+        const d = Math.sqrt((cxv - ix) ** 2 + (cyv - iy) ** 2);
+        if (d < minD) { minD = d; nearIx = ix; nearIy = iy; }
+      }
+      const dx = cxv - nearIx;
+      const dy = cyv - nearIy;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      const arrLen = 25 * kickI;
+
+      ctx.strokeStyle = COL_FRICTION;
+      ctx.lineWidth = 2;
+      glow(COL_FRICTION, 10);
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + (dx / dist) * arrLen, py + (dy / dist) * arrLen);
+      ctx.stroke();
+
+      // Arrowhead
+      const ax = px + (dx / dist) * arrLen;
+      const ay = py + (dy / dist) * arrLen;
+      const angle = Math.atan2(dy / dist, dx / dist);
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(ax - 6 * Math.cos(angle - 0.4), ay - 6 * Math.sin(angle - 0.4));
+      ctx.lineTo(ax - 6 * Math.cos(angle + 0.4), ay - 6 * Math.sin(angle + 0.4));
+      ctx.closePath();
+      ctx.fillStyle = COL_FRICTION;
+      ctx.fill();
+      noGlow();
+
+      drawText('Baker Kick', px + (dx / dist) * (arrLen + 14), py + (dy / dist) * (arrLen + 14), 10, COL_FRICTION, 'center', 4);
+    }
+  }
+
+  ctx.restore();
+
+  // Bottom insight text
+  const insightY = H - 36;
+  if (step.v2val === 1) {
+    drawText('FRICTION: +1 scuffs the 2-adic residue, preventing alignment with 3-adic resonances', W / 2, insightY, 12, COL_FRICTION, 'center', 4);
+  } else {
+    drawText('The +1 shift makes it impossible to stay aligned with Diophantine convergents of log\u2082(3)', W / 2, insightY, 12, '#8b949e');
+  }
+
+  drawText('Step ' + stepIdx + '/' + (traj.length - 1) + '  n=' + step.n, W / 2, H - 14, 11, '#484f58');
+}
+
+// ============================================================
+// SCENE 4: UNIQUE ERGODICITY
+// ============================================================
+const scene4State = {
+  particles: [],
+  reached: 0,
+  initialized: false,
+  histogram: new Array(10).fill(0)
+};
+
+function initScene4() {
+  scene4State.particles = [];
+  scene4State.reached = 0;
+  scene4State.initialized = true;
+  scene4State.histogram = new Array(10).fill(0);
+
+  for (let i = 0; i < scene4Trajs.length; i++) {
+    const traj = scene4Trajs[i];
+    const hue = (i / scene4Trajs.length) * 360;
+    scene4State.particles.push({
+      traj: traj,
+      stepIdx: 0,
+      done: false,
+      hue: hue,
+      x: 0,
+      y: 0,
+      trail: []
+    });
+  }
+}
+
+function drawScene4(dt) {
+  fillBg();
+  const t = dt;
+
+  if (!scene4State.initialized) initScene4();
+
+  drawText('Unique Ergodicity', W / 2, 28, 22, '#58a6ff', 'center', 8);
+  drawText('200 trajectories filling the torus uniformly as friction prevents resonance trapping', W / 2, 54, 13, '#8b949e');
+
+  // Torus
+  const torusSize = Math.min(W - 250, H - 160);
+  const torusX = 50;
+  const torusY = 76;
+
+  ctx.fillStyle = '#0a0e14';
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.fillRect(torusX, torusY, torusSize, torusSize);
+  ctx.strokeRect(torusX, torusY, torusSize, torusSize);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(torusX, torusY, torusSize, torusSize);
+  ctx.clip();
+
+  // Faint foliation
+  ctx.setLineDash([2, 6]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let c = -3; c <= 3; c += 0.2) {
+    ctx.beginPath();
+    for (let px = 0; px <= torusSize; px += 4) {
+      const xv = px / torusSize;
+      const yv = frac(LOG2_3 * xv + c);
+      if (px === 0) ctx.moveTo(torusX + px, torusY + yv * torusSize);
+      else ctx.lineTo(torusX + px, torusY + yv * torusSize);
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Advance particles based on elapsed time
+  scene4State.histogram.fill(0);
+
+  let reached = 0;
+  for (let i = 0; i < scene4State.particles.length; i++) {
+    const p = scene4State.particles[i];
+    // Each particle advances at a rate proportional to time, with slight stagger
+    const stagger = i * 0.02; // stagger start times
+    const effectiveT = Math.max(0, t - stagger);
+    const targetStep = Math.floor(effectiveT * 8); // ~8 steps per second
+    p.stepIdx = Math.min(targetStep, p.traj.length - 1);
+    p.done = (p.stepIdx >= p.traj.length - 1);
+    if (p.done) reached++;
+
+    const step = p.traj[Math.min(p.stepIdx, p.traj.length - 1)];
+    const xv = frac(step.oddStep * LOG2_3);
+    const yv = frac(step.cumV2 / (2 * p.traj.length));
+    p.x = xv;
+    p.y = yv;
+
+    // Add to histogram (x-axis divided into 10 bins)
+    const bin = Math.min(9, Math.floor(xv * 10));
+    scene4State.histogram[bin]++;
+
+    // Draw particle
+    if (p.done) {
+      // Gold for completed
+      glow(COL_FRICTION, 4);
+      ctx.fillStyle = COL_FRICTION + '88';
+    } else {
+      const alpha = 0.7;
+      ctx.fillStyle = `hsla(${p.hue}, 80%, 60%, ${alpha})`;
+    }
+    ctx.beginPath();
+    ctx.arc(torusX + xv * torusSize, torusY + yv * torusSize, p.done ? 2 : 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    noGlow();
+  }
+  scene4State.reached = reached;
+
+  ctx.restore();
+
+  // 1-4-2 cycle golden triangle
+  const triCX = torusX + torusSize * 0.05;
+  const triCY = torusY + torusSize * 0.05;
+  const triR = 12;
+
+  glow(COL_FRICTION, 10 + 4 * Math.sin(globalTime * 0.06));
+  ctx.strokeStyle = COL_FRICTION;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let v = 0; v < 3; v++) {
+    const angle = v * (Math.PI * 2 / 3) - Math.PI / 2;
+    const vx = triCX + Math.cos(angle) * triR;
+    const vy = triCY + Math.sin(angle) * triR;
+    if (v === 0) ctx.moveTo(vx, vy);
+    else ctx.lineTo(vx, vy);
+  }
+  ctx.closePath();
+  ctx.stroke();
+  noGlow();
+  drawText('1-4-2', triCX, triCY + triR + 12, 9, COL_FRICTION, 'center', 4);
+
+  // Histogram on the right
+  const histX = torusX + torusSize + 30;
+  const histW = W - histX - 30;
+  const histY = torusY + 20;
+  const histH = torusSize - 40;
+  const maxBin = Math.max(...scene4State.histogram, 1);
+
+  drawText('Distribution', histX + histW / 2, histY - 10, 13, '#8b949e', 'center');
+
+  const barW = Math.max(6, (histW - 20) / 10);
+  const idealLevel = scene4State.particles.length / 10;
+
+  for (let b = 0; b < 10; b++) {
+    const count = scene4State.histogram[b];
+    const barH = (count / maxBin) * (histH - 20);
+    const bx = histX + b * barW + 10;
+    const by = histY + histH - barH;
+
+    ctx.fillStyle = `rgba(50,205,50,0.6)`;
+    ctx.fillRect(bx + 1, by, barW - 2, barH);
+
+    // Bin label
+    ctx.fillStyle = '#484f58';
+    ctx.font = '9px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('.' + b, bx + barW / 2, histY + histH + 12);
+  }
+
+  // Uniform target line
+  const targetH = (idealLevel / maxBin) * (histH - 20);
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#FFD700aa';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(histX + 10, histY + histH - targetH);
+  ctx.lineTo(histX + 10 + 10 * barW, histY + histH - targetH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  drawText('uniform', histX + 10 + 10 * barW + 4, histY + histH - targetH, 9, COL_FRICTION + 'aa', 'left');
+
+  // Counter
+  const counterY = histY + histH + 40;
+  drawText('Reached 1-4-2:', histX + histW / 2, counterY, 14, '#8b949e', 'center');
+
+  glow(COL_FRICTION, reached > 0 ? 8 : 0);
+  drawText(reached + ' / ' + scene4State.particles.length, histX + histW / 2, counterY + 24, 18,
+    reached === scene4State.particles.length ? COL_FRICTION : '#e6edf3', 'center', reached === scene4State.particles.length ? 10 : 0);
+  noGlow();
+
+  // Progress bar
+  const pbX = histX + 10;
+  const pbW = histW - 20;
+  const pbY = counterY + 46;
+  const pbH = 8;
+  ctx.fillStyle = '#21262d';
+  ctx.fillRect(pbX, pbY, pbW, pbH);
+  const frac2 = reached / scene4State.particles.length;
+  ctx.fillStyle = frac2 === 1 ? COL_FRICTION : COL_PARTICLE;
+  ctx.fillRect(pbX, pbY, pbW * frac2, pbH);
+
+  // Final text
+  if (reached === scene4State.particles.length) {
+    glow(COL_FRICTION, 12);
+    drawText('No trajectory can escape the arithmetic friction.', W / 2, H - 36, 15, COL_FRICTION, 'center', 10);
+    noGlow();
+  } else {
+    drawText('Unique Ergodicity: friction prevents any trajectory from avoiding the Safe Zone', W / 2, H - 36, 12, '#484f58');
+  }
+
+  drawText('Particles: ' + scene4State.particles.length, histX + histW / 2, counterY + 70, 10, '#484f58', 'center');
+}
+
+// ============================================================
+// SCENE MANAGEMENT & MAIN LOOP
+// ============================================================
+function switchScene(n) {
+  currentScene = n;
+  sceneStartTime = globalTime;
+  if (n === 4) {
+    scene4State.initialized = false;
+  }
+  document.querySelectorAll('.scene-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.scene) === n);
+  });
+  document.getElementById('sceneTitle').textContent = sceneTitles[n];
+}
+
+function resize() {
+  const wrap = document.getElementById('canvasWrap');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = wrap.clientWidth * dpr;
+  canvas.height = wrap.clientHeight * dpr;
+  canvas.style.width = wrap.clientWidth + 'px';
+  canvas.style.height = wrap.clientHeight + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // W and H are in CSS pixels (logical), not device pixels
+  W = wrap.clientWidth;
+  H = wrap.clientHeight;
+}
+
+let lastFrameTime = 0;
+function mainLoop(timestamp) {
+  if (!lastFrameTime) lastFrameTime = timestamp;
+  const rawDelta = (timestamp - lastFrameTime) / 1000;
+  lastFrameTime = timestamp;
+
+  if (playing) {
+    globalTime += rawDelta * 60 * (speed / 4);
+  }
+
+  resize();
+
+  const sceneTime = (globalTime - sceneStartTime) / 60; // seconds since scene start
+
+  switch (currentScene) {
+    case 1: drawScene1(sceneTime); break;
+    case 2: drawScene2(sceneTime); break;
+    case 3: drawScene3(sceneTime); break;
+    case 4: drawScene4(sceneTime); break;
+  }
+
+  // Auto-advance check
+  const sceneDurations = { 1: 25, 2: 28, 3: 35, 4: 45 };
+  if (playing && sceneTime > sceneDurations[currentScene]) {
+    autoAdvanceTimer += rawDelta;
+    if (autoAdvanceTimer > 2) {
+      autoAdvanceTimer = 0;
+      const next = currentScene < 4 ? currentScene + 1 : 1;
+      switchScene(next);
+    }
+  } else {
+    autoAdvanceTimer = 0;
+  }
+
+  requestAnimationFrame(mainLoop);
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+document.querySelectorAll('.scene-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    switchScene(parseInt(btn.dataset.scene));
+  });
+});
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  playing = !playing;
+  document.getElementById('playBtn').textContent = playing ? 'Pause' : 'Play';
+  document.getElementById('playBtn').style.background = playing ? '#238636' : '#da3633';
+});
+
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+  speed = parseInt(e.target.value);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    playing = !playing;
+    document.getElementById('playBtn').textContent = playing ? 'Pause' : 'Play';
+    document.getElementById('playBtn').style.background = playing ? '#238636' : '#da3633';
+  } else if (e.key >= '1' && e.key <= '4') {
+    switchScene(parseInt(e.key));
+  } else if (e.code === 'ArrowRight') {
+    const next = currentScene < 4 ? currentScene + 1 : 1;
+    switchScene(next);
+  } else if (e.code === 'ArrowLeft') {
+    const prev = currentScene > 1 ? currentScene - 1 : 4;
+    switchScene(prev);
+  }
+});
+
+window.addEventListener('resize', resize);
+
+// Start
+resize();
+requestAnimationFrame(mainLoop);
+</script>
+</body>
+</html>

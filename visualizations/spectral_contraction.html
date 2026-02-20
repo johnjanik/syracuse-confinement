@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Furstenberg ×2,×3 — Spectral Contraction Lab</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; color: #e0e0e0; font-family: 'Courier New', monospace;
+    display: flex; flex-direction: column; min-height: 100vh; }
+
+  h1 { text-align: center; padding: 12px 0 4px; color: #e94560; font-size: 1.3em; }
+  .subtitle { text-align: center; font-size: 0.78em; color: #888; padding-bottom: 8px; }
+
+  .main { display: flex; flex: 1; gap: 12px; padding: 0 12px 12px; }
+
+  .left { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .right { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+
+  canvas { border: 1px solid #333366; border-radius: 4px; background: #16213e; display: block; }
+  .cv-wrap { position: relative; }
+  .cv-label { position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    font-size: 0.82em; font-weight: bold; pointer-events: none; z-index: 1; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .controls button { background: #0f3460; color: #e0e0e0; border: 1px solid #333366;
+    padding: 5px 12px; cursor: pointer; border-radius: 4px; font-size: 0.8em;
+    font-family: inherit; white-space: nowrap; }
+  .controls button:hover { background: #e94560; }
+  .controls button.active { background: #e94560; }
+  .controls button.preset { background: #1b2a4a; }
+  .controls button.preset:hover, .controls button.preset.sel { background: #0f3460; border-color: #53d8fb; }
+  .controls button.race { background: #2a1a3e; border-color: #b060e0; }
+  .controls button.race:hover { background: #b060e0; }
+
+  .sep { width: 1px; height: 24px; background: #333366; }
+
+  .controls label { font-size: 0.78em; color: #aaa; }
+  .controls input[type=range] { width: 80px; accent-color: #e94560; vertical-align: middle; }
+  .controls select { background: #0f3460; color: #e0e0e0; border: 1px solid #333366;
+    padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-family: inherit; }
+
+  .info-box { background: #16213e; border: 1px solid #333366; border-radius: 4px;
+    padding: 10px; font-size: 0.78em; line-height: 1.6; flex: 1; overflow-y: auto; }
+  .info-box .val { color: #e94560; }
+  .info-box .dim { color: #666; }
+
+  .draw-hint { text-align: center; font-size: 0.72em; color: #555; padding: 2px; }
+</style>
+</head>
+<body>
+
+<h1>Furstenberg ×2,×3 — Spectral Contraction Lab</h1>
+<div class="subtitle">
+  Draw or choose a starting density, then watch T₃ and T₂ drive it toward Lebesgue.
+  Keys: Space=play, →=step, 3=T₃, 2=T₂, R=reset, C=race
+</div>
+
+<div class="main">
+  <div class="left">
+    <div class="cv-wrap">
+      <div class="cv-label" id="densityLabel" style="color:#e94560">Density f(x) — Draw to edit</div>
+      <canvas id="cvDensity" width="900" height="320"></canvas>
+    </div>
+    <div class="draw-hint" id="drawHint">Click and drag on the plot to sculpt the density. It auto-normalizes to integrate to 1.</div>
+
+    <!-- Transport controls -->
+    <div class="controls">
+      <button id="btnPlay" onclick="togglePlay()">&#9654; Play</button>
+      <button onclick="stepOnce()">Step (T₃+T₂)</button>
+      <button onclick="stepT3Only()">T₃ only</button>
+      <button onclick="stepT2Only()">T₂ only</button>
+      <button onclick="resetToInit()">&#8634; Reset</button>
+
+      <div class="sep"></div>
+
+      <label>Play mode</label>
+      <select id="playMode">
+        <option value="both" selected>T₃+T₂</option>
+        <option value="t3">T₃ only</option>
+        <option value="t2">T₂ only</option>
+      </select>
+
+      <label>Speed</label>
+      <input type="range" id="speedSlider" min="1" max="20" value="8"
+        oninput="playSpeed=21-this.value">
+
+      <div class="sep"></div>
+
+      <button class="race" onclick="runRace()">Race all 3</button>
+      <label style="color:#b060e0">compare T₃+T₂ vs T₃ vs T₂</label>
+    </div>
+
+    <!-- Presets -->
+    <div class="controls">
+      <label>Presets:</label>
+      <button class="preset" onclick="loadPreset('bumpy')">Bumpy</button>
+      <button class="preset" onclick="loadPreset('spike')">Spike</button>
+      <button class="preset" onclick="loadPreset('pixel')">Pixel Spike</button>
+      <button class="preset" onclick="loadPreset('step')">Step</button>
+      <button class="preset" onclick="loadPreset('twopeak')">Two Peaks</button>
+      <button class="preset" onclick="loadPreset('sawtooth')">Sawtooth</button>
+      <button class="preset" onclick="loadPreset('comb')">Comb</button>
+      <button class="preset" onclick="loadPreset('noise')">Noise</button>
+      <button class="preset" onclick="loadPreset('triorbit')">3-orbit</button>
+      <button class="preset" onclick="loadPreset('random')">Random</button>
+      <button class="preset" onclick="loadPreset('flat')">Flat</button>
+
+      <div class="sep"></div>
+
+      <label>Brush:</label>
+      <input type="range" id="brushWidth" min="3" max="80" value="20" title="Brush width">
+      <select id="brushMode">
+        <option value="add">Add</option>
+        <option value="set">Set</option>
+        <option value="smooth">Smooth</option>
+      </select>
+
+      <div class="sep"></div>
+
+      <label>N =</label>
+      <select id="gridN" onchange="changeN(this.value)">
+        <option value="512">512</option>
+        <option value="1024" selected>1024</option>
+        <option value="2048">2048</option>
+        <option value="4096">4096</option>
+      </select>
+
+      <label><input type="checkbox" id="showGhost" checked onchange="renderAll()"> ghost</label>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="cv-wrap">
+      <div class="cv-label" style="color:#f0c040">L² Deviation (log scale)</div>
+      <canvas id="cvL2" width="320" height="240"></canvas>
+    </div>
+    <div class="cv-wrap">
+      <div class="cv-label" style="color:#53d8fb">Fourier Spectrum |f̂(n)|</div>
+      <canvas id="cvFourier" width="320" height="180"></canvas>
+    </div>
+    <div class="info-box" id="infoBox">
+      Step: <span class="val" id="infoStep">0</span><br>
+      Last op: <span class="val" id="infoOp">—</span><br>
+      ‖f − 1‖₂: <span class="val" id="infoL2">—</span><br>
+      max f: <span class="val" id="infoMax">—</span><br>
+      min f: <span class="val" id="infoMin">—</span><br>
+      <hr style="border-color:#333366; margin:6px 0">
+      <span class="dim">Spectral gap = 2/3</span><br>
+      <span class="dim">T₃ contracts modes by 1/3</span><br>
+      <span class="dim">T₂ rearranges, can't amplify</span><br>
+      <span class="dim">Joint action: any density → Lebesgue</span><br>
+      <span class="dim">Only exception: δ₀ (true point mass)</span><br>
+      <hr style="border-color:#333366; margin:6px 0">
+      <span class="dim" id="raceResult"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────
+let N = 1024;
+let f = new Float64Array(N);
+let f0 = new Float64Array(N);
+let stepCount = 0;
+let l2History = [];
+let raceData = null;   // {both: [...], t3: [...], t2: [...]}
+let playing = false;
+let playTimer = null;
+let playSpeed = 13;
+let lastOp = '—';
+
+// ─── Operators ──────────────────────────────────────────────────────
+
+function applyT3(arr) {
+  const n = arr.length;
+  const g = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    for (let k = 0; k < 3; k++) {
+      const pre = (i + k * n) / 3.0;
+      const idx = ((pre % n) + n) % n;
+      const lo = Math.floor(idx) % n;
+      const hi = (lo + 1) % n;
+      const frac = idx - Math.floor(idx);
+      g[i] += (1/3) * ((1 - frac) * arr[lo] + frac * arr[hi]);
+    }
+  }
+  return g;
+}
+
+function applyT2(arr) {
+  const n = arr.length;
+  const g = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    for (let k = 0; k < 2; k++) {
+      const pre = (i + k * n) / 2.0;
+      const idx = ((pre % n) + n) % n;
+      const lo = Math.floor(idx) % n;
+      const hi = (lo + 1) % n;
+      const frac = idx - Math.floor(idx);
+      g[i] += 0.5 * ((1 - frac) * arr[lo] + frac * arr[hi]);
+    }
+  }
+  return g;
+}
+
+function normalize(arr) {
+  let s = 0;
+  for (let i = 0; i < arr.length; i++) s += arr[i];
+  if (s > 0) { const c = arr.length / s; for (let i = 0; i < arr.length; i++) arr[i] *= c; }
+}
+
+function l2dev(arr) {
+  let s = 0;
+  for (let i = 0; i < arr.length; i++) { const d = arr[i] - 1; s += d * d; }
+  return Math.sqrt(s / arr.length);
+}
+
+// ─── Presets ────────────────────────────────────────────────────────
+
+function makeFlat() { const a = new Float64Array(N); a.fill(1.0); return a; }
+
+function makeBumpy() {
+  const a = new Float64Array(N);
+  const cs = [0.15, 0.42, 0.67, 0.88], ws = [0.04, 0.06, 0.03, 0.05], hs = [3, 2, 4, 1.5];
+  for (let i = 0; i < N; i++) {
+    const x = i / N; a[i] = 0.3;
+    for (let j = 0; j < cs.length; j++) { const d = (x - cs[j]) / ws[j]; a[i] += hs[j] * Math.exp(-0.5*d*d); }
+  }
+  normalize(a); return a;
+}
+
+function makeSpike(center, width) {
+  center = center || 0.0; width = width || 0.008;
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) {
+    const x = i / N;
+    for (let k = -3; k <= 3; k++) { const d = (x - center - k) / width; a[i] += Math.exp(-0.5*d*d); }
+  }
+  normalize(a); return a;
+}
+
+function makePixelSpike() {
+  // Single-pixel spike at x=0: the most extreme discrete density.
+  // Closest to a true point mass. Takes ~log₂(N) steps to converge.
+  const a = new Float64Array(N);
+  a.fill(1e-6);  // tiny baseline so Fourier is well-defined
+  a[0] = N;
+  normalize(a); return a;
+}
+
+function makeStep() {
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) { const x = i/N; a[i] = (x < 0.3) ? 2.5 : (x < 0.7 ? 0.3 : 1.2); }
+  normalize(a); return a;
+}
+
+function makeTwoPeak() {
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) {
+    const x = i/N;
+    a[i] = 0.2 + 3*Math.exp(-0.5*((x-0.25)/0.04)**2) + 3*Math.exp(-0.5*((x-0.75)/0.04)**2);
+  }
+  normalize(a); return a;
+}
+
+function makeSawtooth() {
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) { a[i] = 0.5 + 2 * ((i/N * 5) % 1); }
+  normalize(a); return a;
+}
+
+function makeComb() {
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) {
+    const x = i/N; a[i] = 0.15;
+    for (let t = 0; t < 7; t++) { const d = (x - (t+0.5)/7) / 0.012; a[i] += 4*Math.exp(-0.5*d*d); }
+  }
+  normalize(a); return a;
+}
+
+function makeNoise() {
+  // Rough density: random perturbation at every grid point.
+  // Has energy at ALL Fourier modes — the slowest-decaying Fourier spectrum.
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) a[i] = 0.2 + Math.random() * 1.8;
+  normalize(a); return a;
+}
+
+function makeTriOrbit() {
+  // Three spikes at 0, 1/3, 2/3 — a T₃-orbit.
+  // T₃ maps this orbit to itself, so T₃ alone just permutes the spikes.
+  // Need T₂ to break the symmetry and force convergence.
+  const a = new Float64Array(N);
+  const w = 0.012;
+  for (let i = 0; i < N; i++) {
+    const x = i/N; a[i] = 0.05;
+    for (const c of [0, 1/3, 2/3]) {
+      for (let k = -2; k <= 2; k++) { const d = (x-c-k)/w; a[i] += 5*Math.exp(-0.5*d*d); }
+    }
+  }
+  normalize(a); return a;
+}
+
+function makeRandom() {
+  const a = new Float64Array(N);
+  for (let i = 0; i < N; i++) a[i] = 0.2;
+  const nb = 6 + Math.floor(Math.random() * 6);
+  for (let b = 0; b < nb; b++) {
+    const c = Math.random(), w = 0.015 + Math.random()*0.06, h = 0.5 + Math.random()*4;
+    for (let i = 0; i < N; i++) {
+      const x = i/N;
+      for (let k = -1; k <= 1; k++) { const d = (x-c-k)/w; a[i] += h*Math.exp(-0.5*d*d); }
+    }
+  }
+  normalize(a); return a;
+}
+
+function loadPreset(name) {
+  stopPlay(); raceData = null;
+  const makers = {bumpy: makeBumpy, spike: makeSpike, pixel: makePixelSpike, step: makeStep,
+    twopeak: makeTwoPeak, sawtooth: makeSawtooth, comb: makeComb, noise: makeNoise,
+    triorbit: makeTriOrbit, random: makeRandom, flat: makeFlat};
+  setDensity((makers[name] || makeBumpy)());
+}
+
+function setDensity(a) {
+  f = a; f0 = new Float64Array(f);
+  stepCount = 0; lastOp = '—'; raceData = null;
+  l2History = [{step: 0, l2: l2dev(f), op: 'init'}];
+  renderAll();
+}
+
+function changeN(val) { N = parseInt(val); loadPreset('bumpy'); }
+
+// ─── Drawing ────────────────────────────────────────────────────────
+
+let drawing = false;
+const cvDensity = document.getElementById('cvDensity');
+const dPad = {l: 50, r: 15, t: 28, b: 30};
+
+function canvasToData(e) {
+  const rect = cvDensity.getBoundingClientRect();
+  const scaleX = cvDensity.width / rect.width;
+  const scaleY = cvDensity.height / rect.height;
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
+  const pw = cvDensity.width - dPad.l - dPad.r;
+  const ph = cvDensity.height - dPad.t - dPad.b;
+  return {xFrac: (cx - dPad.l) / pw, yFrac: 1 - (cy - dPad.t) / ph};
+}
+
+function brushDraw(e) {
+  const {xFrac, yFrac} = canvasToData(e);
+  if (xFrac < 0 || xFrac > 1 || yFrac < -0.1) return;
+  const mode = document.getElementById('brushMode').value;
+  const bw = parseInt(document.getElementById('brushWidth').value);
+  const ci = Math.round(xFrac * N) % N;
+  let maxF = 0;
+  for (let i = 0; i < N; i++) if (f[i] > maxF) maxF = f[i];
+  maxF = Math.max(maxF, 2.0);
+  const tgt = Math.max(0, yFrac * maxF);
+  for (let di = -bw*2; di <= bw*2; di++) {
+    const idx = ((ci+di) % N + N) % N;
+    const w = Math.exp(-0.5*(di/(bw*0.4))**2);
+    if (mode === 'add') f[idx] = Math.max(0.001, f[idx] + (tgt - f[idx]) * w * 0.3);
+    else if (mode === 'set') f[idx] = Math.max(0.001, f[idx]*(1-w) + tgt*w);
+    else { const avg = (f[((idx-1)%N+N)%N] + f[idx] + f[(idx+1)%N]) / 3; f[idx] = f[idx]*(1-w*0.5) + avg*w*0.5; }
+  }
+  normalize(f);
+  f0 = new Float64Array(f); stepCount = 0; raceData = null;
+  l2History = [{step: 0, l2: l2dev(f), op: 'draw'}]; lastOp = 'draw';
+  renderAll();
+}
+
+cvDensity.addEventListener('mousedown', (e) => { if (e.button !== 0) return; drawing = true; stopPlay(); brushDraw(e); });
+cvDensity.addEventListener('mousemove', (e) => { if (drawing) brushDraw(e); });
+window.addEventListener('mouseup', () => { drawing = false; });
+
+// ─── Controls ───────────────────────────────────────────────────────
+
+function doStep(mode) {
+  if (mode === 'both') { f = applyT2(applyT3(f)); lastOp = 'T₃+T₂'; }
+  else if (mode === 't3') { f = applyT3(f); lastOp = 'T₃ only'; }
+  else { f = applyT2(f); lastOp = 'T₂ only'; }
+  stepCount++;
+  l2History.push({step: stepCount, l2: l2dev(f), op: lastOp});
+  renderAll();
+}
+
+function stepOnce() { doStep('both'); }
+function stepT3Only() { doStep('t3'); }
+function stepT2Only() { doStep('t2'); }
+
+function resetToInit() {
+  stopPlay(); raceData = null;
+  f = new Float64Array(f0); stepCount = 0; lastOp = '—';
+  l2History = [{step: 0, l2: l2dev(f), op: 'init'}];
+  renderAll();
+}
+
+function togglePlay() {
+  if (playing) stopPlay();
+  else { playing = true; document.getElementById('btnPlay').textContent = '⏸ Pause';
+    document.getElementById('btnPlay').classList.add('active'); playLoop(); }
+}
+
+function stopPlay() {
+  playing = false; if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+  document.getElementById('btnPlay').textContent = '▶ Play';
+  document.getElementById('btnPlay').classList.remove('active');
+}
+
+function playLoop() {
+  if (!playing) return;
+  doStep(document.getElementById('playMode').value);
+  if (l2dev(f) < 1e-14) { stopPlay(); return; }
+  playTimer = setTimeout(playLoop, playSpeed * 20);
+}
+
+// ─── Race: compare all 3 modes from same starting density ──────────
+
+function runRace() {
+  stopPlay();
+  const nSteps = 25;
+  const start = new Float64Array(f0);
+
+  function simulate(mode) {
+    let g = new Float64Array(start);
+    const pts = [{step: 0, l2: l2dev(g)}];
+    for (let s = 1; s <= nSteps; s++) {
+      if (mode === 'both') g = applyT2(applyT3(g));
+      else if (mode === 't3') g = applyT3(g);
+      else g = applyT2(g);
+      pts.push({step: s, l2: l2dev(g)});
+    }
+    return pts;
+  }
+
+  raceData = { both: simulate('both'), t3: simulate('t3'), t2: simulate('t2') };
+
+  // Find steps to reach 1e-10
+  function stepsTo(pts, thresh) {
+    for (let i = 0; i < pts.length; i++) if (pts[i].l2 < thresh) return i;
+    return '>' + nSteps;
+  }
+  const tb = stepsTo(raceData.both, 1e-10);
+  const t3 = stepsTo(raceData.t3, 1e-10);
+  const t2 = stepsTo(raceData.t2, 1e-10);
+
+  document.getElementById('raceResult').innerHTML =
+    '<b style="color:#b060e0">Race results (steps to L²&lt;10⁻¹⁰):</b><br>' +
+    `<span style="color:#e94560">T₃+T₂: ${tb}</span><br>` +
+    `<span style="color:#53d8fb">T₃ only: ${t3}</span><br>` +
+    `<span style="color:#80ff80">T₂ only: ${t2}</span>`;
+
+  // Reset density to start state so user can still interact
+  f = new Float64Array(f0); stepCount = 0; lastOp = 'race';
+  l2History = [{step: 0, l2: l2dev(f), op: 'init'}];
+  renderAll();
+}
+
+// ─── Rendering ──────────────────────────────────────────────────────
+
+function renderDensity() {
+  const cv = cvDensity;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pad = dPad;
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  ctx.clearRect(0, 0, W, H);
+
+  let maxF = 0;
+  for (let i = 0; i < N; i++) if (f[i] > maxF) maxF = f[i];
+  // For ghost, also check f0
+  if (document.getElementById('showGhost').checked) {
+    for (let i = 0; i < N; i++) if (f0[i] > maxF) maxF = f0[i];
+  }
+  maxF = Math.max(maxF * 1.1, 2.0);
+
+  // Grid
+  ctx.strokeStyle = '#2a2a50'; ctx.lineWidth = 0.5;
+  const yStep = maxF > 10 ? Math.pow(10, Math.floor(Math.log10(maxF))) : (maxF > 4 ? 2 : 1);
+  for (let y = 0; y <= maxF; y += yStep) {
+    const py = pad.t + ph * (1 - y / maxF);
+    ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(pad.l + pw, py); ctx.stroke();
+    ctx.fillStyle = '#666'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+    ctx.fillText(y.toFixed(y < 1 ? 2 : (y < 10 ? 1 : 0)), pad.l - 5, py + 3);
+  }
+
+  // X axis
+  ctx.fillStyle = '#666'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+  for (let x = 0; x <= 1; x += 0.25) ctx.fillText(x.toFixed(2), pad.l + x * pw, pad.t + ph + 15);
+
+  // Uniform line
+  const uy = pad.t + ph * (1 - 1 / maxF);
+  ctx.strokeStyle = '#f0c040'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 3]);
+  ctx.beginPath(); ctx.moveTo(pad.l, uy); ctx.lineTo(pad.l + pw, uy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f0c040'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Lebesgue', pad.l + pw - 58, uy - 5);
+
+  const step = Math.max(1, Math.floor(N / pw));
+
+  // Ghost of initial density
+  if (document.getElementById('showGhost').checked && stepCount > 0) {
+    ctx.beginPath();
+    for (let i = 0; i < N; i += step) {
+      const px = pad.l + (i / N) * pw;
+      const py = pad.t + ph * (1 - Math.min(f0[i], maxF) / maxF);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = '#ffffff20'; ctx.lineWidth = 1; ctx.stroke();
+    // Ghost fill
+    ctx.beginPath(); ctx.moveTo(pad.l, pad.t + ph);
+    for (let i = 0; i < N; i += step) {
+      const px = pad.l + (i / N) * pw;
+      const py = pad.t + ph * (1 - Math.min(f0[i], maxF) / maxF);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(pad.l + pw, pad.t + ph); ctx.closePath();
+    ctx.fillStyle = '#ffffff08'; ctx.fill();
+  }
+
+  // Current density fill
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t + ph);
+  for (let i = 0; i < N; i += step) {
+    const px = pad.l + (i / N) * pw;
+    const py = pad.t + ph * (1 - Math.min(f[i], maxF) / maxF);
+    ctx.lineTo(px, py);
+  }
+  ctx.lineTo(pad.l + pw, pad.t + ph); ctx.closePath();
+  ctx.fillStyle = '#e9456066'; ctx.fill();
+
+  // Current density line
+  ctx.beginPath();
+  for (let i = 0; i < N; i += step) {
+    const px = pad.l + (i / N) * pw;
+    const py = pad.t + ph * (1 - Math.min(f[i], maxF) / maxF);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2; ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#888'; ctx.font = '11px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('x ∈ [0, 1)', pad.l + pw / 2, H - 4);
+  ctx.save(); ctx.translate(12, pad.t + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('f(x)', 0, 0); ctx.restore();
+}
+
+function renderL2() {
+  const cv = document.getElementById('cvL2');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pad = {l: 55, r: 12, t: 28, b: 28};
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  ctx.clearRect(0, 0, W, H);
+  if (l2History.length === 0) return;
+
+  // Determine axis range
+  let maxStep = Math.max(l2History[l2History.length - 1].step, 10);
+  if (raceData) maxStep = Math.max(maxStep, 25);
+  const l2_0 = l2History[0].l2;
+  const maxVal = Math.max(l2_0, 1) * 2;
+  const minVal = 1e-15;
+  const logMax = Math.log10(maxVal), logMin = Math.log10(minVal);
+  function toY(v) { return pad.t + ph * (1 - (Math.log10(Math.max(v, minVal)) - logMin) / (logMax - logMin)); }
+
+  // Grid
+  ctx.strokeStyle = '#2a2a50'; ctx.lineWidth = 0.5;
+  ctx.fillStyle = '#666'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+  for (let e = Math.ceil(logMin); e <= Math.floor(logMax); e++) {
+    const y = toY(Math.pow(10, e));
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+    ctx.fillText('10^' + e, pad.l - 4, y + 3);
+  }
+
+  // Reference (1/3)^n
+  if (l2_0 > 1e-12) {
+    ctx.strokeStyle = '#f0c040'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    for (let i = 0; i <= maxStep; i++) {
+      const px = pad.l + (i / maxStep) * pw, py = toY(l2_0 * Math.pow(1/3, i));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // Race data (background, draw first)
+  if (raceData) {
+    const colors = {both: '#e94560', t3: '#53d8fb', t2: '#80ff80'};
+    for (const key of ['t2', 't3', 'both']) {
+      const pts = raceData[key];
+      ctx.beginPath(); ctx.strokeStyle = colors[key]; ctx.lineWidth = 1.5;
+      ctx.setLineDash(key === 'both' ? [] : [3,2]);
+      for (let i = 0; i < pts.length; i++) {
+        const px = pad.l + (pts[i].step / maxStep) * pw, py = toY(pts[i].l2);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+      // dots
+      ctx.fillStyle = colors[key];
+      for (let i = 0; i < pts.length; i++) {
+        const px = pad.l + (pts[i].step / maxStep) * pw, py = toY(pts[i].l2);
+        ctx.beginPath(); ctx.arc(px, py, 2, 0, 2*Math.PI); ctx.fill();
+      }
+    }
+  }
+
+  // Current L² trace (thicker, on top of race)
+  if (!raceData || l2History.length > 1) {
+    ctx.beginPath(); ctx.strokeStyle = '#e94560'; ctx.lineWidth = 2;
+    for (let i = 0; i < l2History.length; i++) {
+      const h = l2History[i];
+      const px = pad.l + (h.step / maxStep) * pw, py = toY(h.l2);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    // Color-coded dots
+    for (let i = 0; i < l2History.length; i++) {
+      const h = l2History[i];
+      const px = pad.l + (h.step / maxStep) * pw, py = toY(h.l2);
+      ctx.fillStyle = h.op === 'T₃ only' ? '#53d8fb' : (h.op === 'T₂ only' ? '#80ff80' : '#e94560');
+      ctx.beginPath(); ctx.arc(px, py, 3, 0, 2*Math.PI); ctx.fill();
+    }
+  }
+
+  // Legend
+  ctx.font = '8px monospace'; ctx.textAlign = 'left';
+  const ly = pad.t + 4;
+  ctx.fillStyle = '#e94560'; ctx.fillRect(pad.l+4, ly, 10, 3);
+  ctx.fillStyle = '#ccc'; ctx.fillText('T₃+T₂', pad.l+17, ly+4);
+  ctx.fillStyle = '#53d8fb'; ctx.fillRect(pad.l+4, ly+9, 10, 3);
+  ctx.fillStyle = '#ccc'; ctx.fillText('T₃ only', pad.l+17, ly+13);
+  ctx.fillStyle = '#80ff80'; ctx.fillRect(pad.l+4, ly+18, 10, 3);
+  ctx.fillStyle = '#ccc'; ctx.fillText('T₂ only', pad.l+17, ly+22);
+  ctx.fillStyle = '#f0c040'; ctx.fillRect(pad.l+4, ly+27, 10, 3);
+  ctx.fillStyle = '#ccc'; ctx.fillText('(1/3)ⁿ', pad.l+17, ly+31);
+
+  ctx.fillStyle = '#888'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('Step n', pad.l + pw/2, H - 5);
+}
+
+function renderFourier() {
+  const cv = document.getElementById('cvFourier');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const pad = {l: 45, r: 12, t: 28, b: 25};
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  ctx.clearRect(0, 0, W, H);
+
+  const nModes = Math.min(64, Math.floor(N / 2));
+  const mags = new Float64Array(nModes);
+  for (let k = 1; k <= nModes; k++) {
+    let re = 0, im = 0;
+    for (let i = 0; i < N; i++) {
+      const angle = 2 * Math.PI * k * i / N;
+      re += f[i] * Math.cos(angle);
+      im -= f[i] * Math.sin(angle);
+    }
+    mags[k-1] = Math.sqrt(re*re + im*im) / N;
+  }
+
+  let maxMag = 0;
+  for (let i = 0; i < nModes; i++) if (mags[i] > maxMag) maxMag = mags[i];
+  maxMag = Math.max(maxMag * 1.2, 0.01);
+
+  ctx.strokeStyle = '#2a2a50'; ctx.lineWidth = 0.5;
+  ctx.fillStyle = '#666'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+  for (let y = 0; y <= maxMag; y += Math.max(0.01, maxMag/4)) {
+    const py = pad.t + ph * (1 - y/maxMag);
+    ctx.beginPath(); ctx.moveTo(pad.l, py); ctx.lineTo(pad.l+pw, py); ctx.stroke();
+    ctx.fillText(y.toFixed(y < 0.1 ? 3 : 2), pad.l-4, py+3);
+  }
+
+  const barW = Math.max(1, pw / nModes - 1);
+  for (let i = 0; i < nModes; i++) {
+    const px = pad.l + (i / nModes) * pw;
+    const h = (mags[i] / maxMag) * ph;
+    const mode = i + 1;
+    // red = killed by T₃ (n not div by 3), cyan = survives T₃ (3|n)
+    ctx.fillStyle = (mode % 3 === 0) ? '#53d8fb' : '#e94560';
+    ctx.fillRect(px, pad.t + ph - h, barW, h);
+  }
+
+  ctx.fillStyle = '#888'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('Fourier mode n', pad.l + pw/2, H - 4);
+
+  ctx.font = '8px monospace'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#e94560'; ctx.fillRect(pad.l+pw-90, pad.t+4, 8, 8);
+  ctx.fillStyle = '#ccc'; ctx.fillText('n∤3', pad.l+pw-79, pad.t+11);
+  ctx.fillStyle = '#53d8fb'; ctx.fillRect(pad.l+pw-48, pad.t+4, 8, 8);
+  ctx.fillStyle = '#ccc'; ctx.fillText('3|n', pad.l+pw-37, pad.t+11);
+}
+
+function updateInfo() {
+  document.getElementById('infoStep').textContent = stepCount;
+  document.getElementById('infoOp').textContent = lastOp;
+  const l2 = l2dev(f);
+  document.getElementById('infoL2').textContent = l2 < 1e-12 ? '< 10⁻¹²' : l2.toExponential(3);
+  let maxF = 0, minF = Infinity;
+  for (let i = 0; i < N; i++) { if (f[i] > maxF) maxF = f[i]; if (f[i] < minF) minF = f[i]; }
+  document.getElementById('infoMax').textContent = maxF.toFixed(4);
+  document.getElementById('infoMin').textContent = minF.toFixed(6);
+
+  const label = document.getElementById('densityLabel');
+  if (stepCount === 0) {
+    label.textContent = 'Density f(x) — Draw to edit';
+    label.style.color = '#e94560';
+    document.getElementById('drawHint').style.display = '';
+  } else {
+    label.textContent = `Density f(x) — Step ${stepCount} (${lastOp})`;
+    label.style.color = l2 < 0.01 ? '#80ff80' : '#e94560';
+    document.getElementById('drawHint').style.display = 'none';
+  }
+}
+
+function renderAll() { renderDensity(); renderL2(); renderFourier(); updateInfo(); }
+
+// ─── Keyboard ───────────────────────────────────────────────────────
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  switch (e.key) {
+    case ' ': e.preventDefault(); togglePlay(); break;
+    case 'ArrowRight': e.preventDefault(); stepOnce(); break;
+    case '3': e.preventDefault(); stepT3Only(); break;
+    case '2': e.preventDefault(); stepT2Only(); break;
+    case 'r': e.preventDefault(); resetToInit(); break;
+    case 'c': e.preventDefault(); runRace(); break;
+  }
+});
+
+// ─── Init ───────────────────────────────────────────────────────────
+loadPreset('bumpy');
+</script>
+</body>
+</html>

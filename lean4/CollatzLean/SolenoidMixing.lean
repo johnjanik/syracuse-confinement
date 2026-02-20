@@ -189,40 +189,157 @@ theorem hensel_baker_conflict (n t d : ℕ) (hn : n ≥ 1) (ε : ℝ)
     walkCellError n (t + 2 * d) = ε + ↑d * (1 - logb 2 3) := by
   rw [cellError_shift_of_v2_run n t d hn hodd hrun, hε]
 
+/-! ## Section 8: Solenoid bridge infrastructure
+
+    Supporting lemmas for closing `cellSeqNu2_equidistributed`
+    (WeylEquidistribution.lean). At Syracuse step k:
+      ν₂ = syracuseValSum n k = log₂3 · k + walk(syracuseTime n k)
+    The Weyl sequence is k ↦ ⌊k · log₂3⌋, so the distance between
+    the Collatz cell sequence and the irrational rotation is |walk|. -/
+
+/-- At Syracuse step k, ν₂ decomposes as log₂3 · k plus walk correction. -/
+theorem nu2_syracuse_decomposition (n k : ℕ) (hn : n ≥ 1) (hodd : n % 2 = 1) :
+    (nu2 n (syracuseTime n k) : ℝ) = logb 2 3 * ↑k + walk n (syracuseTime n k) := by
+  rw [nu2_at_syracuseTime n k hn hodd]; linarith [walk_from_syracuse n k hn hodd]
+
+/-- Distance between syracuseValSum and log₂3 · k equals |walk|. -/
+theorem syracuseValSum_near_rotation (n k : ℕ) (hn : n ≥ 1) (hodd : n % 2 = 1) :
+    |(↑(syracuseValSum n k) : ℝ) - logb 2 3 * ↑k| = |walk n (syracuseTime n k)| := by
+  congr 1; exact (walk_from_syracuse n k hn hodd).symm
+
+/-- cellSeqNu2 equals syracuseValSum mod N (definitional unfolding). -/
+theorem cellSeqNu2_eq_syracuseValSum_mod (n N k : ℕ) (hn : n ≥ 1) (hodd : n % 2 = 1) :
+    cellSeqNu2 n N k = syracuseValSum n k % N := by
+  unfold cellSeqNu2; rw [nu2_at_syracuseTime n k hn hodd]
+
+/-- Equidistribution is invariant under mod-reduction: seq % N and seq
+    have the same residue statistics mod N. -/
+theorem isEquidistributed_mod_eq (seq : ℕ → ℕ) (N : ℕ) (hN : N ≥ 2) :
+    IsEquidistributed (fun k => seq k % N) N ↔ IsEquidistributed seq N := by
+  have key : ∀ k, seq k % N % N = seq k % N :=
+    fun k => Nat.mod_eq_of_lt (Nat.mod_lt (seq k) (by omega))
+  simp_rw [IsEquidistributed, key]
+
+/-! ### BUG NOTE — perturbed_rotation_equidistributed is FALSE
+
+    The former statement claimed:
+      If α is irrational and |seq(k) - α·k| ≤ ε·k for all ε > 0
+      eventually, then seq is equidistributed mod N.
+
+    This is FALSE. The hypothesis gives seq(k)/k → α (sublinear tracking),
+    but even BOUNDED tracking (|seq(k) - α·k| ≤ C) is insufficient.
+
+    **Counterexample**: α = √2, N = 3.
+      seq(k) = ⌊√2·k⌋ + (if ⌊√2·k⌋ % 3 = 0 then 1 else 0)
+    Then |seq(k) - √2·k| ≤ 2 for all k (bounded, hence sublinear).
+    But seq(k) % 3 ∈ {1, 2} always (residue 0 never appears):
+      - ⌊√2·k⌋ % 3 = 0  →  seq(k) = ⌊√2·k⌋ + 1  →  seq(k) % 3 = 1
+      - ⌊√2·k⌋ % 3 = 1  →  seq(k) = ⌊√2·k⌋      →  seq(k) % 3 = 1
+      - ⌊√2·k⌋ % 3 = 2  →  seq(k) = ⌊√2·k⌋      →  seq(k) % 3 = 2
+    So IsEquidistributed seq 3 is false.
+
+    **Root cause**: The perturbation d(k) = seq(k) - ⌊α·k⌋ can depend on
+    ⌊α·k⌋ mod N in an adversarial way, "merging" residue classes. The
+    standard perturbation theorem (Kuipers-Niederreiter Thm 1.3) requires
+    |seq(k) - α·k| → 0, which for integer sequences forces seq(k) = ⌊α·k⌋
+    eventually (too strong for our application).
+
+    **Consequence**: The solenoid bridge cannot factor through a general
+    perturbation theorem. Equidistribution of the Collatz cell sequence
+    (cellSeqNu2) is a Collatz-specific dynamical property, not a generic
+    consequence of tracking an irrational rotation.
+
+    The downstream theorems `syracuseValSum_equidistributed_of_sublinear_walk`
+    and `cellSeqNu2_of_sublinear_walk` are retained with updated hypotheses
+    and honest sorrys marking the Collatz-specific equidistribution gap. -/
+
+/-- If the walk is bounded at Syracuse boundaries, then
+    syracuseValSum is equidistributed mod N.
+
+    NOTE: This was previously proved via `perturbed_rotation_equidistributed`,
+    which is FALSE (see bug note above). The correct statement requires
+    bounded walk (not merely sublinear) AND Collatz-specific structure.
+    The equidistribution of syracuseValSum is a dynamical property of the
+    Collatz map, not a consequence of generic perturbation theory.
+
+    The sorry here is NOT Collatz-equivalent by itself (it's an ergodic
+    statement about the statistical distribution of v₂ residues), but it
+    cannot be reduced to the Weyl axiom via a general perturbation argument. -/
+theorem syracuseValSum_equidistributed_of_sublinear_walk (n : ℕ) (hn : n ≥ 1)
+    (hodd : n % 2 = 1) (N : ℕ) (hN : N ≥ 2)
+    (hwalk : ∀ ε : ℝ, ε > 0 → ∃ K₀ : ℕ, ∀ k : ℕ, k ≥ K₀ →
+      |walk n (syracuseTime n k)| ≤ ε * ↑k) :
+    IsEquidistributed (fun k => syracuseValSum n k) N := by
+  sorry
+
+/-- **Full solenoid bridge assembly**: sublinear walk → cellSeqNu2 equidistributed.
+    This is exactly the hypothesis needed to close `cellSeqNu2_equidistributed`
+    in WeylEquidistribution.lean, modulo proving the walk is sublinear.
+
+    NOTE: Now carries a sorry from syracuseValSum_equidistributed_of_sublinear_walk
+    (the general perturbation argument was false; see bug note above). -/
+theorem cellSeqNu2_of_sublinear_walk (n : ℕ) (hn : n ≥ 1) (hodd : n % 2 = 1)
+    (N : ℕ) (hN : N ≥ 2)
+    (hwalk : ∀ ε : ℝ, ε > 0 → ∃ K₀ : ℕ, ∀ k : ℕ, k ≥ K₀ →
+      |walk n (syracuseTime n k)| ≤ ε * ↑k) :
+    IsEquidistributed (cellSeqNu2 n N) N := by
+  have h1 := syracuseValSum_equidistributed_of_sublinear_walk n hn hodd N hN hwalk
+  rw [show cellSeqNu2 n N = fun k => syracuseValSum n k % N from
+    funext (fun k => cellSeqNu2_eq_syracuseValSum_mod n N k hn hodd)]
+  exact (isEquidistributed_mod_eq _ N hN).mpr h1
+
 /-! ## Summary -/
 
 /-
   === FILE STATUS ===
 
-  Proved (no sorry):
+  Proved (no sorry, 14 theorems):
   - logb_two_three_gt_one, logb_two_three_gt_three_halves
   - walk_eq_walkCellError
   - cellError_shift_of_v2_run (KEY: cell error shifts linearly during runs)
-  - cellError_shift_magnitude
-  - cellError_shift_exceeds_one (d ≥ 2 ⟹ shift > 1)
-  - hasBoundedRuns_iff (Hensel equivalence for trajectory runs)
-  - hasCompensatedRuns_iff_slidingWindow
-  - cellError_moved_after_long_run (d ≥ 2 ⟹ |shift| > 1)
-  - hensel_baker_conflict (exact cell error tracking)
+  - cellError_shift_magnitude, cellError_shift_exceeds_one (d ≥ 2 ⟹ shift > 1)
+  - hasBoundedRuns_iff, hasCompensatedRuns_iff_slidingWindow
+  - cellError_moved_after_long_run, hensel_baker_conflict
+  - nu2_syracuse_decomposition (ν₂ = log₂3·k + walk)
+  - syracuseValSum_near_rotation (|valSum - log₂3·k| = |walk|)
+  - cellSeqNu2_eq_syracuseValSum_mod (cellSeqNu2 = valSum % N)
+  - isEquidistributed_mod_eq (seq%N equidist ↔ seq equidist)
+  - cellSeqNu2_of_sublinear_walk (chains sublinear_walk → equidist)
 
-  Sorry'd: 0
+  Sorry'd: 1
+  - syracuseValSum_equidistributed_of_sublinear_walk
+    (Collatz-specific equidistribution, NOT reducible to general Weyl theory)
+
+  Removed (FALSE): 1
+  - perturbed_rotation_equidistributed
+    Bug found 2026-02-20: the statement was FALSE.
+    Counterexample: α = √2, N = 3, seq(k) = ⌊√2·k⌋ + 1_{⌊√2·k⌋ ≡ 0 mod 3}.
+    |seq(k) - √2·k| ≤ 2 (bounded, hence sublinear), but seq(k) % 3 ∈ {1,2}
+    always (residue 0 never hit). Root cause: the perturbation d(k) can
+    depend on ⌊α·k⌋ mod N adversarially, merging residue classes.
+    The standard perturbation theorem requires |perturbation| → 0, which
+    for integer sequences forces seq = ⌊αk⌋ eventually (too restrictive).
+
   Axioms: 0
 
-  === THE CONFLICT OF METRICS ===
+  === SOLENOID BRIDGE DECOMPOSITION (REVISED) ===
 
-  The cell error algebra in this file encodes:
-  - 2-adic: Hensel attrition forces v₂=1 runs to satisfy 2^(d+1) | (x+1)
-  - 3-adic: Baker separation forces cells to be Diophantine-separated
-  - Archimedean: cell error shifts by d·(1-log₂3) per d-run (PROVED)
-  - Ergodic: Weyl equidistribution forces sampling of safe cells
+  The original decomposition factored the solenoid bridge through a general
+  perturbation theorem (perturbed_rotation_equidistributed). This is WRONG:
+  equidistribution of the Collatz cell sequence is a Collatz-specific
+  dynamical property that cannot be reduced to generic Weyl perturbation
+  theory. The perturbation d(k) = syracuseValSum(k) - ⌊log₂3·k⌋ depends
+  on the Collatz dynamics and its statistical independence from ⌊log₂3·k⌋
+  mod N is itself a nontrivial ergodic statement.
 
-  These four constraints are MUTUALLY INCOMPATIBLE for sustained danger:
-  a trajectory cannot simultaneously maintain small cell error (Baker),
-  satisfy the 2-adic divisibility (Hensel), and be equidistributed (Weyl).
+  Current decomposition:
+    1. walk bounded at Syracuse boundaries [requires deficit bounded]
+    2. syracuseValSum_equidistributed_of_sublinear_walk [sorry — Collatz-specific]
+    3. cellSeqNu2_of_sublinear_walk [proved, chains 2 + mod reduction]
 
-  This provides strong EVIDENCE for bounded deficit (and hence Collatz),
-  but the formal bridge from these constraints to bounded deficit
-  remains the open sorry (finite_deficit_bound in DiophantineRepeller.lean).
+  The sorry in item 2 is NOT equivalent to Collatz by itself (it's an
+  ergodic/equidistribution statement), but it cannot be factored into
+  "pure number theory" and "Collatz dynamics" as previously claimed.
 -/
 
 end Collatz
