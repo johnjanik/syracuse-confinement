@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Collatz Torus × Walk — T²₂₁₆ with Transverse Walk</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a1a;
+  color: #c0c8e0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+#canvas-container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+canvas { display: block; }
+
+/* Controls panel (left) */
+#controls {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: rgba(10, 10, 30, 0.92);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 250px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  font-size: 13px;
+}
+#controls h2 {
+  font-size: 15px;
+  color: #70a0ff;
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.section-label {
+  font-size: 11px;
+  color: #506080;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 6px 0 4px;
+}
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.ctrl-row label { color: #8090b0; font-size: 12px; }
+.ctrl-row input[type="number"] {
+  width: 80px;
+  background: rgba(20, 25, 50, 0.8);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  color: #c0d0ff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: right;
+}
+.ctrl-row input[type="range"] {
+  width: 90px;
+  accent-color: #5080e0;
+}
+.ctrl-row .range-val {
+  color: #607090;
+  font-size: 11px;
+  width: 30px;
+  text-align: right;
+}
+.btn-row { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+.btn {
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  color: #a0b8e0;
+  padding: 4px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { background: rgba(60, 90, 180, 0.6); color: #d0e0ff; }
+.btn.active { background: rgba(60, 100, 220, 0.6); color: #fff; border-color: rgba(100, 150, 255, 0.5); }
+.btn.primary {
+  background: rgba(40, 100, 200, 0.6);
+  color: #d0e0ff;
+  font-weight: 600;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.toggle-row label {
+  color: #8090b0;
+  font-size: 11px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+.toggle-row input[type="checkbox"] { accent-color: #5080e0; cursor: pointer; }
+.divider {
+  border-top: 1px solid rgba(80, 120, 200, 0.15);
+  margin: 8px 0;
+}
+
+/* Info panel (right) */
+#info-panel {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: rgba(10, 10, 30, 0.92);
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 260px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  font-size: 13px;
+}
+#info-panel h3 {
+  font-size: 13px;
+  color: #70a0ff;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.info-grid .lbl { color: #607090; }
+.info-grid .val { color: #c0d8ff; text-align: right; font-family: 'Consolas', monospace; }
+.val.green { color: #40ff80; }
+.val.cyan { color: #40c0ff; }
+.val.magenta { color: #ff40c0; }
+
+#walk-chart {
+  width: 100%;
+  height: 80px;
+  border: 1px solid rgba(80, 120, 200, 0.2);
+  border-radius: 6px;
+  background: rgba(5, 5, 20, 0.5);
+  margin-top: 4px;
+}
+#walk-chart-label {
+  font-size: 10px;
+  color: #506080;
+  text-align: center;
+  margin-top: 2px;
+}
+#walk-gauge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+#walk-gauge {
+  width: 24px;
+  height: 80px;
+  border: 1px solid rgba(80, 120, 200, 0.3);
+  border-radius: 4px;
+  background: rgba(5, 5, 20, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+#walk-gauge-fill {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to top, #2040ff, #40ff80);
+  transition: height 0.15s;
+}
+#walk-gauge-zero {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background: #ff4060;
+  bottom: 50%;
+}
+#walk-gauge-info {
+  font-size: 11px;
+  color: #8090b0;
+  font-family: 'Consolas', monospace;
+}
+
+/* Title bar */
+#title-bar {
+  position: absolute;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 30, 0.8);
+  border: 1px solid rgba(80, 120, 200, 0.2);
+  border-radius: 8px;
+  padding: 6px 20px;
+  z-index: 10;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+#title-bar .title { font-size: 14px; color: #7090d0; font-weight: 600; }
+#title-bar .subtitle { font-size: 11px; color: #506080; }
+
+/* Loading overlay */
+#loading {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #5080e0;
+  font-size: 16px;
+  z-index: 100;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+<div id="loading">Generating trajectories...</div>
+
+<div id="controls">
+  <h2>3D Torus &times; Walk</h2>
+
+  <div class="section-label">Parameters</div>
+  <div class="ctrl-row">
+    <label>Trajectories</label>
+    <input type="range" id="sl-ntraj" min="100" max="5000" step="100" value="1000">
+    <span class="range-val" id="rv-ntraj">1000</span>
+  </div>
+  <div class="ctrl-row">
+    <label>Max start n</label>
+    <input type="number" id="in-maxn" value="1000000" min="100" max="100000000">
+  </div>
+  <div class="ctrl-row">
+    <label>Display lines</label>
+    <input type="range" id="sl-ndisp" min="1" max="50" step="1" value="20">
+    <span class="range-val" id="rv-ndisp">20</span>
+  </div>
+  <div class="ctrl-row">
+    <label>Seed</label>
+    <input type="number" id="in-seed" value="42" min="0" max="999999">
+  </div>
+  <div class="btn-row">
+    <button class="btn primary" id="btn-regen">Regenerate</button>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">Camera</div>
+  <div class="btn-row">
+    <button class="btn active" id="btn-v3d">3D</button>
+    <button class="btn" id="btn-vtop">Top</button>
+    <button class="btn" id="btn-vside">Side</button>
+    <button class="btn" id="btn-vfront">Front</button>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">Layers</div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-traj" checked>
+    <label for="tog-traj">Trajectory lines</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-cells" checked>
+    <label for="tog-cells">Cell dots</label>
+  </div>
+  <div class="ctrl-row" style="margin-left: 22px;">
+    <label style="font-size:11px">Color mode</label>
+    <select id="sel-cellmode" style="width:80px;background:rgba(20,25,50,0.8);border:1px solid rgba(80,120,200,0.3);color:#c0d0ff;padding:2px 4px;border-radius:4px;font-size:11px;">
+      <option value="type">Cell type</option>
+      <option value="podd">p_odd heatmap</option>
+    </select>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-rg">
+    <label for="tog-rg">RG transitions</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-foli" checked>
+    <label for="tog-foli">Foliation line</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-danger">
+    <label for="tog-danger">Danger plane (w=0)</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-grid" checked>
+    <label for="tog-grid">Torus grid</label>
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="tog-autorot">
+    <label for="tog-autorot">Auto-rotate</label>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">Animation</div>
+  <div class="btn-row">
+    <button class="btn" id="btn-play">&#9654; Play</button>
+    <button class="btn" id="btn-pause">&#9646;&#9646;</button>
+    <button class="btn" id="btn-reset">&#8634;</button>
+    <button class="btn" id="btn-next">Next &raquo;</button>
+  </div>
+  <div class="ctrl-row">
+    <label>Speed</label>
+    <input type="range" id="sl-speed" min="1" max="30" value="8">
+    <span class="range-val" id="rv-speed">8</span>
+  </div>
+</div>
+
+<div id="info-panel">
+  <h3>Statistics</h3>
+  <div class="info-grid" id="stats-grid">
+    <span class="lbl">Trajectories</span><span class="val" id="st-ntraj">—</span>
+    <span class="lbl">Total steps</span><span class="val" id="st-steps">—</span>
+    <span class="lbl">Cells occupied</span><span class="val" id="st-cells">—</span>
+    <span class="lbl">Branch</span><span class="val green" id="st-branch">—</span>
+    <span class="lbl">Pure-even</span><span class="val cyan" id="st-peven">—</span>
+    <span class="lbl">Pure-odd</span><span class="val magenta" id="st-podd">—</span>
+    <span class="lbl">RG edges</span><span class="val" id="st-rgedges">—</span>
+  </div>
+
+  <h3>Current Trajectory</h3>
+  <div class="info-grid" id="traj-grid">
+    <span class="lbl">Start n</span><span class="val" id="tr-n">—</span>
+    <span class="lbl">Step t</span><span class="val" id="tr-t">—</span>
+    <span class="lbl">Value</span><span class="val" id="tr-val">—</span>
+    <span class="lbl">&nu;&#8322;</span><span class="val" id="tr-nu2">—</span>
+    <span class="lbl">&nu;&#8323;</span><span class="val" id="tr-nu3">—</span>
+    <span class="lbl">w(t)</span><span class="val" id="tr-w">—</span>
+    <span class="lbl">Cell</span><span class="val" id="tr-cell">—</span>
+  </div>
+
+  <h3>Walk w(t) = &nu;&#8322; &minus; log&#8322;3 &middot; &nu;&#8323;</h3>
+  <canvas id="walk-chart"></canvas>
+  <div id="walk-chart-label">step t &rarr;</div>
+
+  <div id="walk-gauge-wrap">
+    <div id="walk-gauge">
+      <div id="walk-gauge-fill"></div>
+      <div id="walk-gauge-zero"></div>
+    </div>
+    <div id="walk-gauge-info">
+      w = <span id="wg-val">0.00</span><br>
+      max = <span id="wg-max">0.00</span><br>
+      min = <span id="wg-min">0.00</span>
+    </div>
+  </div>
+</div>
+
+<div id="title-bar">
+  <div class="title">Collatz 3D: T&sup2;&#8322;&#8321;&#8326; &times; Walk</div>
+  <div class="subtitle" id="title-sub">1000 trajectories &middot; n &le; 10&#8310;</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// Inline minimal OrbitControls
+// ============================================================
+THREE.OrbitControls = function(object, domElement) {
+  this.object = object;
+  this.domElement = domElement;
+  this.enabled = true;
+  this.target = new THREE.Vector3();
+  this.enableDamping = true;
+  this.dampingFactor = 0.08;
+  this.enableZoom = true;
+  this.zoomSpeed = 1.0;
+  this.minDistance = 1;
+  this.maxDistance = 80;
+  this.enableRotate = true;
+  this.rotateSpeed = 0.8;
+  this.autoRotate = false;
+  this.autoRotateSpeed = 1.0;
+
+  const scope = this;
+  const STATE = { NONE: -1, ROTATE: 0, ZOOM: 1, PAN: 2 };
+  let state = STATE.NONE;
+  let spherical = new THREE.Spherical();
+  let sphericalDelta = new THREE.Spherical();
+  let scale = 1;
+  const panOffset = new THREE.Vector3();
+  const rotateStart = new THREE.Vector2();
+  const rotateEnd = new THREE.Vector2();
+  const rotateDelta = new THREE.Vector2();
+
+  this.update = function() {
+    const offset = new THREE.Vector3();
+    const quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0,1,0));
+    const quatInverse = quat.clone().invert();
+    offset.copy(object.position).sub(scope.target);
+    offset.applyQuaternion(quat);
+    spherical.setFromVector3(offset);
+    if (scope.autoRotate && state === STATE.NONE) {
+      sphericalDelta.theta -= 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+    }
+    spherical.theta += sphericalDelta.theta;
+    spherical.phi += sphericalDelta.phi;
+    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+    spherical.radius *= scale;
+    spherical.radius = Math.max(scope.minDistance, Math.min(scope.maxDistance, spherical.radius));
+    scope.target.add(panOffset);
+    offset.setFromSpherical(spherical);
+    offset.applyQuaternion(quatInverse);
+    object.position.copy(scope.target).add(offset);
+    object.lookAt(scope.target);
+    sphericalDelta.theta *= (1 - scope.dampingFactor);
+    sphericalDelta.phi *= (1 - scope.dampingFactor);
+    scale = 1;
+    panOffset.set(0,0,0);
+  };
+
+  function onMouseDown(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (event.button === 0) { state = STATE.ROTATE; }
+    else if (event.button === 2) { state = STATE.PAN; }
+    rotateStart.set(event.clientX, event.clientY);
+    document.addEventListener('mousemove', onMouseMove, false);
+    document.addEventListener('mouseup', onMouseUp, false);
+  }
+  function onMouseMove(event) {
+    if (!scope.enabled) return;
+    rotateEnd.set(event.clientX, event.clientY);
+    rotateDelta.subVectors(rotateEnd, rotateStart);
+    if (state === STATE.ROTATE) {
+      sphericalDelta.theta -= 2 * Math.PI * rotateDelta.x / domElement.clientHeight * scope.rotateSpeed;
+      sphericalDelta.phi -= 2 * Math.PI * rotateDelta.y / domElement.clientHeight * scope.rotateSpeed;
+    } else if (state === STATE.PAN) {
+      const dist = object.position.distanceTo(scope.target);
+      const h = 2 * dist * Math.tan(object.fov * Math.PI / 360);
+      const right = new THREE.Vector3();
+      right.crossVectors(object.up, new THREE.Vector3().subVectors(scope.target, object.position).normalize()).normalize();
+      const up = object.up.clone();
+      panOffset.add(right.multiplyScalar(-rotateDelta.x * h / domElement.clientHeight));
+      panOffset.add(up.multiplyScalar(rotateDelta.y * h / domElement.clientHeight));
+    }
+    rotateStart.copy(rotateEnd);
+  }
+  function onMouseUp() {
+    state = STATE.NONE;
+    document.removeEventListener('mousemove', onMouseMove, false);
+    document.removeEventListener('mouseup', onMouseUp, false);
+  }
+  function onWheel(event) {
+    if (!scope.enabled || !scope.enableZoom) return;
+    event.preventDefault();
+    if (event.deltaY > 0) scale *= Math.pow(0.95, scope.zoomSpeed);
+    else scale /= Math.pow(0.95, scope.zoomSpeed);
+  }
+  let touchStartDist = 0;
+  function onTouchStart(event) {
+    if (!scope.enabled) return;
+    if (event.touches.length === 1) {
+      state = STATE.ROTATE;
+      rotateStart.set(event.touches[0].clientX, event.touches[0].clientY);
+    } else if (event.touches.length === 2) {
+      state = STATE.ZOOM;
+      const dx = event.touches[0].clientX - event.touches[1].clientX;
+      const dy = event.touches[0].clientY - event.touches[1].clientY;
+      touchStartDist = Math.sqrt(dx*dx + dy*dy);
+    }
+  }
+  function onTouchMove(event) {
+    if (!scope.enabled) return;
+    event.preventDefault();
+    if (state === STATE.ROTATE && event.touches.length === 1) {
+      rotateEnd.set(event.touches[0].clientX, event.touches[0].clientY);
+      rotateDelta.subVectors(rotateEnd, rotateStart);
+      sphericalDelta.theta -= 2 * Math.PI * rotateDelta.x / domElement.clientHeight * scope.rotateSpeed;
+      sphericalDelta.phi -= 2 * Math.PI * rotateDelta.y / domElement.clientHeight * scope.rotateSpeed;
+      rotateStart.copy(rotateEnd);
+    } else if (state === STATE.ZOOM && event.touches.length === 2) {
+      const dx = event.touches[0].clientX - event.touches[1].clientX;
+      const dy = event.touches[0].clientY - event.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      scale *= touchStartDist / dist;
+      touchStartDist = dist;
+    }
+  }
+  function onTouchEnd() { state = STATE.NONE; }
+
+  domElement.addEventListener('mousedown', onMouseDown, false);
+  domElement.addEventListener('wheel', onWheel, {passive: false});
+  domElement.addEventListener('contextmenu', e => e.preventDefault(), false);
+  domElement.addEventListener('touchstart', onTouchStart, {passive: false});
+  domElement.addEventListener('touchmove', onTouchMove, {passive: false});
+  domElement.addEventListener('touchend', onTouchEnd, false);
+};
+
+// ============================================================
+// Constants
+// ============================================================
+const LOG2_3 = Math.log2(3);    // ~1.58496
+const TORUS_MOD = 216;           // T²₂₁₆
+const SCALE_XY = 10;             // torus → [-5, 5]
+const SCALE_Z = 0.3;             // walk scaling
+const RG_DIV = 6;                // 216/6 = 36 supernodes per axis
+const RG_CELL = TORUS_MOD / RG_DIV;
+
+// ============================================================
+// State
+// ============================================================
+let paramNTraj = 1000, paramMaxN = 1000000, paramNDisp = 20, paramSeed = 42;
+let animSpeed = 8, animPlaying = false, animStep = 0, animTrajIdx = 0;
+
+// Computed data
+let allTrajectories = [];   // [{startN, steps: [{val,nu2,nu3,w,isOdd}]}]
+let displayIndices = [];
+let cellMap = new Map();     // "r2,r3" → {r2,r3,eCount,oCount,totalW,count}
+let rgEdgeMap = new Map();   // "sr2a,sr3a>sr2b,sr3b" → {from,to,count,avgY}
+let walkMin = 0, walkMax = 1;
+
+// Scene objects
+let sceneObjects = {};       // keyed group references for cleanup
+
+// ============================================================
+// PRNG (Mulberry32)
+// ============================================================
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ============================================================
+// Collatz trajectory computation
+// ============================================================
+function computeTrajectory(n) {
+  const steps = [];
+  let val = n, nu2 = 0, nu3 = 0, w = 0;
+  steps.push({val, nu2, nu3, w, isOdd: false});
+  let t = 0;
+  while (val !== 1 && t < 8000) {
+    if (val % 2 === 0) {
+      val = val / 2;
+      nu2++;
+      w = nu2 - LOG2_3 * nu3;
+      steps.push({val, nu2, nu3, w, isOdd: false});
+    } else {
+      val = 3 * val + 1;
+      nu3++;
+      w = nu2 - LOG2_3 * nu3;
+      steps.push({val, nu2, nu3, w, isOdd: true});
+    }
+    t++;
+  }
+  return steps;
+}
+
+// Map (nu2, nu3, w) to 3D coords (centered on origin, y=up)
+function toCoord(nu2, nu3, w) {
+  return new THREE.Vector3(
+    ((nu2 % TORUS_MOD) / TORUS_MOD - 0.5) * SCALE_XY,
+    w * SCALE_Z,
+    ((nu3 % TORUS_MOD) / TORUS_MOD - 0.5) * SCALE_XY
+  );
+}
+
+// ============================================================
+// Data generation
+// ============================================================
+function generateData() {
+  const rng = mulberry32(paramSeed);
+  allTrajectories = [];
+  cellMap = new Map();
+  rgEdgeMap = new Map();
+  walkMin = 0; walkMax = 1;
+  let totalSteps = 0;
+
+  for (let i = 0; i < paramNTraj; i++) {
+    const startN = Math.floor(rng() * paramMaxN) + 2;
+    const steps = computeTrajectory(startN);
+    allTrajectories.push({startN, steps});
+    totalSteps += steps.length;
+
+    // Classify cells + RG edges
+    let prevSR2 = -1, prevSR3 = -1;
+    for (let j = 0; j < steps.length; j++) {
+      const s = steps[j];
+      if (s.w < walkMin) walkMin = s.w;
+      if (s.w > walkMax) walkMax = s.w;
+      const r2 = ((s.nu2 % TORUS_MOD) + TORUS_MOD) % TORUS_MOD;
+      const r3 = ((s.nu3 % TORUS_MOD) + TORUS_MOD) % TORUS_MOD;
+      const key = r2 * 1000 + r3;
+      let cell = cellMap.get(key);
+      if (!cell) {
+        cell = {r2, r3, eCount: 0, oCount: 0, totalW: 0, count: 0};
+        cellMap.set(key, cell);
+      }
+      if (s.isOdd) cell.oCount++; else cell.eCount++;
+      cell.totalW += s.w;
+      cell.count++;
+
+      // RG edges (supernode transitions)
+      const sr2 = Math.floor(r2 / RG_CELL);
+      const sr3 = Math.floor(r3 / RG_CELL);
+      if (prevSR2 >= 0 && (sr2 !== prevSR2 || sr3 !== prevSR3)) {
+        const ekey = prevSR2 * 100 + prevSR3 * 10000 + sr2 + sr3 * 100000;
+        let edge = rgEdgeMap.get(ekey);
+        if (!edge) {
+          edge = {fr2: prevSR2, fr3: prevSR3, tr2: sr2, tr3: sr3, count: 0, totalW: 0};
+          rgEdgeMap.set(ekey, edge);
+        }
+        edge.count++;
+        edge.totalW += s.w;
+      }
+      prevSR2 = sr2; prevSR3 = sr3;
+    }
+  }
+
+  // Select display trajectories (longest first)
+  displayIndices = allTrajectories
+    .map((t, i) => ({i, len: t.steps.length}))
+    .sort((a, b) => b.len - a.len)
+    .slice(0, paramNDisp)
+    .map(x => x.i);
+
+  // Update stats
+  let nBranch = 0, nPEven = 0, nPOdd = 0;
+  cellMap.forEach(c => {
+    if (c.eCount > 0 && c.oCount > 0) nBranch++;
+    else if (c.oCount === 0) nPEven++;
+    else nPOdd++;
+  });
+
+  document.getElementById('st-ntraj').textContent = paramNTraj;
+  document.getElementById('st-steps').textContent = totalSteps.toLocaleString();
+  document.getElementById('st-cells').textContent = cellMap.size.toLocaleString();
+  document.getElementById('st-branch').textContent = nBranch.toLocaleString();
+  document.getElementById('st-peven').textContent = nPEven.toLocaleString();
+  document.getElementById('st-podd').textContent = nPOdd.toLocaleString();
+  document.getElementById('st-rgedges').textContent = rgEdgeMap.size.toLocaleString();
+}
+
+// ============================================================
+// Three.js scene setup
+// ============================================================
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x0a0a1a, 1);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0a0a1a, 0.012);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(12, 8, 12);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 2, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 3;
+controls.maxDistance = 60;
+
+// Lights
+scene.add(new THREE.AmbientLight(0x202040, 0.5));
+const dirLight = new THREE.DirectionalLight(0x4060a0, 0.8);
+dirLight.position.set(5, 12, 5);
+scene.add(dirLight);
+scene.add(new THREE.PointLight(0x3050ff, 0.4, 30));
+
+// ============================================================
+// Layer builders
+// ============================================================
+function clearGroup(name) {
+  if (sceneObjects[name]) {
+    scene.remove(sceneObjects[name]);
+    if (sceneObjects[name].geometry) sceneObjects[name].geometry.dispose();
+    if (sceneObjects[name].material) sceneObjects[name].material.dispose();
+    sceneObjects[name] = null;
+  }
+}
+
+function buildTorusGrid() {
+  clearGroup('grid');
+  const group = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({color: 0x1a2a50, transparent: true, opacity: 0.3});
+  const halfS = SCALE_XY / 2;
+  const divisions = 6;
+  // Grid lines along r2 (x)
+  for (let i = 0; i <= divisions; i++) {
+    const x = (i / divisions - 0.5) * SCALE_XY;
+    const pts = [new THREE.Vector3(x, 0, -halfS), new THREE.Vector3(x, 0, halfS)];
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+  }
+  // Grid lines along r3 (z)
+  for (let i = 0; i <= divisions; i++) {
+    const z = (i / divisions - 0.5) * SCALE_XY;
+    const pts = [new THREE.Vector3(-halfS, 0, z), new THREE.Vector3(halfS, 0, z)];
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+  }
+  // Border
+  const border = new THREE.LineBasicMaterial({color: 0x304080, transparent: true, opacity: 0.5});
+  const bpts = [
+    new THREE.Vector3(-halfS,0,-halfS), new THREE.Vector3(halfS,0,-halfS),
+    new THREE.Vector3(halfS,0,halfS), new THREE.Vector3(-halfS,0,halfS),
+    new THREE.Vector3(-halfS,0,-halfS)
+  ];
+  group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(bpts), border));
+  scene.add(group);
+  sceneObjects['grid'] = group;
+}
+
+function buildFoliation() {
+  clearGroup('foli');
+  // r3 = log₂3 · r2 mod 216, drawn as line segments on y=0
+  const points = [];
+  const nSteps = 5000;
+  for (let i = 0; i < nSteps; i++) {
+    const r2 = (i * 0.5) % TORUS_MOD;
+    const r3 = (LOG2_3 * i * 0.5) % TORUS_MOD;
+    points.push(new THREE.Vector3(
+      (r2 / TORUS_MOD - 0.5) * SCALE_XY,
+      0.01,
+      (r3 / TORUS_MOD - 0.5) * SCALE_XY
+    ));
+  }
+  const geom = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = new THREE.PointsMaterial({color: 0xffcc00, size: 0.02, transparent: true, opacity: 0.4});
+  const pts = new THREE.Points(geom, mat);
+  scene.add(pts);
+  sceneObjects['foli'] = pts;
+}
+
+function buildDangerPlane() {
+  clearGroup('danger');
+  const halfS = SCALE_XY / 2;
+  const geom = new THREE.PlaneGeometry(SCALE_XY, SCALE_XY);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xff2030, transparent: true, opacity: 0.06,
+    side: THREE.DoubleSide, depthWrite: false
+  });
+  const plane = new THREE.Mesh(geom, mat);
+  plane.rotation.x = -Math.PI / 2;
+  plane.position.y = 0;
+  scene.add(plane);
+  sceneObjects['danger'] = plane;
+}
+
+function buildTrajectoryLines() {
+  clearGroup('traj');
+  const group = new THREE.Group();
+  for (let di = 0; di < displayIndices.length; di++) {
+    const traj = allTrajectories[displayIndices[di]];
+    const steps = traj.steps;
+    if (steps.length < 2) continue;
+
+    const positions = new Float32Array(steps.length * 3);
+    const colors = new Float32Array(steps.length * 3);
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i];
+      const p = toCoord(s.nu2, s.nu3, s.w);
+      positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z;
+      // Time gradient: blue → cyan → white
+      const frac = i / (steps.length - 1);
+      if (frac < 0.5) {
+        const t = frac * 2;
+        colors[i*3] = 0.1;           colors[i*3+1] = 0.3 + 0.5*t;  colors[i*3+2] = 0.8 + 0.2*t;
+      } else {
+        const t = (frac - 0.5) * 2;
+        colors[i*3] = 0.1 + 0.9*t;   colors[i*3+1] = 0.8 + 0.2*t;  colors[i*3+2] = 1.0;
+      }
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: 0.6});
+    group.add(new THREE.Line(geom, mat));
+  }
+  scene.add(group);
+  sceneObjects['traj'] = group;
+}
+
+function buildCellDots() {
+  clearGroup('cells');
+  const mode = document.getElementById('sel-cellmode').value;
+  const nCells = cellMap.size;
+  if (nCells === 0) return;
+
+  const baseGeom = new THREE.SphereGeometry(0.04, 6, 6);
+  const mat = new THREE.MeshBasicMaterial({color: 0xffffff});
+  const mesh = new THREE.InstancedMesh(baseGeom, mat, nCells);
+
+  const dummy = new THREE.Object3D();
+  const color = new THREE.Color();
+  let idx = 0;
+
+  cellMap.forEach(cell => {
+    const avgW = cell.totalW / cell.count;
+    const x = (cell.r2 / TORUS_MOD - 0.5) * SCALE_XY;
+    const y = avgW * SCALE_Z;
+    const z = (cell.r3 / TORUS_MOD - 0.5) * SCALE_XY;
+    // Scale sphere by member count (subtle)
+    const s = Math.min(0.04 + cell.count * 0.002, 0.15);
+    dummy.position.set(x, y, z);
+    dummy.scale.set(s / 0.04, s / 0.04, s / 0.04);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(idx, dummy.matrix);
+
+    if (mode === 'type') {
+      if (cell.eCount > 0 && cell.oCount > 0) color.setHex(0x00ff80);      // branch: green
+      else if (cell.oCount === 0) color.setHex(0x00ccff);                    // pure-even: cyan
+      else color.setHex(0xff00cc);                                            // pure-odd: magenta
+    } else {
+      // p_odd heatmap: blue (0) → white (0.5) → red (1)
+      const podd = cell.oCount / (cell.eCount + cell.oCount);
+      if (podd < 0.5) {
+        const t = podd * 2;
+        color.setRGB(t, t, 1);
+      } else {
+        const t = (podd - 0.5) * 2;
+        color.setRGB(1, 1 - t, 1 - t);
+      }
+    }
+    mesh.setColorAt(idx, color);
+    idx++;
+  });
+
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.instanceColor.needsUpdate = true;
+  scene.add(mesh);
+  sceneObjects['cells'] = mesh;
+}
+
+function buildRGEdges() {
+  clearGroup('rg');
+  if (rgEdgeMap.size === 0) return;
+
+  // Find max count for normalization
+  let maxCount = 0;
+  rgEdgeMap.forEach(e => { if (e.count > maxCount) maxCount = e.count; });
+  if (maxCount === 0) return;
+
+  const positions = [];
+  const colors = [];
+
+  rgEdgeMap.forEach(edge => {
+    if (edge.count < 3) return; // filter low-freq
+    const avgW = edge.totalW / edge.count;
+    const y = avgW * SCALE_Z;
+    // Supernode centroids
+    const x1 = ((edge.fr2 + 0.5) / RG_DIV - 0.5) * SCALE_XY;
+    const z1 = ((edge.fr3 + 0.5) / RG_DIV - 0.5) * SCALE_XY;
+    const x2 = ((edge.tr2 + 0.5) / RG_DIV - 0.5) * SCALE_XY;
+    const z2 = ((edge.tr3 + 0.5) / RG_DIV - 0.5) * SCALE_XY;
+    positions.push(x1, y, z1, x2, y, z2);
+
+    // Color: purple (low) → gold (high)
+    const frac = Math.sqrt(edge.count / maxCount); // sqrt for better visual spread
+    const r = 0.5 + 0.5 * frac;
+    const g = 0.2 + 0.6 * frac;
+    const b = 0.8 * (1 - frac);
+    colors.push(r, g, b, r, g, b);
+  });
+
+  if (positions.length === 0) return;
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const mat = new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: 0.5});
+  const lines = new THREE.LineSegments(geom, mat);
+  scene.add(lines);
+  sceneObjects['rg'] = lines;
+}
+
+function buildAxisLabels() {
+  clearGroup('labels');
+  const group = new THREE.Group();
+  const halfS = SCALE_XY / 2;
+
+  function makeSprite(text, pos) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 256; canvas.height = 64;
+    ctx.font = '22px Consolas, monospace';
+    ctx.fillStyle = '#6080b0';
+    ctx.textAlign = 'center';
+    ctx.fillText(text, 128, 40);
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({map: tex, transparent: true, depthTest: false});
+    const sprite = new THREE.Sprite(mat);
+    sprite.position.copy(pos);
+    sprite.scale.set(3, 0.75, 1);
+    return sprite;
+  }
+
+  group.add(makeSprite('v2 mod 216', new THREE.Vector3(0, -0.5, -halfS - 0.5)));
+  group.add(makeSprite('v3 mod 216', new THREE.Vector3(-halfS - 0.5, -0.5, 0)));
+  group.add(makeSprite('w(t)', new THREE.Vector3(-halfS - 0.3, walkMax * SCALE_Z * 0.6, -halfS - 0.3)));
+
+  // Axis lines
+  const axMat = new THREE.LineBasicMaterial({color: 0x405080, transparent: true, opacity: 0.4});
+  // Y axis (walk)
+  const yPts = [new THREE.Vector3(-halfS, walkMin * SCALE_Z, -halfS),
+                new THREE.Vector3(-halfS, walkMax * SCALE_Z, -halfS)];
+  group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(yPts), axMat));
+
+  scene.add(group);
+  sceneObjects['labels'] = group;
+}
+
+// ============================================================
+// Animation trajectory (single trajectory step-through)
+// ============================================================
+let animDot = null, animLine = null, animData = null;
+
+function buildAnimDot() {
+  if (animDot) scene.remove(animDot);
+  const geom = new THREE.SphereGeometry(0.08, 12, 12);
+  const mat = new THREE.MeshBasicMaterial({color: 0x00ffaa});
+  animDot = new THREE.Mesh(geom, mat);
+  animDot.add(new THREE.PointLight(0x00ff88, 0.5, 4));
+  scene.add(animDot);
+}
+
+function updateAnimLine(upTo) {
+  if (animLine) scene.remove(animLine);
+  if (!animData || upTo < 1) return;
+
+  const n = Math.min(upTo + 1, animData.steps.length);
+  const positions = new Float32Array(n * 3);
+  const colors = new Float32Array(n * 3);
+
+  for (let i = 0; i < n; i++) {
+    const s = animData.steps[i];
+    const p = toCoord(s.nu2, s.nu3, s.w);
+    positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z;
+    // Color by step type
+    if (s.isOdd) {
+      colors[i*3] = 1.0; colors[i*3+1] = 0.5; colors[i*3+2] = 0.1;  // orange for odd
+    } else {
+      colors[i*3] = 0.2; colors[i*3+1] = 0.9; colors[i*3+2] = 1.0;  // cyan for even
+    }
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.LineBasicMaterial({vertexColors: true, linewidth: 2});
+  animLine = new THREE.Line(geom, mat);
+  scene.add(animLine);
+}
+
+// ============================================================
+// Walk chart (2D canvas)
+// ============================================================
+const walkCanvas = document.getElementById('walk-chart');
+const walkCtx = walkCanvas.getContext('2d');
+
+function drawWalkChart(upTo) {
+  if (!animData) return;
+  const W = walkCanvas.clientWidth;
+  const H = walkCanvas.clientHeight;
+  walkCanvas.width = W * 2; walkCanvas.height = H * 2;
+  walkCtx.scale(2, 2);
+  walkCtx.clearRect(0, 0, W, H);
+
+  const steps = animData.steps;
+  const n = Math.min(upTo + 1, steps.length);
+  if (n < 2) return;
+
+  let minW = 0, maxW = 1;
+  for (let i = 0; i < n; i++) {
+    if (steps[i].w < minW) minW = steps[i].w;
+    if (steps[i].w > maxW) maxW = steps[i].w;
+  }
+  const range = maxW - minW || 1;
+
+  // Zero line
+  const zeroY = H - ((0 - minW) / range) * (H - 12) - 6;
+  walkCtx.strokeStyle = 'rgba(255,64,96,0.3)';
+  walkCtx.lineWidth = 0.5;
+  walkCtx.beginPath();
+  walkCtx.moveTo(0, zeroY); walkCtx.lineTo(W, zeroY);
+  walkCtx.stroke();
+
+  // Walk line
+  walkCtx.lineWidth = 1.2;
+  walkCtx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = (i / (steps.length - 1)) * W;
+    const y = H - ((steps[i].w - minW) / range) * (H - 12) - 6;
+    if (i === 0) walkCtx.moveTo(x, y);
+    else {
+      walkCtx.strokeStyle = steps[i].isOdd ? '#ff8030' : '#40c0ff';
+      walkCtx.lineTo(x, y);
+      walkCtx.stroke();
+      walkCtx.beginPath();
+      walkCtx.moveTo(x, y);
+    }
+  }
+
+  walkCtx.fillStyle = '#506080';
+  walkCtx.font = '9px sans-serif';
+  walkCtx.fillText(maxW.toFixed(1), 2, 10);
+  walkCtx.fillText(minW.toFixed(1), 2, H - 2);
+}
+
+function updateWalkGauge(w) {
+  // Map w to gauge height, with 0 at midpoint
+  const range = Math.max(Math.abs(walkMin), Math.abs(walkMax), 1);
+  const frac = (w + range) / (2 * range); // 0 to 1
+  const pct = Math.max(0, Math.min(100, frac * 100));
+  document.getElementById('walk-gauge-fill').style.height = pct + '%';
+  // Position zero line
+  const zeroPct = range / (2 * range) * 100;
+  document.getElementById('walk-gauge-zero').style.bottom = zeroPct + '%';
+  document.getElementById('wg-val').textContent = w.toFixed(2);
+}
+
+function updateTrajInfo(step, startN) {
+  if (!step) return;
+  document.getElementById('tr-n').textContent = startN;
+  document.getElementById('tr-t').textContent = step.nu2 + step.nu3;
+  document.getElementById('tr-val').textContent = step.val;
+  document.getElementById('tr-nu2').textContent = step.nu2;
+  document.getElementById('tr-nu3').textContent = step.nu3;
+  document.getElementById('tr-w').textContent = step.w.toFixed(3);
+  document.getElementById('tr-cell').textContent =
+    (step.nu2 % TORUS_MOD) + ', ' + (step.nu3 % TORUS_MOD);
+}
+
+// ============================================================
+// Scene rebuild
+// ============================================================
+function rebuildScene() {
+  document.getElementById('loading').style.display = 'block';
+  setTimeout(() => {
+    generateData();
+    buildTorusGrid();
+    buildFoliation();
+    buildDangerPlane();
+    buildTrajectoryLines();
+    buildCellDots();
+    buildRGEdges();
+    buildAxisLabels();
+
+    // Reset animation
+    animStep = 0;
+    animTrajIdx = 0;
+    if (displayIndices.length > 0) {
+      animData = allTrajectories[displayIndices[0]];
+    }
+    buildAnimDot();
+    updateAnimLine(0);
+
+    // Walk gauge extremes
+    document.getElementById('wg-max').textContent = walkMax.toFixed(1);
+    document.getElementById('wg-min').textContent = walkMin.toFixed(1);
+
+    // Update subtitle
+    document.getElementById('title-sub').textContent =
+      paramNTraj + ' trajectories \u00b7 n \u2264 ' + paramMaxN.toLocaleString();
+
+    document.getElementById('loading').style.display = 'none';
+  }, 50);
+}
+
+// ============================================================
+// Animation loop
+// ============================================================
+let lastTime = 0, accumulator = 0;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+  const dt = Math.min(time - lastTime, 50);
+  lastTime = time;
+
+  // Step animation
+  if (animPlaying && animData) {
+    accumulator += dt * animSpeed * 0.03;
+    while (accumulator >= 1 && animStep < animData.steps.length - 1) {
+      animStep++;
+      accumulator -= 1;
+    }
+    if (animStep >= animData.steps.length - 1) {
+      animPlaying = false;
+      document.getElementById('btn-play').classList.remove('active');
+    }
+  }
+
+  // Update anim objects
+  if (animData && animData.steps[animStep]) {
+    const s = animData.steps[animStep];
+    const p = toCoord(s.nu2, s.nu3, s.w);
+    if (animDot) {
+      animDot.position.copy(p);
+      animDot.material.color.setHex(s.isOdd ? 0xff6020 : 0x00ffaa);
+    }
+    if (animPlaying || animStep > 0) {
+      updateAnimLine(animStep);
+    }
+    updateTrajInfo(s, animData.startN);
+    drawWalkChart(animStep);
+    updateWalkGauge(s.w);
+  }
+
+  // Toggle visibility
+  if (sceneObjects['traj']) sceneObjects['traj'].visible = document.getElementById('tog-traj').checked;
+  if (sceneObjects['cells']) sceneObjects['cells'].visible = document.getElementById('tog-cells').checked;
+  if (sceneObjects['rg']) sceneObjects['rg'].visible = document.getElementById('tog-rg').checked;
+  if (sceneObjects['foli']) sceneObjects['foli'].visible = document.getElementById('tog-foli').checked;
+  if (sceneObjects['danger']) sceneObjects['danger'].visible = document.getElementById('tog-danger').checked;
+  if (sceneObjects['grid']) sceneObjects['grid'].visible = document.getElementById('tog-grid').checked;
+
+  // Anim dot + line visible only during animation
+  const showAnim = animPlaying || animStep > 0;
+  if (animDot) animDot.visible = showAnim;
+  if (animLine) animLine.visible = showAnim;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// UI event handlers
+// ============================================================
+// Sliders with live readout
+function wireSlider(sliderId, valId, stateSetter) {
+  const sl = document.getElementById(sliderId);
+  const rv = document.getElementById(valId);
+  sl.addEventListener('input', () => { rv.textContent = sl.value; stateSetter(parseInt(sl.value)); });
+}
+wireSlider('sl-ntraj', 'rv-ntraj', v => paramNTraj = v);
+wireSlider('sl-ndisp', 'rv-ndisp', v => paramNDisp = v);
+wireSlider('sl-speed', 'rv-speed', v => animSpeed = v);
+
+document.getElementById('btn-regen').addEventListener('click', rebuildScene);
+
+// Cell color mode
+document.getElementById('sel-cellmode').addEventListener('change', buildCellDots);
+
+// Camera presets
+function setView(pos, target, btnId) {
+  camera.position.set(pos[0], pos[1], pos[2]);
+  controls.target.set(target[0], target[1], target[2]);
+  document.querySelectorAll('#controls .btn-row:nth-of-type(2) .btn').forEach(b => b.classList.remove('active'));
+  // Activate the clicked button
+  ['btn-v3d','btn-vtop','btn-vside','btn-vfront'].forEach(id => {
+    document.getElementById(id).classList.toggle('active', id === btnId);
+  });
+}
+document.getElementById('btn-v3d').addEventListener('click', () => setView([12,8,12],[0,2,0],'btn-v3d'));
+document.getElementById('btn-vtop').addEventListener('click', () => setView([0,25,0.01],[0,0,0],'btn-vtop'));
+document.getElementById('btn-vside').addEventListener('click', () => setView([20,3,0],[0,3,0],'btn-vside'));
+document.getElementById('btn-vfront').addEventListener('click', () => setView([0,3,20],[0,3,0],'btn-vfront'));
+
+// Auto-rotate
+document.getElementById('tog-autorot').addEventListener('change', function() {
+  controls.autoRotate = this.checked;
+  controls.autoRotateSpeed = 1.5;
+});
+
+// Animation controls
+document.getElementById('btn-play').addEventListener('click', function() {
+  if (!animData) return;
+  animPlaying = true;
+  this.classList.add('active');
+});
+document.getElementById('btn-pause').addEventListener('click', () => {
+  animPlaying = false;
+  document.getElementById('btn-play').classList.remove('active');
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  animStep = 0;
+  accumulator = 0;
+  animPlaying = false;
+  document.getElementById('btn-play').classList.remove('active');
+  if (animLine) { scene.remove(animLine); animLine = null; }
+});
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (displayIndices.length === 0) return;
+  animTrajIdx = (animTrajIdx + 1) % displayIndices.length;
+  animData = allTrajectories[displayIndices[animTrajIdx]];
+  animStep = 0;
+  accumulator = 0;
+  animPlaying = true;
+  document.getElementById('btn-play').classList.add('active');
+  if (animLine) { scene.remove(animLine); animLine = null; }
+});
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ============================================================
+// Initialize
+// ============================================================
+rebuildScene();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
