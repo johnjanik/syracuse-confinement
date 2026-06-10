@@ -1,0 +1,252 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage[capitalize]{cleveref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem*{remark}{Remark}
+\newcommand{\vt}{v_2}
+\title{The Universal Ghost Clock:\\ repulsion, ride caps, and the census budget\\
+\large with a verified import audit of arXiv:2603.11066}
+\author{John A. Janik\\ \small\texttt{john.janik@gmail.com}}
+\date{June 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We generalize the two-clock structure of the companion note to
+\emph{every} periodic ghost at once: for any valuation signature
+$\sigma=(k_1,\dots,k_\ell)$ of depth $K=\sum k_i$, the phantom root
+$\rho_\sigma=C_\sigma/(2^K-3^\ell)$ carries an exact clock --- alignment
+$a(x)=\vt(x-\rho_\sigma)$ drops by exactly $K$ per ridden block, the
+ride lasts exactly $\lfloor(a-1)/K\rfloor$ blocks, and positivity caps
+$a\le\log_2(|2^K-3^\ell|\,x+C_\sigma)$. The $-1$ and $+1$ clocks are
+the $K=1,2$ instances; the $(1,1,2)$-channel ghost $-19/11$ of the
+Target-2 analysis is the $K=4$ instance, which resolves the question
+left open there: \emph{the parity channel is metered exactly like the
+$-1$ ghost}. The without-replacement depth supply extends verbatim to
+every phantom root. These statements were prompted by the manuscript
+arXiv:2603.11066v6 (Chang), whose relevant pieces we audited: the
+repulsion mechanism, the census counting formula (after restoring a
+missing hypothesis), and the amortized census constant
+$R\le0.0893$ all \emph{verify} (we recompute $R=0.08824$
+independently); its burst--gap calculus is an exact relabeling of our
+two clocks (its Persistent Exit Lemma is our parity handoff at $h=3$);
+but its shadow return-time theorem is \emph{false as stated} ---
+re-entry gaps of $1$ occur, and 2-adic alignment can jump $+16$ bits
+in one step --- and must be replaced by the supply bound.
+\end{abstract}
+
+\section{Setup}
+
+A \emph{signature} is a word $\sigma=(k_1,\dots,k_\ell)$, $k_i\ge1$,
+of depth $K=\sum k_i$; write $B_j=k_1+\cdots+k_j$. The block map is
+$F_\sigma(x)=(3^\ell x+C_\sigma)/2^K$ with
+$C_\sigma=\sum_{j=0}^{\ell-1}3^{\ell-1-j}2^{B_j}$, and its unique fixed
+point is the \emph{phantom root}
+\[
+\rho_\sigma=\frac{C_\sigma}{2^K-3^\ell}\in\mathbb Z_2,
+\]
+a $2$-adic unit ($C_\sigma$ odd, $2^K-3^\ell$ odd). Define the
+\emph{alignment} $a(x)=\vt\bigl((2^K-3^\ell)x-C_\sigma\bigr)
+=\vt(x-\rho_\sigma)$. Our catalogue of ghosts is exactly the family of
+phantom roots:
+\[
+\begin{array}{lcccc}
+\toprule
+\sigma & \ell & K & \rho_\sigma & \text{role}\\
+\midrule
+(1) & 1 & 1 & -1 & \text{the $-1$ clock (ascent meter)}\\
+(2) & 1 & 2 & +1 & \text{the $+1$ clock (trivial cycle)}\\
+(1,2) & 2 & 3 & -5 & \text{negative cycle}\\
+(1,1,2) & 3 & 4 & -19/11 & \text{the parity channel of Target 2}\\
+(1,1,1,2,1,1,4) & 7 & 11 & -17 & \text{negative cycle}\\
+\bottomrule
+\end{array}
+\]
+
+\section{The universal clock}
+
+All verification counts below refer to \texttt{search/ghostclock.py},
+run over the five catalogued families plus $20$ random signatures.
+
+\begin{lemma}[Cylinder threshold]\label{lem:cyl}
+$a(x)\ge K+1$ if and only if the next $\ell$ letters of $x$ are
+exactly $\sigma$; the modulus $2^{K+1}$ is minimal. (Verified: minimal
+forcing modulus $=K+1$ for all $25$ signatures.)
+\end{lemma}
+
+\begin{theorem}[Universal ghost clock]\label{thm:clock}
+Let $a=a(x)\ge K+1$. Then:
+\begin{itemize}
+\item[(i)] (\emph{Repulsion.}) After one ridden block,
+$F_\sigma(x)-\rho_\sigma=\tfrac{3^\ell}{2^K}(x-\rho_\sigma)$, so the
+alignment drops by exactly $K$. (Verified: $200$ block applications,
+drop $=K$ exactly.)
+\item[(ii)] (\emph{Ride cap.}) The orbit rides exactly
+$\lfloor(a-1)/K\rfloor$ consecutive $\sigma$-blocks and then deviates.
+(Verified: $625$ cases, equality in all.)
+\item[(iii)] (\emph{Height cap.}) For positive integers $x$,
+$2^a\le|(2^K-3^\ell)x-C_\sigma|$, so
+$a\le\log_2\bigl(|2^K-3^\ell|\,x+C_\sigma\bigr)$: deep alignment costs
+height, uniformly in $\sigma$.
+\end{itemize}
+\end{theorem}
+
+\begin{proof}
+(i) is one line from the affine form of $F_\sigma$. For (ii): each
+ridden block requires alignment $\ge K+1$ at its start
+(\cref{lem:cyl}) and costs exactly $K$, so the number of ridden blocks
+is $\#\{j\ge0:a-jK\ge K+1\}=\lfloor(a-1)/K\rfloor$; if the block were
+followed at alignment $<K$, (i) would force negative valuation of a
+nonzero integer, and at alignment exactly $K$ the deviating bit sits
+precisely where the final letter's valuation is read, so the last
+letter strictly exceeds $k_\ell$. (iii) is positivity of the nonzero
+integer $(2^K-3^\ell)x-C_\sigma$.
+\end{proof}
+
+\begin{corollary}[The parity channel is metered]\label{cor:parity}
+The $(1,1,2)^\infty$ channel --- natural depth law, pure parity bias,
+the configuration shown in the companion note to evade the $g$-law
+alone --- is governed by the $K=4$ clock of $\rho=-19/11$: riding $j$
+blocks requires alignment $\ge4j+1$, alignment is repelled at $4$ bits
+per block, and alignment $a$ at height $x$ requires
+$11x+19\ge2^a$. The question left open in the two-clock note is
+resolved: \emph{every} ghost channel, not just $-1$, carries an exact
+run-length cap.
+\end{corollary}
+
+\begin{lemma}[Universal depth supply]\label{lem:supply}
+The points of $[2^k,2^{k+1})$ with alignment $\ge g$ to $\rho_\sigma$
+form a single residue class modulo $2^g$, of cardinality
+$2^{k-g}\pm1$; an acyclic orbit consumes them without replacement.
+Every result of the companion note's supply section (lifetime budgets,
+upcrossing bound) holds verbatim for every phantom root.
+\end{lemma}
+
+\section{The census budget (imported and verified)}
+
+\begin{lemma}[Affine census; corrected hypothesis]\label{lem:census}
+Let $x_u=A+Bu$, $\beta=\vt(A-\rho_\sigma)$, $\gamma=\vt(B)$, and
+suppose $\gamma\le\beta$. Then for $t>\gamma$,
+\[
+\#\{0\le u<2^L:\vt(x_u-\rho_\sigma)\ge t\}=2^{L-t+\gamma}.
+\]
+(Verified: $400/400$ random cases.) The hypothesis $\gamma\le\beta$
+cannot be dropped: for $\beta<\gamma$ every $x_u$ has alignment
+exactly $\beta$ and the count for $t>\beta$ is $0$, not
+$2^{L-t+\beta}$ (explicit counterexample: $\beta=4$, $\gamma=7$,
+$t=5$, count $0$ vs.\ $512$).
+\end{lemma}
+
+\begin{proposition}[Amortized census constant; independent
+recomputation]\label{prop:R}
+Let $M(K,\ell)$ be the number of primitive necklaces of compositions
+of $K$ into $\ell$ parts and
+\[
+R=\sum_{K=3}^{500}2^{-K}\!\!\sum_{\ell>K/\log_23}\!\!
+M(K,\ell)\Bigl(\log_23-\frac K\ell\Bigr).
+\]
+Our computation gives $R=0.088236$, confirming the bound $R\le0.0893$
+of arXiv:2603.11066 (the tail beyond $K=500$ is negligible by the
+Chernoff envelope). Against the contraction budget
+$2-\log_23=0.415$ bits per letter this is a $4.70\times$ margin.
+\end{proposition}
+
+\begin{remark}
+In our language: the $K\le2$ families \emph{are} the two clocks ---
+the renewal baseline. \cref{prop:R} says that all deeper ghost
+channels combined, weighted by shadow density $2^{-K}$ and per-letter
+gain, supply at most $0.088$ bits of drift advantage: an
+\emph{amortized} complement to the per-family supply bounds of
+\cref{lem:supply}. The orbit-level application (that a single orbit
+cannot beat this amortization) is precisely the calibration wall; the
+structural sum itself is unconditional arithmetic.
+\end{remark}
+
+\section{The burst--gap calculus is the two clocks}
+
+The manuscript's coordinates translate exactly onto ours: its run
+length $k=\vt(n+1)$ is our $-1$ depth $g$; its ``bursts'' are our
+$1$-runs, its ``gaps'' our descent blocks; its modular laws
+($k\sim2^{-(j-1)}$, mean $3$; gap $\sim$Geometric$(\tfrac12)$, mean
+$2$) are our natural meter laws; its mean-gap threshold
+$g_*\approx1.71$ is our crossing constant $1/\log_2(3/2)=1.7095$; and
+its two open hypotheses (mean gap $\ge g_*$; mean burst $\le2$) are
+literally the two channels of our joint calibration conjecture.
+
+\begin{proposition}[Their Persistent Exit Lemma is the parity
+handoff]\label{prop:pel}
+For $x\equiv27\pmod{32}$ (depth-$2$ run end in the persistent class):
+the run ends in one $b{=}1$ step at $y$ with $h=\vt(y-1)=3$
+\emph{exactly}, whence by the $+1$ clock a single $b{=}2$ letter
+followed immediately by a new $1$-run --- ``gap length exactly one.''
+(Verified: $4000/4000$.) Proof: $x=32s+27$ gives
+$y=48s+41$, $y-1=8(6s+5)$ with $6s+5$ odd, so $h=3$; $h$ odd is
+precisely the odd-parity handoff of the companion note.
+\end{proposition}
+
+Its compatible-class census also reconciles: enumerating odd residues
+modulo $2^{2D+3}$ whose first $D$ letters lie in $\{1,2\}$ gives
+exactly $2^{2D+2}(3/4)^D$ classes (verified $D\le8$), i.e.\ density
+$(3/4)^D$ --- their $|C_D|=2\cdot3^{D-1}$ is the same density in a
+coarser modulus convention.
+
+\section{Refutation: the shadow return-time theorem}
+
+The manuscript asserts (its Thm.~on shadow return times) that after an
+orbit exits the depth-$K$ shadow of a family of length $\ell$, it
+cannot re-enter for $\ell+K-1$ steps, the proof resting on the claim
+that $2$-adic alignment recovers at most one bit per step. Both fail:
+
+\begin{itemize}
+\item Measured over $400$ random orbits per family, with visits
+counted ride-aware (a maximal run of consecutive ridden blocks is one
+visit): minimum exit-to-re-entry gap $=1$ for all three families
+tested ($\sigma=(1,2),(1,1,2),(2,1)$), with $17$--$24\%$ of gaps below
+$K-1$.
+\item Alignment is not $1$-Lipschitz along orbits: one-step alignment
+\emph{gains} of $+13$, $+15$, $+16$ bits were observed for
+$\rho=-1,-19/11,-5$ respectively. (The mechanism: a step maps
+alignment-to-$\rho$ to alignment-to-the-preimage-root
+$\rho^{-b}=(2^b\rho-1)/3\ne\rho$, so no per-step monotonicity
+exists.)
+\end{itemize}
+
+\noindent The correct statement available is supply-side, not
+speed-side: re-entries at depth $g$ consume the band pool of
+\cref{lem:supply} without replacement; nothing constrains \emph{how
+soon} the next pool point is hit, only \emph{how many times} it can
+ever be.
+
+\section{Position}
+
+The manuscript's Route-B core, the Carry Independence Conjecture ---
+every $n_0>1$ eventually takes a letter $b\ge3$ --- is the extreme
+special case $\mathbb P[h\text{ odd}]\equiv1$ of our joint calibration
+conjecture (its Cantor set $\mathcal C_\infty$ consists of the orbits
+all of whose $+1$-handoffs are odd forever). The balanced
+(bounded-discrepancy) core of $\mathcal C_\infty$ is already excluded
+unconditionally by repetition rigidity and the narrow-band corollary
+($\sup_j|S_j|<1.246$), which the manuscript leaves conditional. Its
+terminal wall --- ``distributional-to-pointwise promotion'' --- is our
+quenched calibration wall, reached independently. What we import,
+after verification: the universal repulsion mechanism
+(\cref{thm:clock}), the census lemma (\cref{lem:census}, with the
+restored hypothesis), and the amortized constant
+$R=0.0882$ (\cref{prop:R}); what we contribute back: the exact ride
+cap, the supply bounds replacing the false return-time theorem, and
+the Lean-verified rigidity underlying the narrow-band exclusion.
+
+\begin{thebibliography}{9}
+\bibitem{chang} E.~Y.~Chang, \emph{Exploring Collatz Dynamics with
+Human-LLM Collaboration}, arXiv:2603.11066v6 (2026).
+\bibitem{twoclock} J.~A.~Janik, \emph{Two Clocks: the $\pm1$ meters,
+depth supply, and unconditional escape bounds}, companion note (2026).
+\bibitem{nb} J.~A.~Janik, \emph{Narrow-band exclusion and the
+$(D,\varepsilon)$ phase diagram}, companion note (2026).
+\end{thebibliography}
+
+\end{document}
