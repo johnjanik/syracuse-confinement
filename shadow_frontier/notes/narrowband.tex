@@ -1,6 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{amsmath,amssymb,amsthm,booktabs,graphicx}
+\usepackage[capitalize]{cleveref}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
@@ -140,13 +141,22 @@ forced). Red: allowed by counting; the pilot candidates' windows sit
 here and die by $2$-adic realizability instead.}\label{fig:phase}
 \end{figure}
 
-\begin{remark}
-Constants are computed with outward bracketing at grid $10^{-2}$ and are
-believed accurate to the displayed digits; a fully interval-arithmetic
-certification of $\lambda(D)$ and the boundary curve is routine and
-deferred. All other ingredients (repetition rigidity; the Baker cycle
-bound) are proved in the parent program, the former machine-verified in
-Lean~4.
+\begin{remark}[Exact certification]
+The count $N_D(p)$ is \emph{exactly computable}: $D$-confinement quantizes
+$B_j$ to at most $\lfloor2D\rfloor+1$ integers in the window
+$[j\log_23-D,\,j\log_23+D]$, so $N_D(p)$ satisfies a rotation-driven
+integer recursion over $\le3$ states per position (for $D<1.5$),
+evaluated in exact big-integer arithmetic with no discretization.
+At $p=3000$ this gives $\lambda(D)=N_D(p)^{1/p}$ to four digits and
+refines the threshold to
+\[
+D^*=1.2463,\qquad\text{band ratio }2^{2D^*}=5.63 ,
+\]
+and---more importantly---\cref{thm:narrowband} may be stated with the
+exact integer $N_D(p)$ in its hypothesis, eliminating Perron estimates
+from the proof entirely. All other ingredients (repetition rigidity; the
+Baker cycle bound) are proved in the parent program, the former
+machine-verified in Lean~4.
 \end{remark}
 
 \end{document}

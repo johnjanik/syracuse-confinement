@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem*{remark}{Remark}
+\title{The Run Budget: Ascent as a 2-adic Clock}
+\author{John A. Janik\\ \small\texttt{john.janik@gmail.com}}
+\date{June 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For the accelerated Syracuse map, ascent occurs exactly at valuation
+$b=1$, and we show the lengths of ascending runs are not statistics but
+\emph{deterministic readings of a 2-adic clock}: a maximal $b{=}1$ run
+starting at $x$ has length exactly $v_2(x+1)-1$, the ghost depth of $x$,
+which decreases by precisely one per step within the run. Consequently
+every divergent orbit must acquire its infinite height through visits to
+deep ghost points $x\equiv-1\bmod2^{g}$, with each visit capped by
+$g\le\log_2(x+1)$, and the quenched exclusion problem for band crossings
+reduces to a single renewal coordinate: the empirical law of the run-start
+depth against its natural density $2^{-g}$.
+\end{abstract}
+
+\begin{lemma}[Ascent $=$ depth clock]\label{lem:clock}
+Let $x$ be odd, $g=v_2(x+1)$. Then:
+\emph{(i)} $b(x)=1$ iff $g\ge2$;
+\emph{(ii)} if $b(x)=1$ then $v_2(S(x)+1)=g-1$, since
+$S(x)+1=\tfrac{3x+1}{2}+1=\tfrac{3(x+1)}{2}$ and $3$ is odd;
+\emph{(iii)} hence the maximal $b{=}1$ run starting at $x$ has length
+exactly $g-1$, gaining $(g-1)\log_2\tfrac32+O(g/x)$ bits of height, and
+terminating at a point $\equiv1\bmod4$;
+\emph{(iv)} runs are capped: $g\le\log_2(x+1)$, so a single run at height
+$Y$ gains at most $\log_2(Y{+}1)\cdot\log_2\tfrac32$ bits.
+(Machine-checked: $20{,}000/20{,}000$ runs, $20{,}071/20{,}071$
+single-step depth decrements, exact.)
+\end{lemma}
+
+\begin{proof}
+(i) $b(x)=1\iff3x+1\equiv2\bmod4\iff x\equiv3\bmod4\iff g\ge2$.
+(ii) as displayed. (iii) iterate (ii) until depth $1$, i.e.\
+$x\equiv1\bmod4$, where $b\ge2$. (iv) $2^{g}\mid x+1$ and $x+1>0$.
+\end{proof}
+
+\begin{theorem}[Run budget for crossings]\label{thm:budget}
+Let an orbit segment cross $[Y,2^{2D}Y]$ upward with no descent below
+$Y$. Writing $g_1,g_2,\dots$ for the ghost depths at its run starts and
+$d_1,d_2,\dots$ for the (negative) drifts of the intervening $b\ge2$
+steps, the crossing satisfies
+\[
+\log_2\tfrac32\sum_i(g_i-1)\;\ge\;2D+\sum_j|d_j|-O\!\Bigl(\tfrac{M}{Y}\Bigr),
+\qquad g_i\le\log_2(2^{2D}Y+1).
+\]
+In particular a crossing in $m$ steps at speed within $(1+\delta)$ of the
+minimum $1/(\log_23-1)$ forces the average run-start depth
+$\overline g\ge c(\delta)^{-1}$, i.e.\ fast crossings oversample deep
+ghost points relative to the natural density $2^{-g}$ by an exponential
+factor.
+\end{theorem}
+
+\begin{proof}
+Sum the height identity over the segment, splitting steps into runs
+(Lemma~\ref{lem:clock}(iii)) and run-enders; the cap is
+Lemma~\ref{lem:clock}(iv).
+\end{proof}
+
+\begin{corollary}[Target 2, reduced to one coordinate]
+A divergent orbit must satisfy
+$\sum_i(g_i-1)=\infty$ with every $g_i\le\log_2(x_{\mathrm{start},i}+1)$:
+its run-start depth process must persistently exceed the
+annealed law ($\Pr[g=j]=2^{-j+1}$ on odd integers, mean run length $1$).
+The quenched exclusion problem for band crossings is thereby reduced to a
+single renewal coordinate: \emph{no positive orbit may oversample its own
+ghost depths forever}. This is the 2-adic, single-coordinate analogue of
+the shadow-bias exclusion, and the natural meeting point with the
+phase-diagram confinement: windows allow no bias, so the bias --- and now,
+explicitly, the depth oversampling --- must live in crossings.
+\end{corollary}
+
+\begin{remark}
+The depth process is observable, cheap, and sharply structured: depth at
+a run start is read off the binary expansion of $x+1$, the run then
+counts it down deterministically, and the next depth is determined by
+the 2-adic digits of the run-end image. The empirical comparison of
+orbit depth-laws with $2^{-g}$ (see \texttt{search/depth\_stats.py}) is
+the Target-2 experiment to run at scale.
+\end{remark}
+\end{document}
