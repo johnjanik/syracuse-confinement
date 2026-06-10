@@ -1,0 +1,851 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+
+\lstdefinestyle{cstyle}{
+  language=C,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!60!black},
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{orange!60!black},
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
+\lstset{style=cstyle}
+
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\one}{\mathbf 1}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\Htwo}{H_2}
+\newcommand{\Ccrit}{C_6}
+\newcommand{\ord}{v_2}
+
+\title{Specifications for C Computation Tests:\\
+Entropy-Space, Doob-Transform, Schr\"odinger-Bridge, and Transfer-Operator Diagnostics for the Accelerated Collatz Cocycle}
+\author{Research notes and implementation specification}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document specifies a C-based computational program for testing four related formulations of the remaining Collatz obstruction: the Doob $h$-transform/Cram\'er tilt, Schr\"odinger bridge/entropic interpolation, deterministic transport between annealed height laws, and transfer-operator flow over residue-height states. The computations are not intended to prove Collatz. They are designed to test whether the deterministic accelerated Collatz orbit shadows, avoids, or is repelled from the annealed rare-event laws predicted by the forward height cocycle. The central empirical object is the valuation cocycle
+\[
+  b(x)=\ord(3x+1),\qquad \Delta_b=\log_2 3-b,
+\]
+with annealed law $p_b=2^{-b}$ and moment transform
+\[
+  M(s)=\sum_{b\ge1}2^{-b}2^{s(\log_2 3-b)}=\frac{3^s}{2^{1+s}-1}.
+\]
+At the Cram\'er root $s=1$, the tilted law is
+\[
+  p_b^{(1)}=p_b2^{\Delta_b}=3\cdot4^{-b}=\frac34\left(\frac14\right)^{b-1}.
+\]
+The tests below are designed to determine how critical excursions, post-exit floors, and ordinary orbit windows sit relative to this tilted law and to the associated transfer-operator spectra.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Executive Summary}
+
+The program has converged on a single analytic obstruction: the annealed height law is explicit and correctly predicts rare-event statistics, while the needed theorem is quenched and pointwise. In computational terms, the question becomes:
+\begin{quote}
+Can a deterministic positive integer orbit repeatedly shadow the annealed rare-event flow, or does doing so force a finite spectral/character obstruction already ruled out by the finite certificate machinery?
+\end{quote}
+
+The present specification builds computational tests around four formulations:
+\begin{enumerate}[label=\textbf{F\arabic*.},leftmargin=2.5em]
+  \item \textbf{Doob $h$-transform / Cram\'er tilt.} Critical excursions should have empirical valuation law close to $p^{(1)}_b=3\cdot4^{-b}$ in the bulk. Post-exit segments should fail to reacquire this law if the taboo mechanism is real.
+  \item \textbf{Schr\"odinger bridge / entropic interpolation.} A critical excursion is a finite bridge: entry boundary layer, tilted bulk, exit boundary layer. Consecutive critical bridges should be forbidden or spectrally suppressed.
+  \item \textbf{Deterministic transport in entropy space.} Sliding windows of valuation words trace paths in the simplex of empirical valuation laws. Ordinary windows should lie near $p$, high ascents near $p^{(1)}$, and post-exit windows should be separated from $p^{(1)}$.
+  \item \textbf{Transfer-operator flow over residue-height states.} A family $\mathcal L_s$ over residue-height states should encode ordinary dynamics ($s=0$), critical tilt ($s=1$), QSD, H23a character gaps, and post-exit taboo through spectra such as $\rho(\mathcal L_1\mathcal E\mathcal L_1)$.
+\end{enumerate}
+
+The outputs are standardized CSV/JSON logs and summary tables. All exact logical predicates, especially criticality inequalities, must be evaluated using integer arithmetic. Floating-point arithmetic is used only for diagnostics such as entropy, pressure, and KL divergence.
+
+\section{Mathematical Definitions}
+
+\subsection{Accelerated odd map and valuation word}
+
+For odd positive $x$, define
+\[
+  S(x)=\frac{3x+1}{2^{b(x)}},\qquad b(x)=\ord(3x+1).
+\]
+An orbit segment of length $m$ has valuation word
+\[
+  w=(b_0,b_1,\ldots,b_{m-1}),
+  \qquad b_i=b(S^i x),
+\]
+and cumulative valuation
+\[
+  D_m=\sum_{i=0}^{m-1}b_i.
+\]
+The deficit/excess relative to the equilibrium slope is
+\[
+  E_m=D_m-m\log_2 3.
+\]
+In the forward height convention, define
+\[
+  \Delta_b=\log_2 3-b,
+  \qquad Y_m=\sum_{i=0}^{m-1}\Delta_{b_i}=m\log_2 3-D_m=-E_m.
+\]
+High ascents correspond to large positive $Y_m$.
+
+\subsection{Annealed valuation law and pressure transform}
+
+Under the Haar/annealed model,
+\[
+  p_b=\Prob(b=k)=2^{-b},\qquad b\ge1.
+\]
+The base-$2$ moment transform of the height increment is
+\[
+  M(s)=\E_p\bigl(2^{s\Delta_b}\bigr)
+  =\sum_{b\ge1}2^{-b}2^{s(\log_2 3-b)}
+  =\frac{3^s}{2^{1+s}-1}.
+\]
+The Cram\'er root is $s^*=1$, since $M(1)=1$. The tilted law at parameter $s$ is
+\[
+  p_b^{(s)}=\frac{p_b2^{s\Delta_b}}{M(s)}.
+\]
+At $s=1$,
+\[
+  p_b^{(1)}=3\cdot4^{-b}=\frac34\left(\frac14\right)^{b-1}.
+\]
+The binary entropy associated with the critical bulk law is
+\[
+  \Htwo(3/4)=-\frac34\log_2\frac34-\frac14\log_2\frac14\approx0.811278.
+\]
+
+\subsection{Critical excursions}
+
+Let $V$ be an odd launch floor and $P$ the peak reached during the forward excursion before the first return below $V$ or before a specified stopping condition. Define the logarithmic height
+\[
+  h(V)=\log_2\frac{P}{V}.
+\]
+The $A$-critical launch set is
+\[
+  C_A=\{V:\ h(V)\ge \log_2 V-A\}.
+\]
+Equivalently, for $A=6$,
+\[
+  V\in C_6\quad\Longleftrightarrow\quad V^2\le 2^6P.
+\]
+This predicate must be evaluated exactly as an integer inequality.
+
+\subsection{Empirical valuation laws}
+
+For a finite word $w$ of length $m$, define its empirical valuation law
+\[
+  \mu_w(b)=\frac{1}{m}\#\{0\le i<m:b_i=b\}.
+\]
+Diagnostics include
+\[
+  \bar b(\mu)=\sum_b b\mu(b),\qquad
+  \bar\Delta(\mu)=\sum_b(\log_2 3-b)\mu(b),
+\]
+\[
+  H(\mu)=-\sum_b\mu(b)\log_2\mu(b),
+\]
+\[
+  \KL(\mu\|p)=\sum_b\mu(b)\log\frac{\mu(b)}{p_b},
+  \qquad
+  \KL(\mu\|p^{(1)})=\sum_b\mu(b)\log\frac{\mu(b)}{p_b^{(1)}}.
+\]
+
+\section{C Implementation Architecture}
+
+\subsection{Directory layout}
+
+Recommended structure:
+\begin{verbatim}
+collatz_entropy_tests/
+  include/
+    collatz_u128.h
+    valuation_word.h
+    histograms.h
+    entropy_stats.h
+    csv_writer.h
+    operator_matrix.h
+    config.h
+  src/
+    collatz_u128.c
+    valuation_word.c
+    histograms.c
+    entropy_stats.c
+    csv_writer.c
+    operator_matrix.c
+    common_cli.c
+  tools/
+    doob_tilt_test.c
+    bridge_layers_test.c
+    entropy_transport_test.c
+    transfer_operator_test.c
+    critical_floors_test.c
+    post_exit_test.c
+    pressure_tail_test.c
+  scripts/
+    build.sh
+    run_all.sh
+    summarize.py
+  data/
+    raw/
+    summaries/
+  docs/
+\end{verbatim}
+
+\subsection{Compiler and build flags}
+
+Use a strict, reproducible build:
+\begin{lstlisting}
+cc -O3 -std=c17 -Wall -Wextra -Wshadow -Wconversion \
+   -pedantic -march=native -DNDEBUG \
+   -Iinclude src/*.c tools/doob_tilt_test.c -lm -o bin/doob_tilt_test
+\end{lstlisting}
+
+For debug builds:
+\begin{lstlisting}
+cc -O0 -g -fsanitize=address,undefined -std=c17 \
+   -Wall -Wextra -Wshadow -Wconversion -pedantic \
+   -Iinclude src/*.c tools/doob_tilt_test.c -lm -o bin/doob_tilt_test_dbg
+\end{lstlisting}
+
+\subsection{Integer arithmetic requirements}
+
+Use unsigned 128-bit arithmetic for all exact checks up to the intended bound:
+\[
+  \texttt{\_\_uint128\_t}.
+\]
+Criticality must be checked as
+\[
+  V^2\le 2^A P
+\]
+without floating point. The code must detect overflow before multiplication. If computations exceed $128$ bits, either stop with a clear diagnostic or switch to a big-integer backend such as GMP. The first implementation target should remain within the safe $128$-bit range.
+
+\subsection{Common command-line options}
+
+Every tool should support:
+\begin{verbatim}
+--start <uint64>          first odd V or x to test
+--end <uint64>            exclusive upper bound
+--octave-min <N>          first dyadic octave
+--octave-max <N>          last dyadic octave
+--A <int>                 criticality parameter, default 6
+--max-steps <int>         maximum accelerated steps per orbit/excursion
+--max-b <int>             histogram cap for valuation b
+--window <int>            sliding window length
+--out <path>              output CSV path
+--summary <path>          output summary CSV/JSON path
+--seed <uint64>           optional deterministic sample seed
+--sample-rate <int>       test every kth odd integer, default 1
+--threads <int>           optional threading
+--verbose                 progress and diagnostics
+\end{verbatim}
+
+\subsection{Shared data structures}
+
+\begin{lstlisting}
+typedef struct {
+    uint64_t start;
+    uint64_t end;
+    int A;
+    int max_steps;
+    int max_b;
+    int window;
+    const char *out_path;
+    const char *summary_path;
+} RunConfig;
+
+typedef struct {
+    uint64_t V;          // launch floor
+    uint64_t exit_floor; // first return below V, if any
+    __uint128_t peak;    // peak P
+    int steps;
+    int max_b;
+    int *b_word;         // length steps
+    double height;       // diagnostic only
+    double amin;         // log2(V^2/P), diagnostic only
+    bool critical;
+} ExcursionRecord;
+
+typedef struct {
+    uint64_t count;
+    uint64_t *bins;      // bins[1..max_b], overflow bin max_b+1
+    uint64_t overflow;
+} ValuationHist;
+\end{lstlisting}
+
+\section{Core Algorithms}
+
+\subsection{Accelerated step}
+
+For odd $x$, compute
+\[
+  y=3x+1,\\qquad b=\ord(y),\qquad S(x)=y/2^b.
+\]
+The implementation must check overflow in $3x+1$.
+
+\begin{lstlisting}
+static inline int ctz_u128(__uint128_t y) {
+    int c = 0;
+    while ((y & 1u) == 0u) { y >>= 1; c++; }
+    return c;
+}
+
+bool accelerated_step_u128(__uint128_t x, __uint128_t *next, int *b) {
+    __uint128_t y = 3*x + 1;
+    *b = ctz_u128(y);
+    *next = y >> (*b);
+    return true;
+}
+\end{lstlisting}
+
+\subsection{Excursion extraction}
+
+Given an odd launch floor $V$, iterate until the first return below $V$, a maximum step bound, overflow, or terminal cycle detection.
+Record:
+\begin{itemize}
+  \item valuation word $b_0,\dots,b_{m-1}$;
+  \item peak $P=\max_i x_i$;
+  \item height $h=\log_2(P/V)$;
+  \item criticality $V^2\le2^A P$;
+  \item exit floor $E(V)$ if the excursion returns below $V$.
+\end{itemize}
+
+\subsection{Exact criticality check}
+
+For $A=6$, test
+\[
+  V^2\le 64P.
+\]
+General $A$:
+\[
+  V^2\le 2^A P.
+\]
+
+\begin{lstlisting}
+bool is_A_critical_u128(uint64_t V, __uint128_t P, int A) {
+    __uint128_t lhs = (__uint128_t)V * (__uint128_t)V;
+    __uint128_t rhs = P << A;
+    return lhs <= rhs;
+}
+\end{lstlisting}
+
+\subsection{Histogram and KL divergence}
+
+For each word $w$, build a histogram over $b\in\{1,\dots,B_{\max}\}$, with overflow bin. Compute $\mu_w$. Compare to
+\[
+  p_b=2^{-b},\qquad p_b^{(1)}=3\cdot4^{-b}.
+\]
+For the overflow bin, use the exact tail mass:
+\[
+  p_{>B}=2^{-B},
+\]
+for the annealed law, and
+\[
+  p^{(1)}_{>B}=4^{-B},
+\]
+for the tilted law, since $p_b^{(1)}=3\cdot4^{-b}$.
+
+\section{Test Group I: Doob $h$-Transform and Cram\'er Tilt}
+
+\subsection{Test I.1: Critical-excursion tilted valuation law}
+
+\paragraph{Goal.} Confirm that the bulk valuation law of $A$-critical excursions converges to
+\[
+  p_b^{(1)}=3\cdot4^{-b}.
+\]
+
+\paragraph{Input.} Odd launch floors $V\in[2^N,2^{N+1})$ for octaves $N_{\min}\le N\le N_{\max}$.
+
+\paragraph{Procedure.}
+\begin{enumerate}
+  \item Extract the first-return excursion from each $V$.
+  \item Retain only records satisfying $V^2\le2^A P$.
+  \item Optionally remove an entry boundary layer of length $r$ and exit boundary layer of length $r$.
+  \item Build aggregate valuation histograms for full word and bulk word.
+  \item Compute $\widehat p_b$, $\KL(\widehat p\|p)$, $\KL(\widehat p\|p^{(1)})$, entropy, and mean height increment.
+\end{enumerate}
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+octave,A,count_critical,total_words,total_symbols,
+b,p_hat,p_annealed,p_tilted,kl_to_p,kl_to_tilt,entropy,mean_b,mean_delta
+\end{verbatim}
+
+\paragraph{Expected signal.}
+For critical-excursion bulk symbols,
+\[
+  \widehat p_b\to3\cdot4^{-b},\qquad
+  \KL(\widehat p\|p^{(1)})\to0.
+\]
+
+\subsection{Test I.2: Height-tail law by octave}
+
+\paragraph{Goal.} Verify octave-uniform tail
+\[
+  \Prob(h\ge H)\asymp2^{-H},
+\]
+and therefore
+\[
+  \#(C_A\cap[2^N,2^{N+1}))=O_A(1).
+\]
+
+\paragraph{Procedure.}
+For each octave $N$ and threshold $H$, count
+\[
+  \#\{V\in[2^N,2^{N+1}):h(V)\ge H\}.
+\]
+Fit
+\[
+  \log_2 \Prob_N(h\ge H)\approx -H+c.
+\]
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+octave,H,count,total,prob,log2_prob,slope_fit,intercept_fit
+\end{verbatim}
+
+\paragraph{Expected signal.}
+For large $H$ below finite-size cutoff,
+\[
+  \log_2\Prob_N(h\ge H)+H
+\]
+should be approximately constant across octaves.
+
+\subsection{Test I.3: Post-exit conditional valuation law}
+
+\paragraph{Goal.} Determine whether post-exit segments are anti-tilted away from $p^{(1)}$.
+
+\paragraph{Procedure.}
+For each $V\in C_A$ with exit floor $E(V)$:
+\begin{enumerate}
+  \item Start a new segment at $E(V)$.
+  \item Record the first $L_{post}$ valuations or the next first-return excursion.
+  \item Build the empirical law $\mu_{post}$.
+  \item Compute $\KL(\mu_{post}\|p^{(1)})$ and empirical post pressure
+  \[
+    M_{post}(1)=\sum_b\mu_{post}(b)2^{\log_2 3-b}.
+  \]
+\end{enumerate}
+
+\paragraph{Expected signal.}
+If post-exit taboo is pressure-based, then
+\[
+  M_{post}(1)<1
+\]
+for the relevant initial post-exit window, or at least
+\[
+  \KL(\mu_{post}\|p^{(1)})\ge c>0.
+\]
+
+\section{Test Group II: Schr\"odinger Bridge / Entropic Interpolation}
+
+\subsection{Test II.1: Entry, bulk, and exit boundary layers}
+
+\paragraph{Goal.} Determine whether critical excursions decompose into entry layer, tilted bulk, and exit layer.
+
+\paragraph{Procedure.}
+For each critical word $w$ of length $m$, choose boundary depth $r$ and split:
+\[
+  w=w_{entry}\,w_{bulk}\,w_{exit}.
+\]
+Compute valuation laws
+\[
+  \mu_{entry},\quad \mu_{bulk},\quad \mu_{exit}.
+\]
+Compare each to $p$ and $p^{(1)}$.
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+octave,V,word_len,r,region,count_symbols,mean_b,mean_delta,
+entropy,kl_to_p,kl_to_tilt,p1_freq,p2_freq,p3_freq,overflow
+\end{verbatim}
+
+\paragraph{Expected signal.}
+The bulk should be closest to $p^{(1)}$. Entry and exit layers should show systematic deviations. The earlier transient dimension effects should be visible in the entry layer.
+
+\subsection{Test II.2: Critical bridge non-concatenation}
+
+\paragraph{Goal.} Test whether the exit marginal of a critical bridge is separated from the entrance marginal of another critical bridge.
+
+\paragraph{Procedure.}
+For each critical excursion:
+\begin{enumerate}
+  \item Record exit floor $E(V)$.
+  \item Compute whether $E(V)\in C_A$ exactly.
+  \item Compute next-excursion height $h(E(V))$.
+  \item Define margin
+  \[
+    \Delta_{post}=\log_2E(V)-A-h(E(V)).
+  \]
+\end{enumerate}
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+V,peak,exit_floor,A,h_V,h_exit,amin_V,delta_post,
+critical_again,next_word_len,next_peak
+\end{verbatim}
+
+\paragraph{Expected signal.}
+For $A=6$, computations so far suggest
+\[
+  E(C_6)\cap C_6=\varnothing.
+\]
+A positive lower bound for $\Delta_{post}$ would be stronger.
+
+\subsection{Test II.3: Empirical bridge action}
+
+\paragraph{Goal.} Verify that critical excursions minimize an entropy action predicted by the annealed bridge.
+
+\paragraph{Definition.}
+For word $w$ of length $m$, define
+\[
+  \mathcal A(w)=m\KL(\mu_w\|p).
+\]
+For a high ascent of height $H$, compare $\mathcal A(w)$ to $H\log 2$.
+
+\paragraph{Expected signal.}
+Critical excursions should have action near the Cram\'er prediction. Failed second excursions after exit should show excess action or inability to approach the bridge law.
+
+\section{Test Group III: Deterministic Transport in Entropy Space}
+
+\subsection{Test III.1: Sliding-window empirical-law trajectories}
+
+\paragraph{Goal.} View deterministic orbits as paths in the probability simplex of valuation laws.
+
+\paragraph{Procedure.}
+For each orbit and window length $L_w$:
+\begin{enumerate}
+  \item Compute sliding-window law $\mu_{n,L_w}$.
+  \item Record coordinates
+  \[
+    \bar b,\\quad \bar\Delta,
+    \quad H(\mu),
+    \quad \KL(\mu\|p),
+    \quad \KL(\mu\|p^{(1)}).
+  \]
+  \item Label windows as ordinary, pre-critical, critical, post-exit, or terminal.
+\end{enumerate}
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+x0,n,window,label,mean_b,mean_delta,entropy,
+kl_to_p,kl_to_tilt,height_start,height_end,max_height
+\end{verbatim}
+
+\paragraph{Expected signal.}
+Ordinary windows cluster near $p$. Critical windows approach $p^{(1)}$. Post-exit windows avoid $p^{(1)}$ if taboo is real.
+
+\subsection{Test III.2: Distance to the Cram\'er curve}
+
+\paragraph{Goal.} Determine whether orbit windows align with the exponential family
+\[
+  p^{(s)}_b=\frac{p_b2^{s\Delta_b}}{M(s)}.
+\]
+
+\paragraph{Procedure.}
+For each empirical law $\mu$, find
+\[
+  s^*(\mu)=\arg\min_{s\in[s_{min},s_{max}]}\KL(\mu\|p^{(s)}).
+\]
+Record the minimizing $s$ and the residual distance.
+
+\paragraph{Expected signal.}
+Critical windows should have $s^*(\mu)\approx1$. Post-exit windows should move away from $s=1$.
+
+\subsection{Test III.3: Entropic action budget}
+
+\paragraph{Goal.} Test whether repeated critical events fail because the post-exit segment lacks enough entropy/height budget to return to the critical entropy manifold.
+
+\paragraph{Procedure.}
+For each critical excursion and following segment, compute cumulative action
+\[
+  \mathcal A_{0:n}=\sum_{j}\KL(\mu_{j}\|p)
+\]
+or block action
+\[
+  |w|\KL(\mu_w\|p).
+\]
+Compare against achieved height.
+
+\paragraph{Expected signal.}
+If an action barrier exists, post-exit attempted second ascents should require action greater than the available large-deviation budget.
+
+\section{Test Group IV: Transfer-Operator Flow over Residue-Height States}
+
+\subsection{State space and operators}
+
+For fixed modulus $Q$ and height strip $[0,L]$, define finite bins
+\[
+  \mathcal X_{Q,L}=\Omega_Q\times\{0,1,\ldots,L\}.
+\]
+The tilted transfer operator is
+\[
+  (\mathcal L_s f)(a,z)=\sum_b p_b2^{s(\log_2 3-b)}f(T_ba,z+\log_2 3-b),
+\]
+with killing at boundaries. In implementation, $z$ may be discretized into bins of width $\delta z$.
+
+Residue characters decompose the operator into blocks
+\[
+  \mathcal L_s=\mathcal L_{s,0}\oplus\bigoplus_{\chi\ne1}\mathcal L_{s,\chi}.
+\]
+
+\subsection{Test IV.1: Spectral gap as a function of tilt $s$}
+
+\paragraph{Goal.} Determine whether H23a-type character gaps persist through the critical tilt $s=1$.
+
+\paragraph{Procedure.}
+For each $Q$, $L$, and $s\in[0,1]$:
+\begin{enumerate}
+  \item Build the finite matrix approximation to $\mathcal L_s$.
+  \item Compute principal spectral radius $\rho_0(s)$.
+  \item For each nontrivial character block, compute $\rho_\chi(s)$.
+  \item Record gap
+  \[
+    \kappa_Q(s)=1-\max_{\chi\ne1}\frac{\rho_\chi(s)}{\rho_0(s)}.
+  \]
+\end{enumerate}
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+Q,L,z_bins,s,rho0,max_rho_chi,kappa,argmax_chi,iterations,residual
+\end{verbatim}
+
+\paragraph{Expected signal.}
+A positive gap over $s\in[0,1]$ supports stability of the certificate under critical tilting.
+
+\subsection{Test IV.2: Doob-transformed operator paths}
+
+\paragraph{Goal.} Compare actual critical excursions to paths typical under the Doob-transformed critical operator.
+
+\paragraph{Procedure.}
+Compute principal eigenfunction $h_s$ of $\mathcal L_s$ and define
+\[
+  \mathcal L_s^h f=\frac{1}{\rho_s h_s}\mathcal L_s(h_sf).
+\]
+Sample or enumerate typical paths under $\mathcal L_1^h$ and compare valuation histograms and boundary layers to actual critical excursions.
+
+\subsection{Test IV.3: Post-exit operator spectrum}
+
+\paragraph{Goal.} Test the spectral form of post-exit taboo.
+
+\paragraph{Object.} Let $\mathcal E$ be an empirical or exact post-exit kernel from completed critical excursions to next launch floors/residue-height states.
+
+Compute spectral radius of
+\[
+  \mathcal K_A\mathcal E\mathcal K_A
+\]
+where $\mathcal K_A$ is the critical-entrance or critical-tilted operator. In the strongest case, the matrix is zero on the exact critical sector; otherwise one wants spectral radius $<1$.
+
+\paragraph{Output CSV.}
+\begin{verbatim}
+Q,L,A,operator_type,rho_K,rho_KEK,max_entry,nonzero_edges,
+spectral_gap,iterations,residual
+\end{verbatim}
+
+\paragraph{Expected signal.}
+For $A=6$, existing tests suggest no immediate second critical event. The spectral test should show either zero transition or a strong gap.
+
+\subsection{Test IV.4: Dirac-to-QSD comparison}
+
+\paragraph{Goal.} Quantify the annealed-to-quenched gap.
+
+\paragraph{Procedure.}
+Start from Dirac states corresponding to actual launch floors. Iterate the annealed killed operator and compare:
+\begin{enumerate}
+  \item annealed distribution at time $n$;
+  \item QSD profile;
+  \item actual deterministic path state at time $n$.
+\end{enumerate}
+Record discrepancies in total variation, residue Fourier modes, and height coordinate.
+
+\section{Auxiliary Tests for $C_A$ and Height Law}
+
+\subsection{Critical-floor census}
+
+Compute $C_A$ for octaves and thresholds. Output:
+\begin{verbatim}
+octave,A,total_odd,count_critical,count_per_octave,
+min_V,max_V,min_amin,max_height,mean_word_len,mean_runs
+\end{verbatim}
+
+\subsection{Valuation-word grammar diagnostics}
+
+For each critical word, record:
+\begin{itemize}
+  \item total word length;
+  \item number of $b=1$ runs;
+  \item longest $b=1$ run;
+  \item drop-size counts for $b=2,3,4,\ldots$;
+  \item entry/bulk/exit layer histograms.
+\end{itemize}
+This verifies that the target is not a finite grammar.
+
+\subsection{Pressure fit from observed words}
+
+For each octave and criticality threshold, estimate empirical transform
+\[
+  \widehat M_N(s)=\sum_b\widehat p_{b,N}2^{s(\log_2 3-b)}.
+\]
+Compare with
+\[
+  M(s)=\frac{3^s}{2^{1+s}-1}.
+\]
+
+\section{Exactness, Validation, and Failure Modes}
+
+\subsection{Exact predicates versus diagnostics}
+
+The following must be exact:
+\begin{itemize}
+  \item accelerated step for all tested $x$;
+  \item $b=\ord(3x+1)$;
+  \item peak $P$ within the integer range;
+  \item criticality $V^2\le2^AP$;
+  \item first return below launch floor;
+  \item cycle/terminal detection if used.
+\end{itemize}
+
+The following may be floating-point diagnostics:
+\begin{itemize}
+  \item $h=\log_2(P/V)$;
+  \item $\mathrm{amin}=\log_2(V^2/P)$;
+  \item entropy and KL divergence;
+  \item spectral radii and eigenvectors;
+  \item pressure fits.
+\end{itemize}
+
+\subsection{Validation tests}
+
+Every executable should include a small deterministic test suite:
+\begin{enumerate}
+  \item Check known short orbits entering $1$.
+  \item Check $v_2(3x+1)$ for hand-computable values.
+  \item Check exact criticality predicate against floating diagnostic for small values.
+  \item Check histograms sum to word length.
+  \item Check $M(1)=1$ numerically.
+  \item Check $\sum_{b=1}^{B}3\cdot4^{-b}+4^{-B}=1$ for overflow tail.
+\end{enumerate}
+
+\subsection{Interpretation failure modes}
+
+The computations may falsify specific hypotheses:
+\begin{itemize}
+  \item If critical bulk words do not approach $p^{(1)}$, the Cram\'er-tilt model is incomplete.
+  \item If post-exit windows also approach $p^{(1)}$, the taboo mechanism is not explained by anti-tilt.
+  \item If $\rho(\mathcal K_A\mathcal E\mathcal K_A)\ge1$, the spectral taboo form fails.
+  \item If character gaps collapse near $s=1$, H23a is not stable under critical tilt.
+  \item If Dirac-to-QSD discrepancy remains uncontrolled, the annealed-to-quenched gap remains exactly where expected.
+\end{itemize}
+
+\section{Output File Formats}
+
+\subsection{Raw excursion records}
+
+\begin{verbatim}
+V,octave,A,critical,steps,peak,exit_floor,height,amin,
+word_len,max_b,b_word_hash,b1_runs,max_b1_run,overflow_flag
+\end{verbatim}
+
+The full word may be optionally stored in a separate compressed text/binary file keyed by \texttt{b\_word\_hash}.
+
+\subsection{Histogram summaries}
+
+\begin{verbatim}
+group_id,label,octave,A,region,count_words,count_symbols,b,count_b,
+p_hat,p_annealed,p_tilted
+\end{verbatim}
+
+\subsection{Entropy-space windows}
+
+\begin{verbatim}
+x0,n,window,label,mean_b,mean_delta,entropy,
+kl_to_p,kl_to_tilt,best_s,kl_to_exp_family,height_start,height_end
+\end{verbatim}
+
+\subsection{Spectral summaries}
+
+\begin{verbatim}
+Q,L,z_bins,s,block,rho,residual,iterations,
+rho0,max_rho_chi,kappa,argmax_chi
+\end{verbatim}
+
+\section{Milestones}
+
+\subsection*{Milestone 1: Exact core and critical census}
+\begin{itemize}
+  \item Implement accelerated step, excursion extraction, exact criticality.
+  \item Reproduce known $C_6$ counts over a small range.
+  \item Produce octave count table for $A=4,5,6,7,8$.
+\end{itemize}
+
+\subsection*{Milestone 2: Doob/Cram\'er diagnostics}
+\begin{itemize}
+  \item Compute critical bulk valuation histograms.
+  \item Verify convergence toward $p_b^{(1)}=3\cdot4^{-b}$.
+  \item Fit height-tail law $\Prob(h\ge H)\asymp2^{-H}$.
+\end{itemize}
+
+\subsection*{Milestone 3: Bridge and post-exit diagnostics}
+\begin{itemize}
+  \item Split critical words into entry/bulk/exit layers.
+  \item Measure post-exit law and $M_{post}(1)$.
+  \item Test $E(C_6)\cap C_6=\varnothing$ at increased scale.
+\end{itemize}
+
+\subsection*{Milestone 4: Entropy-space transport}
+\begin{itemize}
+  \item Generate sliding-window entropy trajectories.
+  \item Fit best exponential-family parameter $s$.
+  \item Test whether post-exit windows avoid neighborhoods of $s=1$.
+\end{itemize}
+
+\subsection*{Milestone 5: Transfer-operator flow}
+\begin{itemize}
+  \item Build finite residue-height operators $\mathcal L_s$.
+  \item Compute character gaps over $s\in[0,1]$.
+  \item Construct empirical/exact post-exit kernel $\mathcal E$ and compute $\rho(\mathcal K_A\mathcal E\mathcal K_A)$.
+\end{itemize}
+
+\section{Deliverables}
+
+Each round should produce:
+\begin{enumerate}
+  \item source code and build log;
+  \item raw CSV files;
+  \item summary CSV/JSON files;
+  \item a short report with plots and interpretation;
+  \item exact command lines sufficient to reproduce the run;
+  \item a manifest of tested ranges and overflow exclusions.
+\end{enumerate}
+
+\section{Conclusion}
+
+The computation program should test a single organizing hypothesis from four directions:
+\begin{quote}
+A deterministic branch that shadows the annealed rare-event flow for too long must force a finite spectral/character obstruction, or else reveal a new post-exit taboo mechanism in the height cocycle.
+\end{quote}
+The Doob/Cram\'er tests identify the local rare-event law. The Schr\"odinger-bridge tests isolate entry and exit boundary layers. The entropy-transport tests track deterministic empirical laws in information-geometric coordinates. The transfer-operator tests connect the same phenomenon to H23a, QSD, and post-exit spectra. Together they are designed to distinguish three possibilities: a provable taboo transition, a finite spectral obstruction, or a genuinely new quenched equidistribution barrier.
+
+\end{document}
