@@ -137,6 +137,40 @@
       "materiality_hint": {
         "possible_code_effect": true
       }
+    },
+    {
+      "event_type": "command_run",
+      "actor": {
+        "kind": "ai_tool",
+        "tool": "Claude Code"
+      },
+      "time": "2026-06-10T12:51:05Z",
+      "target": {
+        "tool": "Bash",
+        "input_hash": "sha256:be69c812bf8b02208ff93770fc315f4ed025e58ff148ed7fd6c22323c9fd68a8",
+        "output_hash": "sha256:4a2b4cceb150e45c1a9d011fe57fab18a9d72df2cc277e217142c67664d94b9e",
+        "command": "cd /home/john/mynotes\ngit add deterministic_equidistribution_theory\ngit commit -m \"$(cat <<'EOF'\nFinite Spectral Shadows: complete program (manuscript, suite, audits, provenance)\n\nThe deterministic-equidistribution / defect-cocycle program, dc_1 through\ndc_33, in final form:\n\n- finite_spectral_shadows.tex/pdf (45pp): coboundary classification\n  (Cob = <chi_2>), strict gap, conductor collapse, ejection theorem,\n  cascade suite (equivalence, mass, two-point profile, sharp pinning C_0),\n  bounded shells (Q~_L <= 3C_1 < 5.16), level-cost law (lambda = 4/7),\n  root-ball analysis, finite H23a theorem sup_c gamma_c(0) < 1 at s=0;\n  keystone arrow, quenched shadow exclusion (corrected per dc_29),\n  certificate-forces-descent, joint (2,3)-adic tower reduction,\n  calibrated measures, Baker periodic exclusion (x_min <= C p^{tau+1}),\n  repetition rigidity, Sturmian exclusion, complexity-height tradeoff.\n- finite_spectral_shadows_computational.tex/pdf (7pp): suite + audit\n  addendum with all analysis scripts and headline constants.\n- c_suite/: 9-experiment C suite (collatz_tests/) and 14 analysis scripts\n  (threshold Schur, cascade, op:flat, root-ball, ghost tests, max-plus\n  certificates). Generated outputs (out/, out_large/, bin/) gitignored;\n  regenerable via Makefile and run scripts.\n- critiques/ dc_1..dc_33; references/ linear-forms literature.\n- Elementary core machine-verified in Lean 4 (collatz repo:\n  CollatzLean/FiniteSpectralShadows.lean). Full AIPM (ailog) provenance,\n  59 captures, validation passing.\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>\nEOF\n)\" -- deterministic_equidistribution_theory 2>&1 | tail -3"
+      },
+      "materiality_hint": {
+        "possible_code_effect": true
+      }
+    },
+    {
+      "event_type": "command_run",
+      "actor": {
+        "kind": "ai_tool",
+        "tool": "Claude Code"
+      },
+      "time": "2026-06-10T12:51:20Z",
+      "target": {
+        "tool": "Bash",
+        "input_hash": "sha256:21ebace9dfe007a8ad14204fbe72754445a85e548c94fbb0566bed33fd6ad5d3",
+        "output_hash": "sha256:03bdc62ca50bf98e03e688a4d50ead2f9271086f0c2af23f718e648f884ac663",
+        "command": "cd /home/john/mynotes && git log --oneline -1 && git status --short -- deterministic_equidistribution_theory | head -3\ncd /home/john/mynotes/collatz && git add lean4/CollatzLean/FiniteSpectralShadows.lean\ngit commit -m \"$(cat <<'EOF'\nMachine-verify the repetition-rigidity core (Finite Spectral Shadows)\n\nCollatzLean/FiniteSpectralShadows.lean: formalization companion to the\nfinite-spectral-shadows manuscript. Sorry-free and axiom-clean\n(propext, Classical.choice, Quot.sound only):\n\n- word_congr: the 2-adic coding lemma - equal valuation words of length p\n  force congruence mod 2^(B+1), B the word sum.\n- repetition_rigidity: equal words + band proximity force exact equality\n  of orbit points (repeated blocks ARE cycles).\n- orbit_periodic_of_eq, syr_odd, bval_one, trivial_cycle.\n\nBaker cycle bound stated as proof_wanted; analytic stack documented as\nthe formal program. Builds clean against Mathlib v4.27.0.\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>\nEOF\n)\" -- lean4/CollatzLean/FiniteSpectralShadows.lean 2>&1 | tail -2\ngit log --oneline -1"
+      },
+      "materiality_hint": {
+        "possible_code_effect": true
+      }
     }
   ],
   "seen": [
@@ -147,6 +181,8 @@
     "tool:Bash:sha256:3e8e6bbcafa060b58adb9b1b1d4d4157b5bab15ef6c70d06e04d17b7f098ba74:sha256:d3ba9c46a86a78eb5656c59cb0466a140e0077d06f4b04f8e753eddef2325900",
     "tool:Bash:sha256:6c119cc6cf091e7f44cc9f7e1f1cfea7ef1e64389e0402d43b9a653a53c5274d:sha256:78ebf582b61963d6e073bfde38c1badd3803b321dda8644580859cc00c74e27b",
     "tool:Bash:sha256:6eea61e8cc4340d10b36166a6c92e2f75f18541f56746a11c78c565e958e3a3f:sha256:b0d750ae66d67276a249c65b8375cff3766d9daea3a2a4fda1951901dbc7814f",
-    "tool:Bash:sha256:a79e3ec77585b283640beede693e2e22e33a35ceaa7e74994b226080254bb69b:sha256:84924f134806d8f91eb6632d5adeb4739fc4cb86931f4dbcf2065bff8a6cb94a"
+    "tool:Bash:sha256:a79e3ec77585b283640beede693e2e22e33a35ceaa7e74994b226080254bb69b:sha256:84924f134806d8f91eb6632d5adeb4739fc4cb86931f4dbcf2065bff8a6cb94a",
+    "tool:Bash:sha256:be69c812bf8b02208ff93770fc315f4ed025e58ff148ed7fd6c22323c9fd68a8:sha256:4a2b4cceb150e45c1a9d011fe57fab18a9d72df2cc277e217142c67664d94b9e",
+    "tool:Bash:sha256:21ebace9dfe007a8ad14204fbe72754445a85e548c94fbb0566bed33fd6ad5d3:sha256:03bdc62ca50bf98e03e688a4d50ead2f9271086f0c2af23f718e648f884ac663"
   ]
 }
