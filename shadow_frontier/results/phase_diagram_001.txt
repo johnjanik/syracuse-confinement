@@ -1,0 +1,1 @@
+D* = 1.232 (lambda(D*)=2), band ratio W* = 2^(2D*) = 5.52; entropy-bias h(eps) stays > ln2 (naive type-class squeeze fails); tilted strip prototype at D=3: native bias -0.07, rate 1.35*ln2
