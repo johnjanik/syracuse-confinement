@@ -16,8 +16,8 @@
 We combine the repetition-rigidity theorem of the Finite Spectral Shadows
 program with a ballot-type count of discrepancy-confined valuation words.
 The count grows at rate $\lambda(D)$, computed by strip transfer
-matrices, and crosses the band capacity $2$ at $D^*=1.232$ (multiplicative
-band ratio $2^{2D^*}\approx5.5$). Consequence: a \emph{divergent} positive
+matrices, and crosses the band capacity $2$ at $D^*=1.246$ (multiplicative
+band ratio $2^{2D^*}\approx5.6$). Consequence: a \emph{divergent} positive
 Syracuse orbit cannot dwell in any band of ratio $<5.5$ at height $Y$ for
 more than $O(Y^{\theta(D)})$ steps, $\theta(D)=\ln\lambda(D)/\ln2<1$ ---
 unconditionally. For bands of ratio $\lesssim2.1$ the same squeeze
@@ -82,7 +82,7 @@ $\ge Y$. Consequently:
 \begin{itemize}
 \item[(a)] \emph{(Unconditional, divergent case.)} A divergent orbit is
 acyclic, so it can spend at most $C_D'Y^{\theta(D)}$ consecutive steps in
-any band of ratio $<2^{2D^*}\approx5.5$ at height $Y$.
+any band of ratio $<2^{2D^*}\approx5.6$ at height $Y$.
 \item[(b)] \emph{(Full exclusion at very narrow bands.)} If
 $\theta(D)<1/(\tau+1)$ (with $\tau=13.3$ from the Baker cycle bound
 $x_{\min}\le Cp^{\tau+1}$; numerically $D\lesssim0.55$, band ratio
@@ -125,7 +125,7 @@ $\phi_\omega(b)=\Re(\omega(\zeta_3^{-b}-\mathbb E_{\rm geom}))$ and define
 the exponential growth rate of $D$-confined words carrying bias
 $\ge\varepsilon$. The phase boundary $\lambda_{\mathrm{eff}}=2$
 (Figure~\ref{fig:phase}) runs vertically at $D^*$ for small bias and
-saturates near $\varepsilon^*\approx0.5$ for wide bands: \emph{all}
+saturates near $\varepsilon^*\approx0.54$ for wide bands: \emph{all}
 narrow bands are excluded, and wide bands tolerate only bias
 $\lesssim0.5$. A counterexample's banded windows are therefore confined
 to the wide-band low-bias region; since the keystone arrow demands a
@@ -135,10 +135,13 @@ crossings} --- the regime of the $2$-adic run-length machinery
 the next target.
 
 \begin{figure}[h]\centering
-\includegraphics[width=.95\textwidth]{../viz/fig5_phase_diagram.png}
-\caption{The phase diagram. Blue: excluded by counting (repetition
-forced). Red: allowed by counting; the pilot candidates' windows sit
-here and die by $2$-adic realizability instead.}\label{fig:phase}
+\includegraphics[width=.95\textwidth]{../viz/fig5_phase_diagram_vhires.png}
+\caption{The phase diagram ($2000\times1500$ cells, $24$ directions,
+$400$ tilts), computed with exact quantized states --- no grid
+discretization of the state variable. Blue: excluded by counting
+(repetition forced). Red: allowed by counting; the pilot candidates'
+windows sit here and die by $2$-adic realizability
+instead.}\label{fig:phase}
 \end{figure}
 
 \begin{remark}[Exact certification]
@@ -157,6 +160,25 @@ exact integer $N_D(p)$ in its hypothesis, eliminating Perron estimates
 from the proof entirely. All other ingredients (repetition rigidity; the
 Baker cycle bound) are proved in the parent program, the former
 machine-verified in Lean~4.
+\end{remark}
+
+\begin{remark}[Kink structure of the phase boundary]
+Computed with exact quantized states, the boundary
+$\varepsilon^*(D)=\sup\{\varepsilon:\lambda_{\mathrm{eff}}(D,\varepsilon)\ge2\}$
+is smooth except for corners located precisely at the
+\emph{window-size jumps} $2D\in\mathbb Z$, where the number
+$\lfloor2D\rfloor+1$ of integers available to each $B_j$ increments:
+measured slope jumps in $\varepsilon^*$ are $-0.089$ at $D=1.5$,
+$-0.015$ at $D=2.0$, $-0.020$ at $D=2.5$, and below resolution by
+$D=3.5$. The quantization of the confinement window is thus directly
+visible in the phase boundary, with the new combinatorial freedom
+absorbed at a decaying rate as the window widens. We caution that
+$\delta$-grid discretizations of the strip transfer (states = grid
+points of $[-D,D]$, shifts rounded to the grid) superimpose a spurious
+resolution-dependent fine structure on the same diagram --- scalloped
+oscillations of typical size $|\Delta\theta|\approx0.02$, reaching
+$0.53$ at small $D$ --- which the exact computation removes entirely;
+only the corners at $2D\in\mathbb Z$ are arithmetic.
 \end{remark}
 
 \end{document}
