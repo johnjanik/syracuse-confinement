@@ -1,0 +1,8 @@
+out/
+*.o
+collatz_tests
+*.csv
+*.jsonl
+out_large/
+run_large.sh
+out_kappa/

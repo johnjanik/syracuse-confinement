@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"36:    const int MAXIT = 5000; const ldbl TOL = 1e-12L; const int RESTARTS = 3;\n57:            ldbl r = csr_spectral_radius(&A0, MAXIT, TOL, RESTARTS, NULL, NULL);\n73:                ldbl r = csr_spectral_radius(&A, MAXIT, TOL, RESTARTS, NULL, NULL);"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nfor i in $(seq 1 18); do [ -f out_large/.done ] && { echo \"DONE\"; break; }; sleep 20; done\ntail -3 out_large/run.log; echo \"---\"; ls out_large/.done 2>/dev/null && echo \"marker present\""}

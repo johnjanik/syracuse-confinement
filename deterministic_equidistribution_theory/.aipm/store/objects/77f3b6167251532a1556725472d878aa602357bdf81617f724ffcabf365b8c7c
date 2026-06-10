@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"=== gamma_c^par sequence, batched (new-conductor chars only) ===\ns=0: g_2=0.654654(k=1)  g_3=0.763817(k=4)  g_4=0.762855(k=1)  g_5=0.720239(k=5)  g_6=0.714744(k=8)\ns=1: g_2=0.907841(k=1)  g_3=0.869052(k=4)  g_4=0.926380(k=1)  g_5=0.921020(k=5)  g_6=0.902148(k=17)"}

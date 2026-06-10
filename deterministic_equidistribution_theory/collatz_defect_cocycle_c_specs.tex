@@ -1,0 +1,741 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
+
+\title{Specifications for a C Numerical Test Suite for the Collatz Deterministic Defect Cocycle}
+\author{Research Notes}
+\date{\today}
+
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\R}{\mathbb R}
+\newcommand{\C}{\mathbb C}
+\newcommand{\QQ}{\mathbb Q}
+\newcommand{\calL}{\mathcal L}
+\newcommand{\calX}{\mathcal X}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\vtwo}{v_2}
+\newcommand{\wt}{\widetilde}
+\newcommand{\eps}{\varepsilon}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document specifies an extensive C implementation for numerical experiments around the proposed deterministic defect cocycle for the accelerated Collatz/Syracuse map.  The goal is not to prove Collatz.  The goal is to understand whether persistent deterministic deviations from the annealed height law cast a finite spectral/coboundary shadow visible in tilted character sums, finite residue-height transfer operators, and their character-sector spectral gaps.
+\end{abstract}
+
+\tableofcontents
+
+\section{Purpose and Mathematical Target}
+
+The object under investigation is the pathwise finite-level detector
+\[
+        W_{n,\ell}(x;\chi,s)
+        =
+        \frac{1}{\ell}\sum_{i=n}^{n+\ell-1}
+        \chi(x_i \bmod Q)\,2^{s\Delta_{b_i}},
+        \qquad
+        \Delta_b=\log_2 3-b,
+\]
+where
+\[
+        x_{i+1}=S(x_i)=\frac{3x_i+1}{2^{b_i}},
+        \qquad b_i=\vtwo(3x_i+1),
+\]
+for odd positive integers.  The character \(\chi\) is a finite character on a residue modulus \(Q\), and \(s\) is a Cramer/pressure tilt parameter.  The most important values are
+\[
+        s=0 \quad \text{and} \quad s=1.
+\]
+At \(s=0\), \(W\) is a residue Weyl sum.  At \(s=1\), it probes the Cramer-tilted high-ascent regime, because
+\[
+        2^{\Delta_b}=2^{\log_2 3-b}=\frac{3}{2^b}.
+\]
+
+The annealed valuation law is
+\[
+        p_b=2^{-b}, \qquad b\ge1,
+\]
+and the height transform is
+\[
+        M(s)=\sum_{b\ge1}2^{-b}2^{s(\log_2 3-b)}
+        =\frac{3^s}{2^{1+s}-1}.
+\]
+The Cramer root is \(M(1)=1\), and the tilted law at the critical root is
+\[
+        p_b^{(1)}=2^{-b}2^{\log_2 3-b}=3\cdot4^{-b}.
+\]
+
+The guiding hypothesis is not that nonzero \(W\)-sums immediately prove anything.  Rather, they are proposed finite spectral shadows.  The missing theorem would have the form
+\[
+        \text{persistent bad deterministic behavior}
+        \Longrightarrow
+        \exists(Q,L,\chi,s)\text{ with persistent nontrivial spectral shadow},
+\]
+and H23a-type finite spectral gaps would then rule out that shadow.
+
+\section{Core Questions to Test}
+
+The numerical suite should test the following questions.
+
+\begin{enumerate}[label=Q\arabic*.]
+\item \textbf{Does critical high-ascent behavior follow the Cramer-tilted law?}  On high-ascent windows, do the empirical valuations satisfy
+\[
+        \widehat p_b \approx 3\cdot4^{-b}?
+\]
+
+\item \textbf{Do high-ascent or sub-equilibrium windows carry residue resonance?}  For relevant moduli \(Q\), characters \(\chi\), and tilts \(s\), are there windows with
+\[
+        |W_{n,\ell}(x;\chi,s)|\gg 0?
+\]
+
+\item \textbf{Is post-exit taboo visible as entropy-space repulsion?}  After a completed critical excursion, is the next window separated from the critical tilted law by a uniform divergence
+\[
+        D(\widehat p_{\rm post}\Vert p^{(1)})\ge c>0?
+\]
+
+\item \textbf{Does the finite exact residue-height operator match the annealed Fourier shadow?}  For finite \((Q,L)\), compare
+\[
+        \rho(\calL_{s,Q,L,\chi})
+\]
+against annealed model predictions and H23a-style gaps.
+
+\item \textbf{Can a bad cluster be seen before it disappears?}  In any unusually long sub-equilibrium tail, high ascent, or near-critical excursion, does a finite character sector spike?  If not, the proposed defect cocycle is missing the obstruction.
+
+\item \textbf{Are finite determinant/zeta shadows informative?}  For finite operators, do traces
+\[
+        \operatorname{tr}(\calL_{s,Q,L}^n)
+\]
+and determinants
+\[
+        \Xi_{Q,L}(z,s)=\det(1-z\calL_{s,Q,L})
+\]
+show stable peripheral structure or only the trivial sector?
+\end{enumerate}
+
+\section{Implementation Language and Constraints}
+
+The implementation shall be in ISO C11, with optional compile-time use of GMP for ranges exceeding native integer arithmetic.
+
+\subsection{Required build profiles}
+
+\begin{description}[leftmargin=2.7cm]
+\item[\texttt{FAST128}] Uses \texttt{uint64\_t} and \texttt{\_\_uint128\_t}.  Intended for high-throughput scans where all intermediate values fit in 128 bits.
+\item[\texttt{GMP}] Uses \texttt{mpz\_t}.  Intended for verification, very large seeds, and exact critical inequality checks beyond 128-bit range.
+\item[\texttt{DEBUG}] Enables invariant checks, congruence verification, trace logging, and deterministic reproducibility checks.
+\end{description}
+
+\subsection{Numerical precision}
+
+Floating point computations may use \texttt{long double} for real-valued logs, entropies, rates, and complex character sums.  Exact integer predicates must not use floating point.  In particular, the criticality condition
+\[
+        V^2\le 2^A P
+\]
+must be checked using \texttt{\_\_uint128\_t} or GMP.
+
+\section{Module Architecture}
+
+\begin{longtable}{p{0.25\linewidth}p{0.65\linewidth}}
+\toprule
+Module & Responsibility \\
+\midrule
+\texttt{collatz\_core.c/h} & Accelerated odd Syracuse step; valuation computation; overflow-safe update; exact affine iterate accumulator when requested. \\
+\texttt{orbit\_scan.c/h} & Streams orbit segments, windows, stopping conditions, cycle detection, max height, deficit, and critical events. \\
+\texttt{characters.c/h} & Finite residue characters modulo \(Q\), including additive characters \(e^{2\pi i k a/Q}\), multiplicative unit characters where applicable, and product characters for mixed moduli. \\
+\texttt{defect\_sums.c/h} & Computes prefix and sliding-window defect sums \(W_{n,\ell}(x;\chi,s)\). \\
+\texttt{entropy\_stats.c/h} & Empirical valuation laws, KL divergences, entropies, Cramer tilt comparisons, boundary-layer statistics. \\
+\texttt{critical\_events.c/h} & Detects high ascents, \(C_A\)-critical launch floors, exits, post-exit windows, and taboo candidates. \\
+\texttt{residue\_height\_graph.c/h} & Builds finite exact residue-height graphs \(\calX_{Q,L}\), admissible edges, killing boundaries, and weights. \\
+\texttt{sparse\_matrix.c/h} & CSR sparse matrices, complex weights, power iteration, Arnoldi/Lanczos-lite where applicable. \\
+\texttt{spectral\_tests.c/h} & Spectral radius estimates of \(\calL_{s,Q,L,\chi}\), sector gaps, finite determinant/traces for small matrices. \\
+\texttt{io\_csv.c/h} & Streaming CSV/JSONL writers, metadata headers, reproducibility manifest. \\
+\texttt{config.c/h} & CLI parsing, experiment configuration, seed ranges, moduli, tilts, windows, output paths. \\
+\bottomrule
+\end{longtable}
+
+\section{Core Arithmetic Routines}
+
+\subsection{Accelerated odd step}
+
+For an odd input \(x\), compute
+\[
+        y=3x+1,
+        \qquad b=\vtwo(y),
+        \qquad S(x)=y/2^b.
+\]
+
+\begin{lstlisting}[language=C]
+typedef struct {
+    uint64_t next;
+    uint32_t b;
+    int overflow;
+} syr_step64_t;
+
+syr_step64_t syracuse_step_u64(uint64_t x);
+\end{lstlisting}
+
+For \texttt{FAST128}, compute \(3x+1\) in \texttt{\_\_uint128\_t}, then count trailing zeros.  For GMP, use \texttt{mpz\_mul\_ui}, \texttt{mpz\_add\_ui}, \texttt{mpz\_scan1}, and \texttt{mpz\_tdiv\_q\_2exp}.
+
+\subsection{Deficit and height}
+
+Maintain
+\[
+        D_m=\sum_{i<m}b_i,
+        \qquad
+        E_m=D_m-m\log_2 3,
+\]
+and
+\[
+        H_m=\log_2 x_m-\log_2 x_0.
+\]
+For exact integer comparisons, also maintain peak values where feasible.  Floating logs are used only for diagnostics.
+
+\section{Experiment A: Baseline Orbit and Height-Tail Census}
+
+\subsection{Purpose}
+
+Confirm the large-deviation picture
+\[
+        \Pr(h\ge H)\asymp 2^{-H},
+\]
+and the octave-uniform count
+\[
+        \#(C_A\cap[2^N,2^{N+1}))=O_A(1)
+\]
+for fixed aperture \(A\), especially \(A=6\).
+
+\subsection{Input parameters}
+
+\begin{itemize}
+\item Octave range \(N_{\min}\le N\le N_{\max}\).
+\item Seed policy: all odd seeds in octave, arithmetic progression, random sample, or residue-filtered sample.
+\item Apertures \(A\in\{4,5,6,7,8\}\) by default.
+\item Maximum steps per seed.
+\end{itemize}
+
+\subsection{Outputs}
+
+Write \texttt{height\_tail.csv} with columns:
+\begin{lstlisting}
+N, seeds_tested, A, critical_count, max_height, mean_height,
+tail_count_H0, tail_count_H1, ..., runtime_seconds
+\end{lstlisting}
+
+Write \texttt{critical\_events.csv} with columns:
+\begin{lstlisting}
+seed, octave_N, A, launch_V, peak_P, exit_X, start_step,
+end_step, word_length, D, height_log2, amin_exact_num,
+amin_exact_den_power2, overshoot, status
+\end{lstlisting}
+
+\subsection{Pre-registered expectation}
+
+For fixed \(A\), counts per octave should remain bounded or grow slowly.  Height tails should fit slope \(-1\) in base-2 log scale:
+\[
+        \log_2 \Pr(h\ge H)\approx -H+C.
+\]
+
+\section{Experiment B: Empirical Cramer-Tilt Law on Critical Excursions}
+
+\subsection{Purpose}
+
+Test whether the bulk valuation law of critical excursions converges to
+\[
+        p_b^{(1)}=3\cdot4^{-b}.
+\]
+
+\subsection{Measurements}
+
+For each critical excursion word \(w=(b_0,\ldots,b_{\ell-1})\), compute:
+\[
+        \widehat p_b(w)=\frac{1}{\ell}\#\{i:b_i=b\},
+\]
+\[
+        D(\widehat p\Vert p),
+        \qquad
+        D(\widehat p\Vert p^{(1)}),
+\]
+where
+\[
+        p_b=2^{-b},
+        \qquad p_b^{(1)}=3\cdot4^{-b}.
+\]
+Also compute the entropy per consumed binary digit
+\[
+        d(w)=\frac{H(\widehat p)}{\sum_b b\widehat p_b}.
+\]
+The expected limiting critical bulk dimension is
+\[
+        H_2(3/4)=0.811278\ldots
+\]
+under the simplified geometric-tilt model.
+
+\subsection{Boundary layer tests}
+
+For each critical word, compute empirical laws on:
+\begin{itemize}
+\item first \(r\) symbols,
+\item middle bulk excluding first and last \(r\),
+\item last \(r\) symbols,
+\end{itemize}
+for \(r\in\{4,8,16,32\}\).  This tests whether the earlier spurious dimension estimates are boundary-layer effects.
+
+\subsection{Outputs}
+
+Write \texttt{tilt\_law.csv} with columns:
+\begin{lstlisting}
+event_id, seed, N, A, segment_type, r, length,
+p1_hat, p2_hat, p3_hat, p4_hat, tail_b_ge_5,
+KL_to_p, KL_to_p1, entropy, mean_b, entropy_per_digit
+\end{lstlisting}
+
+\section{Experiment C: Deterministic Defect Cocycle Sums}
+
+\subsection{Purpose}
+
+Compute pathwise finite spectral shadows
+\[
+        W_{n,\ell}(x;\chi,s)
+        =
+        \frac1\ell\sum_{i=n}^{n+\ell-1}
+        \chi(x_i\bmod Q)2^{s(\log_2 3-b_i)}.
+\]
+
+\subsection{Characters}
+
+Support the following character families:
+
+\begin{enumerate}
+\item Additive characters modulo \(Q\):
+\[
+        \chi_k(a)=\exp(2\pi i k a/Q),
+        \qquad 1\le k<Q.
+\]
+\item Unit multiplicative characters for \(Q=3^r\) and odd unit groups where feasible.
+\item Product characters for mixed \(Q=2^a3^r\), implemented via CRT factorization.
+\end{enumerate}
+
+For initial work, additive characters are sufficient and simplest.
+
+\subsection{Tilt grid}
+
+Default tilt values:
+\[
+        s\in\{0,1/4,1/2,3/4,1,5/4,3/2\}.
+\]
+Always include \(s=0\) and \(s=1\).
+
+\subsection{Window policies}
+
+Compute both prefix and sliding-window sums:
+\[
+        W_n(x;\chi,s)=W_{0,n}(x;\chi,s),
+\]
+\[
+        W_{n,\ell}(x;\chi,s),
+        \qquad \ell\in\{16,32,64,128,256,512,1024,2048\}.
+\]
+
+\subsection{Outputs}
+
+Write \texttt{defect\_windows.csv}:
+\begin{lstlisting}
+seed, start_step, length, Q, char_type, char_index, s,
+real_W, imag_W, abs_W, mean_delta, mean_b,
+segment_label, event_id
+\end{lstlisting}
+
+Segment labels:
+\begin{lstlisting}
+ordinary, high_ascent, critical_C_A, post_exit, sub_equilibrium_tail,
+cycle_neighborhood, unknown
+\end{lstlisting}
+
+\subsection{Pre-registered expectation}
+
+Ordinary windows should show decay consistent with finite-character equidistribution.  Critical windows may show the Cramer tilt in \(b\)-statistics but should not show persistent nontrivial residue resonance if the H23a picture is correct.  A persistent large \(|W|\) during bad clusters would support the finite spectral-shadow principle.
+
+\section{Experiment D: Post-Exit Taboo and Entropy-Space Repulsion}
+
+\subsection{Purpose}
+
+Test whether completed critical excursions are followed by windows that are separated from the critical tilted law, explaining why two \(6\)-critical excursions fail to concatenate.
+
+\subsection{Definitions}
+
+For a completed critical event \(e\), define the post-exit window of length \(\ell\):
+\[
+        w_{\rm post}(e,\ell)=(b_{t_e},\ldots,b_{t_e+\ell-1}),
+\]
+where \(t_e\) is the first step after the exit.
+
+Compute:
+\[
+        D(\widehat p_{\rm post}\Vert p^{(1)}),
+        \qquad
+        M_{\rm post}(1)=\sum_b \widehat p_{\rm post}(b)2^{\log_2 3-b}.
+\]
+If
+\[
+        M_{\rm post}(1)<1
+\]
+with a stable margin, then post-exit behavior is subcritical relative to the high-ascent tilt.
+
+\subsection{Outputs}
+
+Write \texttt{post\_exit.csv}:
+\begin{lstlisting}
+event_id, seed, A, exit_step, post_length,
+KL_post_to_p, KL_post_to_p1, M_post_1,
+p1_post, p2_post, p3_post, mean_b_post,
+next_critical_flag, next_critical_A, gap_steps
+\end{lstlisting}
+
+\section{Experiment E: Exact Residue-Height Operator and Character Gaps}
+
+\subsection{Purpose}
+
+Build finite exact killed residue-height operators \(\calL_{s,Q,L,\chi}\) and estimate spectral gaps:
+\[
+        \rho(\calL_{s,Q,L,\chi})
+        \le
+        (1-\kappa_Q)\rho(\calL_{s,Q,L,0}).
+\]
+
+\subsection{Finite state space}
+
+Let
+\[
+        \calX_{Q,L}=\{(a,z):a\in\Omega_Q,\\ z\in\{0,1,\ldots,L\}\}.
+\]
+The coordinate \(z\) may be a scaled integer approximation to deficit/height.  The scale factor \(R\) should be configurable, so that
+\[
+        z \approx R\cdot \text{height}.
+\]
+
+\subsection{Edges}
+
+For each state and valuation \(b\le B_{\max}\), construct an edge if admissible:
+\[
+        a'\equiv 3^{-1}(2^b a-1)\pmod Q.
+\]
+Update height by
+\[
+        z'=z+R(\log_2 3-b)
+\]
+with deterministic rounding rule.  Edges with \(z'\notin[0,L]\) are killed.
+
+The truncation error from ignoring \(b>B_{\max}\) must be reported:
+\[
+        \sum_{b>B_{\max}}2^{-b}=2^{-B_{\max}}.
+\]
+
+\subsection{Weights}
+
+Default annealed edge weight:
+\[
+        w_s(b)=2^{-b}2^{s(\log_2 3-b)}.
+\]
+Exact finite-fiber weights should be supported as a separate mode.
+
+For character sector \(\chi\), multiply by the character phase
+\[
+        \chi(a\to a')
+\]
+according to the chosen character convention.  The convention must be recorded in metadata.
+
+\subsection{Spectral computation}
+
+Use sparse power iteration for \(\chi=1\).  For complex nontrivial sectors, estimate spectral radius by:
+\begin{itemize}
+\item power iteration on \(A^*A\) for singular radius as an upper bound,
+\item Arnoldi iteration for eigenvalue estimates,
+\item repeated random starts to avoid missing peripheral modes.
+\end{itemize}
+
+\subsection{Outputs}
+
+Write \texttt{spectral\_gaps.csv}:
+\begin{lstlisting}
+Q, L, R, Bmax, s, char_type, char_index,
+rho_est, rho0_est, gap_ratio, iterations, residual,
+truncation_tail, matrix_nnz, matrix_dim
+\end{lstlisting}
+
+\section{Experiment F: Annealed Fourier Prediction versus Exact Operator}
+
+\subsection{Purpose}
+
+Compare exact finite operator gaps with the simple i.i.d. valuation Fourier transform
+\[
+        \widehat p(\xi)
+        =
+        \sum_{b\ge1}2^{-b}e(b\xi)
+        =
+        \frac{e(\xi)}{2-e(\xi)}.
+\]
+Thus
+\[
+        |\widehat p(\xi)|
+        =
+        \frac{1}{\sqrt{5-4\cos(2\pi\xi)}}
+        <1
+\]
+for \(\xi\notin\Z\).
+
+\subsection{Outputs}
+
+Write \texttt{fourier\_comparison.csv}:
+\begin{lstlisting}
+Q, character_index, xi, annealed_abs_hat_p,
+exact_gap_ratio_s0, exact_gap_ratio_s1, deviation
+\end{lstlisting}
+
+\section{Experiment G: Finite Determinant and Trace Shadows}
+
+\subsection{Purpose}
+
+For small \((Q,L)\), compute finite traces
+\[
+        \operatorname{tr}(\calL_{s,Q,L,\chi}^n)
+\]
+and determinants
+\[
+        \Xi_{Q,L,\chi}(z,s)=\det(1-z\calL_{s,Q,L,\chi}).
+\]
+This tests whether closed-path data show unexpected peripheral structure.
+
+\subsection{Methods}
+
+For small dense matrices, use direct LU decomposition to compute determinants at selected \(z\).  For sparse matrices, estimate traces by explicit sparse multiplication for low powers or Hutchinson trace estimators.
+
+\subsection{Outputs}
+
+Write \texttt{trace\_determinant.csv}:
+\begin{lstlisting}
+Q, L, s, char_index, n, trace_real, trace_imag,
+trace_abs, determinant_real, determinant_imag, z_real, z_imag
+\end{lstlisting}
+
+\section{Experiment H: Congruence Lemma Verification}
+
+\subsection{Purpose}
+
+Verify the sliding-window congruence formula modulo \(3^r\).  Starting from
+\[
+        x_n=\frac{3^n x_0+A_n}{2^{B_n}},
+        \qquad
+        A_n=\sum_{j=0}^{n-1}3^{n-1-j}2^{B_j},
+\]
+with
+\[
+        B_n=\sum_{i<n}b_i,
+\]
+then for \(n\ge r\), modulo \(3^r\), the \(3^n x_0\) term vanishes and only the last \(r\) terms survive:
+\[
+        x_n
+        \equiv
+        \sum_{k=1}^{r}
+        3^{k-1}2^{-(b_{n-k}+\cdots+b_{n-1})}
+        \pmod{3^r}.
+\]
+
+\subsection{Outputs}
+
+Write \texttt{congruence\_checks.csv}:
+\begin{lstlisting}
+seed, n, r, modulus, direct_residue, formula_residue,
+match_flag, Bn_mod_phi, status
+\end{lstlisting}
+
+Any mismatch is a bug unless overflow or a documented convention error is present.
+
+\section{Experiment I: Quenched Spectral-Shadow Search}
+
+\subsection{Purpose}
+
+This is the central integration experiment.  Given a catalog of unusual deterministic windows, determine whether they cast a finite spectral shadow.
+
+\subsection{Window catalog}
+
+Collect windows from:
+\begin{itemize}
+\item largest positive height excursions,
+\item deepest sub-equilibrium deficit tails,
+\item completed \(C_A\)-critical excursions,
+\item post-exit windows,
+\item record-setting values of \(|E_m|\),
+\item windows with extreme KL divergence from \(p\),
+\item windows close to \(p^{(1)}\).
+\end{itemize}
+
+For each window, compute all configured \(W_{n,\ell}(x;\chi,s)\).  A window is flagged as shadow-bearing if
+\[
+        \max_{Q,\chi,s}|W_{n,\ell}(x;\chi,s)|\ge \delta
+\]
+for configurable \(\delta\), default \(\delta=0.1\).
+
+\subsection{Outputs}
+
+Write \texttt{shadow\_search.csv}:
+\begin{lstlisting}
+window_id, seed, start_step, length, label,
+max_abs_W, argmax_Q, argmax_char, argmax_s,
+KL_to_p, KL_to_p1, mean_delta, max_height,
+shadow_flag
+\end{lstlisting}
+
+\subsection{Interpretation}
+
+If bad/critical windows repeatedly have no finite spectral shadow across growing \((Q,L)\), then the proposed defect cocycle is probably not the right detector.  If they do have shadows, the next task is to relate those shadows to finite operator gaps.
+
+\section{Data Formats}
+
+All outputs shall be append-only CSV with a metadata header.  Each file starts with commented lines:
+\begin{lstlisting}
+# experiment=defect_windows
+# git_commit=<commit hash if available>
+# compiler=<compiler and version>
+# build_profile=FAST128
+# command=<full command line>
+# timestamp_utc=<ISO8601>
+# random_seed=<if applicable>
+\end{lstlisting}
+
+Large runs may additionally write JSONL summaries.
+
+\section{Command-Line Interface}
+
+The executable should support subcommands:
+
+\begin{lstlisting}
+collatz_tests scan-height      [options]
+collatz_tests tilt-law         [options]
+collatz_tests defect-windows   [options]
+collatz_tests post-exit        [options]
+collatz_tests spectral-gaps    [options]
+collatz_tests fourier-compare  [options]
+collatz_tests trace-det        [options]
+collatz_tests congruence-check [options]
+collatz_tests shadow-search    [options]
+\end{lstlisting}
+
+Common options:
+\begin{lstlisting}
+--start N
+--end N
+--octave-min N
+--octave-max N
+--max-steps N
+--windows 16,32,64,128,256,512,1024
+--moduli 8,16,27,81,243,729
+--tilts 0,0.5,1,1.5
+--apertures 4,5,6,7,8
+--output-dir path
+--threads N
+--profile FAST128|GMP
+--debug-checks
+\end{lstlisting}
+
+\section{Performance Requirements}
+
+\begin{enumerate}
+\item Orbit scanning must be streaming and must not store full trajectories unless explicitly requested.
+\item Sliding windows should use ring buffers for \(b_i\), residues, and precomputed weights.
+\item Character values for fixed \((Q,k)\) should be precomputed in arrays of complex \texttt{long double} values.
+\item Sparse matrices should use CSR format.
+\item Long scans should support checkpointing every fixed number of seeds.
+\item Parallel scans may use OpenMP, but output writing must be deterministic or partitioned by thread into mergeable files.
+\end{enumerate}
+
+\section{Validation and Sanity Checks}
+
+\subsection{Arithmetic checks}
+
+\begin{itemize}
+\item Confirm every accelerated step returns an odd integer.
+\item Confirm \(3x+1=2^b x'\) exactly.
+\item Confirm no overflow in \texttt{FAST128}; otherwise set overflow flag and skip or rerun in GMP.
+\item Confirm criticality inequalities by exact integer arithmetic.
+\end{itemize}
+
+\subsection{Statistical checks}
+
+For random odd seeds modulo large powers of two, empirical \(b\)-frequencies should satisfy
+\[
+        \widehat p_b\approx 2^{-b}.
+\]
+For critical high-ascent bulk windows, empirical frequencies should approach
+\[
+        \widehat p_b\approx3\cdot4^{-b}.
+\]
+
+\subsection{Operator checks}
+
+For \(\chi=1\), spectral radius should dominate nontrivial sectors.  For trivial small cases, direct dense eigenvalue computations should match sparse power estimates.
+
+\section{Pre-Registered Outcomes and Failure Modes}
+
+\subsection{Expected if the defect-cocycle picture is right}
+
+\begin{enumerate}
+\item Critical windows follow the Cramer tilt \(p_b^{(1)}=3\cdot4^{-b}\) in the bulk.
+\item Post-exit windows are separated from \(p^{(1)}\) or have \(M_{\rm post}(1)<1\).
+\item Nontrivial character sums decay on ordinary windows.
+\item Any unusually persistent bad window casts a finite \(W\)-shadow at some \((Q,\chi,s)\).
+\item Exact finite character sectors have stable spectral gaps consistent with H23a.
+\end{enumerate}
+
+\subsection{Failure modes}
+
+\begin{enumerate}
+\item Bad windows exist but no finite \(W\)-shadow appears.  Then the defect cocycle is not detecting the obstruction.
+\item Large \(W\)-shadows appear in ordinary windows.  Then the character family or normalization is too sensitive or biased.
+\item Critical windows do not approach \(p^{(1)}\).  Then the current Cramer-tilt model is incomplete.
+\item Post-exit windows can approach \(p^{(1)}\) with no penalty.  Then the taboo mechanism is not real or requires another coordinate.
+\item Exact finite spectral gaps deteriorate with \(L\) or \(Q\).  Then H23a-style finite obstruction exclusion is insufficient.
+\end{enumerate}
+
+\section{Recommended Development Order}
+
+\begin{enumerate}
+\item Implement \texttt{collatz\_core}, \texttt{orbit\_scan}, and exact critical event detection.
+\item Implement Experiment A and B to reproduce height-tail and Cramer-tilt law.
+\item Implement character precomputation and Experiment C defect windows.
+\item Implement post-exit Experiment D.
+\item Implement finite residue-height graph construction and Experiment E.
+\item Implement Fourier comparison Experiment F.
+\item Implement determinant/trace Experiment G only after E is stable.
+\item Integrate everything in Experiment I shadow search.
+\end{enumerate}
+
+\section{Final Deliverables}
+
+The C project should produce:
+
+\begin{enumerate}
+\item A command-line executable \texttt{collatz\_tests}.
+\item A reproducible configuration file format.
+\item CSV/JSONL outputs for every experiment.
+\item A validation report comparing known annealed laws to empirical results.
+\item A shadow-search report ranking windows by maximal finite defect signal.
+\item A spectral-gap report for finite residue-height operators.
+\end{enumerate}
+
+The purpose of the suite is not to prove the finite spectral-shadow principle.  Its purpose is to determine whether that principle is numerically plausible, what finite moduli and tilts see the obstruction most clearly, and whether the deterministic defect cocycle \(W_{n,\ell}(x;\chi,s)\) is the right finite object to pursue.
+
+\end{document}

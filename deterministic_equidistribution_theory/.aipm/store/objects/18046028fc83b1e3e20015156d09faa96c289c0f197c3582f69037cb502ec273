@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"F: [fourier-compare] Q=729 phi=486 done | rows 460\nE: [spectral-gaps] wrote out_kappa/spectral_gaps.csv | rows 85"}

@@ -1,0 +1,25 @@
+capture:
+  env_allowlist:
+  - LANG
+  - LC_ALL
+  - TERM
+manuscript:
+  main_document: defect_cocycle.tex
+privacy:
+  default_local_only: true
+  metadata_minimal: false
+  proxy_mode: hash-only
+  publish_raw_transcript: false
+project:
+  profile: experimental-science
+  stack:
+  - LaTeX
+  title: Deterministic Defect Cocycle — Collatz Equidistribution
+scan:
+- '**/*.py'
+- '**/*.ipynb'
+- '*.tex'
+- '**/*.md'
+- '**/*.c'
+- '**/*.h'
+schema_version: aipm.config.v1

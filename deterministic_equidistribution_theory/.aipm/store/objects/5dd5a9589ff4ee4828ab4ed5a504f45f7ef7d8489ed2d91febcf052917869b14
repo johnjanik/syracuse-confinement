@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\ngrep -q \"wrote\" /tmp/claude-1000/*/*/tasks/be80vtuor.output 2>/dev/null && echo DONE || echo \"running\"\ntail -3 /tmp/claude-1000/*/*/tasks/be80vtuor.output 2>/dev/null\ngrep -vc '^#' out_kappa/fourier_comparison.csv 2>/dev/null | xargs echo \"rows so far:\""}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nmake 2>&1 | grep -iE \"error|warning\"; echo built\nnohup ./collatz_tests fourier-compare --moduli 9,27,81,243,729,2187 --char-cap 0 --bmax 28 --output-dir out_kappa > out_kappa/F_full.log 2>&1 &\necho \"launched pid $!\"","run_in_background":true}

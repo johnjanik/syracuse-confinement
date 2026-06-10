@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"section{Toward\\|subsection\" finite_spectral_shadows.tex | sed -n '/74[0-9]/,$p' | head -20\nsed -n '1795,1812p' finite_spectral_shadows.tex"}

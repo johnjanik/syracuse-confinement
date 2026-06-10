@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"dim M = 324, dim N_rank2 = 24\nrho(M) = 0.645394134564\nrho(N) = 0.645394134564\ntop-24 eigenvalues of M matched to spec(N): max|diff| = 9.19e-05\n|eig(M)| #24th = 9.18e-05, #25th = 8.67e-05  (rest should be ~nilpotent)"}

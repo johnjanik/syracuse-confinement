@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite/out_large\ngzip -f congruence_checks.csv critical_events.csv\nls -la *.csv* | awk '{print $5, $9}'\necho \"total:\"; du -sh ."}

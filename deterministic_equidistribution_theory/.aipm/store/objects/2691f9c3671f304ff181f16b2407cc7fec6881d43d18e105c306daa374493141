@@ -1,0 +1,2 @@
+cc -std=c11 -Wall -Wextra -Wshadow -Wconversion -Wno-sign-conversion -O2 -Iinclude -DAIPM_DEBUG -g -c -o src/bigval.o src/bigval.c
+cc -std=c11 -Wall -Wextra -Wshadow -Wconversion -Wno-sign-conversion -O2 -Iinclude -DAIPM_DEBUG -g -c -o src/config.o src/config.c

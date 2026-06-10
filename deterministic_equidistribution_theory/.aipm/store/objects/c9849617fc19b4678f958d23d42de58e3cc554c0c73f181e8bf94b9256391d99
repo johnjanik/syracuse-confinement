@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_fourier_compare.c","new_string":"    const int ARN_M0 = 40, ARN_MMAX = 240; const ldbl ARN_TOL = 1e-11L;","old_string":"    const int MAXIT = 5000; const ldbl TOL = 1e-12L; const int RESTARTS = 3;","replace_all":false}

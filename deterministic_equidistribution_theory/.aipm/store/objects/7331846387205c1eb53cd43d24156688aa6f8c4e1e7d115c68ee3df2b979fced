@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nfor i in $(seq 1 30); do\n  if grep -q \"wrote\" out_large/E_arnoldi.log 2>/dev/null; then echo \"E DONE\"; break; fi\n  sleep 20\ndone\ntail -6 out_large/E_arnoldi.log"}

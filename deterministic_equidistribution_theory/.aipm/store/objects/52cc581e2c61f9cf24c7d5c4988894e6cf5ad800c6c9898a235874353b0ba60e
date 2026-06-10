@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/config.c","new_string":"    c->crit_mode = 1;   /* default: height (peak>=launch*2^A); vsq is degenerate */\n    c->height_mode = 0; /* default: sync (faithful skew product) */","old_string":"    c->crit_mode = 1;   /* default: height (peak>=launch*2^A); vsq is degenerate */","replace_all":false}

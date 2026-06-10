@@ -1,0 +1,1 @@
+{"command":"ls /home/john/mynotes/collatz/lean4/CollatzLean/ | head -20; grep -rn \"padicValNat\" /home/john/mynotes/collatz/lean4/CollatzLean/*.lean | head -3"}

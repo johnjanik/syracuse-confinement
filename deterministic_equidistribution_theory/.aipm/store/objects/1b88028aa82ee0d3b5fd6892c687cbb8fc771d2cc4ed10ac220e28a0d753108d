@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ntimeout 590 python3 c_suite/analysis/cascade_row_audit.py 6 10"}

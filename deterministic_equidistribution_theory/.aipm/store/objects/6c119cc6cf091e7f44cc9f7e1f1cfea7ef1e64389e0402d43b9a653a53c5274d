@@ -1,0 +1,1 @@
+{"command":"ls -la /home/john/mynotes/collatz/ | head -8; ls -d /home/john/mynotes/collatz/lean4/.git 2>&1; cd /home/john/mynotes/collatz && git rev-parse --show-toplevel 2>&1"}

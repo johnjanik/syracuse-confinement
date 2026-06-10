@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"[defect-windows] wrote 132 rows to out/defect_windows.csv\n=== |W| vs window length L at s=0, additive char k=1 (residue Weyl sum) ===\n       L     nwin      mean|W|\n      16       18      0.31462\n      32        9      0.26519\n      64        3      0.18124\n      99        3      0.19843"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nmake clean >/dev/null 2>&1\nmake DEBUG=1 >/dev/null 2>&1 && echo \"build OK\"\nmake test 2>&1 | tail -5"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\necho \"log:\"; tail -3 /tmp/sync243/log 2>/dev/null\necho \"csv rows:\"; grep -vc '^#' /tmp/sync243/spectral_gaps.csv 2>/dev/null\necho \"sample (k, gap_ratio_units):\"; grep -v '^#' /tmp/sync243/spectral_gaps.csv 2>/dev/null | grep -v '^Q,L' | awk -F, '{print $7, $17}' | head -30 | tail -10"}

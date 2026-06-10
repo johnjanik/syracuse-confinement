@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"extremality.$\\|consistent with bounded-conductor$\\|^extremality\" finite_spectral_shadows.tex | head -3\ngrep -n \"end{proposition}\" finite_spectral_shadows.tex | tail -5"}

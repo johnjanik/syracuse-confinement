@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\nmkdir -p c_suite/include c_suite/src c_suite/tests c_suite/configs c_suite/out\necho \"out/\" > c_suite/.gitignore\nprintf '%s\\n' \"*.o\" \"collatz_tests\" \"*.csv\" \"*.jsonl\" >> c_suite/.gitignore\ncat /home/john/mynotes/deterministic_equidistribution_theory/.aipm/config.yaml"}

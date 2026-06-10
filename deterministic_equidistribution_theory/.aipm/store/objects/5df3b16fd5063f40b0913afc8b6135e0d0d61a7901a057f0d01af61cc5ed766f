@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"comfortably\\|all H23a needs\\|kappa_Q\\\\\\\\approx0.093\\|coboundary-quotient at\" defect_cocycle_with_findings.tex | head"}

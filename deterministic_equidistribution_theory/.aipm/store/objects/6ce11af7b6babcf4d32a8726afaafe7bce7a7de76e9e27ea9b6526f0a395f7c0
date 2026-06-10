@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/config.c","new_string":"    c->seeds_per_octave = 50000;\n    c->crit_mode = 0;","old_string":"    c->seeds_per_octave = 50000;","replace_all":false}

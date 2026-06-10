@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"newtheorem{openproblem}\\|newtheorem{conjecture}\" finite_spectral_shadows.tex | head -3"}

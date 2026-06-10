@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nmake 2>&1 | grep -iE \"error|warning\" | head; echo built\nmake test 2>&1 | grep -iE \"pass|fail\""}

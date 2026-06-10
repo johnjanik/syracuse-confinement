@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_spectral_gaps.c","new_string":"                (double)i0.trunc_tail, A0.nnz, i0.dim);","old_string":"                (double)i0.trunc_tail, A0.nnz, A0.dim);","replace_all":false}

@@ -1,0 +1,1 @@
+{"command":"ls -la /home/john/mynotes/collatz/docs/ 2>/dev/null\necho \"=== collatz project root ===\"\nls /home/john/mynotes/collatz/ 2>/dev/null\necho \"=== H23 references across the project ===\"\ngrep -rli \"H23\" /home/john/mynotes/collatz/ 2>/dev/null | head -20"}

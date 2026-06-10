@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/.aipm/config.yaml","new_string":"scan:\n- '**/*.py'\n- '**/*.ipynb'\n- '*.tex'\n- '**/*.md'\n- '**/*.c'\n- '**/*.h'\nschema_version: aipm.config.v1","old_string":"scan:\n- '**/*.py'\n- '**/*.ipynb'\n- '*.tex'\n- '**/*.md'\nschema_version: aipm.config.v1","replace_all":false}

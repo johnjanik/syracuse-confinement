@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"Traceback (most recent call last):\n  File \"/tmp/fix_keystone2.py\", line 34, in <module>\n    assert old2 in s\n           ^^^^^^^^^\nAssertionError\n0\nPages:           40"}

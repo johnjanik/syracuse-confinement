@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nmake clean >/dev/null 2>&1; make DEBUG=1 2>&1 | tail -25"}

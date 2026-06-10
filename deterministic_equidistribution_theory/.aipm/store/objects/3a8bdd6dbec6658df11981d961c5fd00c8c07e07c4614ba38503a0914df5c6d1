@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"true terminus\\|first half\" finite_spectral_shadows.tex | head; grep -n \"keystone\" finite_spectral_shadows.tex | tail -6"}

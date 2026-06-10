@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nsleep 30; echo \"=== run.log ===\"; cat out_large/run.log 2>/dev/null; echo \"=== files so far ===\"; ls -la out_large/*.csv 2>/dev/null | awk '{print $5, $9}'"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\nsed -i 's/            nume=(t3\\*aU\\[None,:\\]+C\\[w,i-1\\]%Q)%Q/            nume=(t3*aU+C[w,i-1]%Q)%Q/' c_suite/analysis/threshold_class_audit.py\ntimeout 580 python3 c_suite/analysis/threshold_class_audit.py"}

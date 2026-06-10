@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"section{Conductor autonomy}\\|section{The quadratic coboundary\\|begin{conjecture}\\|end{conjecture}\\|Proof status\\|part{The refined\\|part{Numerical evidence\" finite_spectral_shadows.tex"}

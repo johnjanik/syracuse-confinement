@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nnohup ./collatz_tests spectral-gaps --moduli 9,27,81 --tilts 0,1 --L 48 --R 6 --bmax 20 --char-cap 0 --output-dir out_kappa > out_kappa/E_full.log 2>&1 &\necho \"E full-group launched pid $!\"","run_in_background":true}

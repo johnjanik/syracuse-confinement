@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\ngrep -n \"csr_spectral_radius\\|MAXIT\\|RESTARTS\" src/exp_fourier_compare.c"}

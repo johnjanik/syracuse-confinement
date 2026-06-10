@@ -1,0 +1,305 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+\allowdisplaybreaks
+\setlength{\parskip}{0.4em}
+
+%==================== macros ====================
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Ccal}{\mathscr{C}}
+\newcommand{\Om}{\Omega}
+\newcommand{\Qcoll}{\mathfrak{Q}_{\mathrm{Coll}}}
+\newcommand{\Dcoll}{\mathfrak{D}_{\mathrm{Coll}}}
+\newcommand{\rhoeff}{\rho_{\mathrm{eff}}}
+\newcommand{\que}{\mathrm{que}}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\hol}{hol}
+\newcommand{\KL}[2]{D\!\left(#1\,\middle\|\,#2\right)}
+\newcommand{\epi}[1]{{\small\sffamily\textbf{[#1]}}}
+
+% headline / key-statement box (prose)
+\newtcolorbox{keystatement}{%
+  enhanced, sharp corners, boxrule=0.6pt,
+  colback=black!4, colframe=black!70,
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=8pt, after skip=8pt}
+
+% titled box for the central conjectural principle
+\newtcolorbox{principlebox}[1]{%
+  enhanced, sharp corners, boxrule=0.8pt,
+  colback=black!3, colframe=black!75,
+  coltitle=black, fonttitle=\bfseries,
+  title={#1},
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+%==================== title ====================
+\title{A Deterministic Defect Cocycle over the\\
+Quenched Residue--Height Spectral Shadow}
+\author{}
+\date{June 9, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{remark}[Status of these notes]
+This note builds on the pro-object $\Qcoll$ of the previous note (the quenched
+residue-height spectral shadow) and proposes the object that would make its central
+inverse arrow a theorem rather than a slogan. The construction is a reorganization of
+known finite-level structure in three places, marked as \epi{Inference}, around one arrow
+that is genuinely open, marked as \epi{Speculation}. The \emph{Quenched Inverse Principle}
+is conjectural. Project-internal terms (\textsf{H23a}, the QSD machinery, the residue
+spaces $\Om_Q$, the tilted operators $\Lcal_{s,Q,L,\chi}$) are carried over without
+restatement. Throughout, $e(t) = e^{2\pi i t}$. Nothing here has been verified.
+\end{remark}
+
+\section{The obstacle that fixes the shape of the object}
+
+A single integer $x_0$ gives one deterministic valuation word
+$w(x_0) = (b_0, b_1, b_2, \dots)$, where $b_i = v_2(3x_i + 1)$. The annealed law is the
+pushforward of Haar measure on $\Z_2$ under $x \mapsto v_2(3x+1)$. So ``the orbit obeys the
+annealed law'' means: the one prescribed word $w(x_0)$ equidistributes for the
+residue-height skew product. There is no ergodic theorem for a single prescribed
+non-generic point, and there cannot be: ergodicity yields almost-everywhere statements,
+which are silent about any individual orbit.
+
+This dictates the shape of the missing object. It must be a \emph{dichotomy with a
+closure}, not a measure-theoretic average: a pathwise quantity that is forced either to
+decay (the orbit equidistributes) or to localize as a finite, excludable obstruction. The
+quantity must reduce, at the trivial character and after ensemble averaging, to the
+annealed pressure $M(s)$ and the Cram\'er tilt; and its localization must land inside a
+fixed finite character sector, where \textsf{H23a} can act.
+
+\section{The object: a deterministic defect cocycle}
+
+Over each finite level $(Q,L)$, each tilt $s$, and each character $\chi\ne 1$ of $\Om_Q$,
+define the pathwise twisted Birkhoff functional
+\[
+W_n(x;\chi,s) \;=\; \frac1n \sum_{i=0}^{n-1} \chi(x_i \bmod Q)\, 2^{s\Delta_{b_i}},
+\qquad \Delta_b = \log_2 3 - b.
+\]
+The family of these functionals, fibered over $\Qcoll$, is the object; call it the
+\emph{deterministic defect cocycle} $\Dcoll$.
+
+At $s=0$ this is the residue Weyl sum: the orbit equidistributes modulo $Q$ if and only if
+$W_n(x;\chi,0)\to 0$ for every $\chi\ne 1$. The annealed pressure $M(s)$ and the critical
+tilt $p^{(1)}_b = 3\cdot 4^{-b}$ are the $\chi=\mathbf 1$, ensemble-averaged shadow of the
+same functional. So $\Dcoll$ is the quenched lift of the thermodynamic formalism: $M(s)$ is
+what $W_n$ self-averages to when nothing obstructs.
+
+The content of $\Dcoll$ is a single identity, written in three languages, true at finite
+level and checkable:
+\[
+\begin{aligned}
+        &\limsup_n \lvert W_n(x;\chi,s)\rvert > 0
+        &&(\text{equidistribution failure})\\[2pt]
+\Longleftrightarrow\quad
+        &\chi \text{ is an approximate coboundary along the orbit}
+        &&(\text{affine / cohomological})\\[2pt]
+\Longleftrightarrow\quad
+        &\Lcal_{s,Q,L,\chi} \text{ has a near-peripheral eigenstate read off from } \mu_n^x
+        &&(\text{spectral}).
+\end{aligned}
+\]
+The first equivalence is elementary: a twisted Birkhoff sum that does not decay telescopes
+precisely when the character is a near-coboundary along the orbit. The second is
+Perron--Frobenius duality: any weak-$\ast$ limit of the empirical measures $\mu_n^x$ is
+invariant up to the telescoping error $\tfrac1n(\delta_{x_n} - \delta_{x_0}) = O(1/n)$, and
+a nonzero $\chi$-component of an invariant measure is exactly a peripheral eigenstate of the
+twisted operator. \epi{Inference}; this is standard for finite-state transfer operators,
+transcribed onto the operators $\Lcal_{s,Q,L,\chi}$.
+
+\section{Why the annealed side has a gap, explicitly}
+
+At finite level the gap is computable. Use the exact affine cocycle
+\[
+x_n = \frac{3^n x_0 + \sum_{j=0}^{n-1} 3^{\,n-1-j}\, 2^{B_j}}{2^{B_n}},
+\qquad B_j = \sum_{i<j} b_i .
+\]
+Reduce modulo $3^r$. For $n\ge r$ the $3^n$ term vanishes and only the last $r$ valuations
+survive:
+\[
+x_n \equiv \sum_{k=1}^{r} 3^{\,k-1}\, 2^{-(b_{n-1} + \cdots + b_{n-k})} \pmod{3^r}.
+\]
+Since $2$ is a primitive root modulo $3^r$ (order $2\cdot 3^{r-1}$), the character value
+$\chi_3(x_n)$ is a sliding-window function of the partial sums $B_i \bmod 2\cdot 3^{r-1}$.
+The single-symbol Fourier transform of the annealed law is
+\[
+\hat p(\xi) = \sum_{b\ge1} 2^{-b}\, e(b\xi) = \frac{e(\xi)}{2 - e(\xi)},
+\qquad
+\lvert \hat p(\xi)\rvert = \frac{1}{\sqrt{5 - 4\cos 2\pi\xi}} < 1
+\quad (\xi\notin\Z).
+\]
+The frequencies attached to a nontrivial $\chi$ are $\xi = k/(2\cdot 3^{r-1})$, all
+nonintegral, so $\lvert\hat p(\xi)\rvert < 1$ at each. To leading order in the
+i.i.d.\ model,
+\[
+\rho\bigl(\Lcal_{0,Q,L,\chi}\bigr) = \max_\xi \lvert\hat p(\xi_\chi)\rvert < 1.
+\]
+\epi{Inference}; this is the leading-order i.i.d.\ value, not the exact spectral radius of
+the coupled finite operator, but it pins the mechanism and the gap constant $\kappa_Q$.
+That explicit strict inequality is \textsf{H23a} made arithmetic: nontrivial characters
+decorrelate because $5 - 4\cos 2\pi\xi > 1$ off the integers.
+
+\section{The Quenched Inverse Principle}
+
+\begin{principlebox}{Quenched Inverse Principle (conjectural)}
+Let $x_0$ have an infinite forward orbit, and suppose it violates the annealed law
+persistently: for some $\chi\ne 1$ on some $\Om_Q$, some tilt $s$, and some $\delta>0$,
+\[
+\lvert W_n(x_0;\chi,s)\rvert \ge \delta
+\quad\text{along a positive-density set of } n .
+\]
+(This covers the three concrete failures: a sub-equilibrium tail $\bar b_n < \log_2 3$;
+persistent high-ascent shadowing $\KL{\mu_n}{p^{(1)}}\to 0$; and residue bias.) Then there
+exist a finite pair $(Q,L)$ and a $\chi$-sector eigenstate of $\Lcal_{s,Q,L,\chi}$ with
+eigenvalue
+\[
+\lvert\lambda\rvert \ge \rho\bigl(\Lcal_{s,Q,L,0}\bigr) - o(1),
+\]
+exhibited by the orbit's own empirical measure. Conjoined with the gap
+$\rho(\Lcal_{s,Q,L,\chi}) \le (1-\kappa_Q)\rho(\Lcal_{s,Q,L,0})$, this is a contradiction.
+Hence every integer orbit equidistributes and obeys the annealed law.
+\end{principlebox}
+
+The contradiction chain is the one stated before: bad orbit $\Rightarrow$ finite
+spectral/coboundary shadow $\Rightarrow$ violation of \textsf{H23a}. The role of $\Dcoll$ is
+to make the first arrow a theorem-shaped statement.
+
+\section{The keystone, where the real theorem lives}
+
+Everything above is reorganization. The single arrow that is not a transcription of known
+structure is
+\[
+\begin{aligned}
+&\text{persistent quenched bias along } w(x_0)\\
+\Longrightarrow\quad &\text{a \textbf{finite-level} approximate eigenfunction at the \textbf{top} eigenvalue}.
+\end{aligned}
+\]
+The empirical-measure argument supplies an invariant functional, but invariance together
+with nonzero $\chi$-mass does not by itself localize the obstruction at bounded $Q$ with
+eigenvalue pushed all the way to the principal one. Two leaks must be closed, and naming
+them is the useful part.
+
+\paragraph{Finiteness leak.} The limiting obstruction could in principle live at
+$Q\to\infty$, an obstruction that recedes to the boundary and never appears at any fixed
+modulus. Closing this requires an effective, uniform gap,
+\[
+\kappa_Q \gtrsim \frac{1}{\mathrm{polylog}(Q)},
+\]
+decaying more slowly than the entropy production of the bias. That quantitative
+\textsf{H23a} is a hypothesis, not a consequence; it is the precise point where
+``annealed-to-quenched'' becomes a rate inequality.
+
+\paragraph{Circularity leak.} Reading a top-eigenvalue eigenfunction off $\mu_n^x$
+presumes the orbit's residue frequencies are already near-stationary, which is what one is
+trying to prove. Breaking this requires an input that does not come from the orbit's own
+statistics.
+
+My best candidate for the circularity-breaking input, pressed as far as I will commit, is a
+regeneration-plus-bilinear engine resting on the multiplicative independence of $2$ and $3$.
+The valuation word is $2$-adic data; the residue modulo $3^r$ is $3$-adic data; the map
+$3x+1$ couples them. Open the Weyl sum bilinearly across the two scales and apply a
+Bourgain--Sarnak--Ziegler orthogonality step over the $3$-adic frequencies, using that the
+$2$-adic increments at distinct $3$-adic frequencies are jointly nonresonant
+($\lvert\hat p(\xi)\rvert < 1$ at every $\xi\in\frac{1}{2\cdot 3^{r-1}}\Z\setminus\Z$). The
+regeneration times are the indices where the height walk hits fresh record lows, which
+re-uniformize the residue; between regenerations the increments are independent enough for a
+quenched Borel--Cantelli, summable because the bad-stretch probability is $\le e^{-c\ell}$
+on a stretch of length $\ell$. \epi{Speculation}, on the structure of a closure; no such
+argument exists, and a Bourgain--Sarnak--Ziegler step on a noninvertible monoid with
+arithmetically determined inputs is exactly the unsolved part.
+
+The honest counterweight: that keystone is morally a normality / disjointness statement for
+the $2$-adic word of the integers, and it is Sarnak-hard. The deterministic word $w(x_0)$ is
+zero-entropy data attached to one integer, and demanding that it decorrelate from the
+$3$-adic character system for every $x_0$ has the same flavor of difficulty as M\"obius
+disjointness for low-complexity sequences. So $\Dcoll$ does not dissolve Collatz; it
+relocates the difficulty into one named, falsifiable lemma and gives that lemma an exact
+finite-level target.
+
+\section{Making ``annealed-to-quenched'' literal}
+
+The statistical-mechanics gloss sharpens the prediction rather than decorating it. The
+annealed pressure is $\log M(s)$. The quenched pressure along an orbit is
+\[
+\Lambda^{\que}(s;x_0) = \lim_{n} \frac1n \log \sum_{w_n} (\text{tilted weights along the orbit}).
+\]
+Quenched equal to annealed is self-averaging of the free energy. A bad orbit is a
+self-averaging failure, the Collatz analogue of replica-symmetry breaking, and the inverse
+principle asserts that every such failure is carried by a finite character sector. So the
+conjecture reads, concretely:
+
+\begin{keystatement}
+The quenched Collatz pressure self-averages with no replica-symmetry breaking, and any
+RSB component is a peripheral eigenstate of some $\Lcal_{s,Q,L,\chi}$ with $\chi\ne 1$.
+\end{keystatement}
+\epi{Inference} for the framing; \epi{Speculation} that no-RSB holds.
+
+\section{Three falsifiable consequences computable now}
+
+These would weaken or strengthen the object without waiting on the keystone.
+
+\begin{enumerate}[leftmargin=1.6em]
+\item For each $r$, compute the exact $\rho(\Lcal_{0,3^r,L,\chi})$ and check that it tracks
+\[
+\max_\xi \lvert\hat p(\xi)\rvert
+= \max_k \bigl(5 - 4\cos(2\pi k/(2\cdot 3^{r-1}))\bigr)^{-1/2}.
+\]
+If the coupled operator's gap is parametrically smaller than the i.i.d.\ value, the
+finiteness leak is real, and the computation returns the true rate of $\kappa_Q$.
+
+\item Along long orbits, compute the windowed Weyl sums $W_n(x;\chi,0)$ at the resonant
+frequencies $k/(2\cdot 3^{r-1})$. The prediction is decay at rate
+$\lvert\hat p(\xi)\rvert^{\,n}$ with no persistent plateau. A plateau at any fixed $\chi$
+for any orbit is the spectral shadow made visible, and a direct test of the circularity
+leak.
+
+\item At $s=1$, compare $\rho(\Lcal_{1,3^r,L,\chi})$ with $\rho(\Lcal_{1,3^r,L,0})$. A
+nontrivial gap there is the statement that a high ascent cannot also hold a residue
+resonance, which is the joint annealed-to-quenched obstruction for critical excursions.
+\end{enumerate}
+
+\section*{Summary}
+\addcontentsline{toc}{section}{Summary}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{0.40\linewidth} p{0.52\linewidth}@{}}
+\toprule
+\textbf{Component} & \textbf{Status}\\
+\midrule
+$W_n(x;\chi,s)$, the defect cocycle $\Dcoll$ & quenched lift of the thermodynamic formalism\\
+three-language equivalence at fixed $(Q,L)$ & finite, checkable \epi{Inference}\\
+$\rho(\Lcal_{0,Q,L,\chi}) = \max_\xi\lvert\hat p(\xi_\chi)\rvert < 1$ & \textsf{H23a} made arithmetic \epi{Inference}\\
+Quenched Inverse Principle & the missing theorem (conjectural)\\
+keystone: bias $\Rightarrow$ top finite eigenstate & one open lemma \epi{Speculation}; Sarnak-hard\\
+no-RSB self-averaging & equivalent reframing \epi{Speculation}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The object relocates the foundational difficulty rather than removing it: $\Dcoll$ turns
+``the orbit should behave randomly'' into one falsifiable lemma, namely that a persistent
+quenched bias must surface as a top-eigenvalue eigenstate in a finite character sector, where
+the arithmetic gap $\lvert\hat p(\xi)\rvert < 1$ already forbids it.
+
+\end{document}

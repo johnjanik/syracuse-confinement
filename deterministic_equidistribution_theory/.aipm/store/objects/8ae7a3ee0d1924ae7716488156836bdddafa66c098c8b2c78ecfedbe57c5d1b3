@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite/out_kappa\ngrep -q wrote F_full.log && echo \"F DONE ($(grep -vc '^#' fourier_comparison.csv) rows)\" || echo \"F still running ($(grep -vc '^#' fourier_comparison.csv) rows): $(tail -1 F_full.log)\""}

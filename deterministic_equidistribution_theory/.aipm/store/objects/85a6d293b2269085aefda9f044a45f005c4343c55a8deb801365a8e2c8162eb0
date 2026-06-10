@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"out/\n*.o\ncollatz_tests\n*.csv\n*.jsonl\nout_large/\nrun_large.sh"}

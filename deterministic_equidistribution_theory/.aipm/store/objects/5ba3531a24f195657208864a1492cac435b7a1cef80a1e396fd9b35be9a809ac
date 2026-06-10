@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"Hence every integer orbit equidistributes\\|end{principlebox}\\|contradiction chain\" defect_cocycle_with_findings.tex | head"}

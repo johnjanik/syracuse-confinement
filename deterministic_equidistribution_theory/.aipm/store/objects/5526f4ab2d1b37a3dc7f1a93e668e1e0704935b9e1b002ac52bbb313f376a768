@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_stubs.c","new_string":"STUB(exp_trace_det,       \"trace-det\")","old_string":"STUB(exp_spectral_gaps,   \"spectral-gaps\")\nSTUB(exp_fourier_compare, \"fourier-compare\")\nSTUB(exp_trace_det,       \"trace-det\")","replace_all":false}

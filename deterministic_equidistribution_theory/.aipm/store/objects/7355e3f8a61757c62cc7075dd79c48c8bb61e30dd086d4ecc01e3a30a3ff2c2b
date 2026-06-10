@@ -1,0 +1,1 @@
+{"command":"sed -n '1,60p' /home/john/mynotes/collatz/lean4/CollatzLean/ReductionGraph.lean"}

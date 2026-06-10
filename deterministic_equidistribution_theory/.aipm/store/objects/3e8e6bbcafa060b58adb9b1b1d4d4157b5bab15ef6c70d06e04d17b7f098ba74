@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes && git ls-files collatz/lean4/CollatzLean/ | head -3; echo ---; git status --short --untracked-files=all collatz/lean4/ | head -5; echo ---; git log --oneline -1 -- collatz/lean4/CollatzLean/"}

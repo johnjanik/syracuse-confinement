@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"Pages:           30\n/home/john/mynotes/deterministic_equidistribution_theory/c_suite/analysis/cascade_row_audit.py:1: SyntaxWarning: invalid escape sequence '\\l'\n  \"\"\"dc_21 sec 5-7: heavy-row (x=-1) cascade audit at threshold m=c."}

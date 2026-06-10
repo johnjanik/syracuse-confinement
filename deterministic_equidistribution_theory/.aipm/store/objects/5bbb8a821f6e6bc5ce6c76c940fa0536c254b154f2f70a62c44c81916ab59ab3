@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/Makefile","new_string":"CFLAGS  := $(CSTD) $(WARN) $(OPT) -D_POSIX_C_SOURCE=200809L -Iinclude","old_string":"CFLAGS  := $(CSTD) $(WARN) $(OPT) -Iinclude","replace_all":false}

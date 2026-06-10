@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes && git check-ignore -v collatz/lean4/CollatzLean/FiniteSpectralShadows.lean; echo \"exit=$?\"; git status --short collatz/lean4/CollatzLean/ | head -5"}

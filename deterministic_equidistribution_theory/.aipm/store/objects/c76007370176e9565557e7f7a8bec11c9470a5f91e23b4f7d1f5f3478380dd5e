@@ -1,0 +1,23 @@
+In file included from src/config.c:1:
+include/config.h:40:38: error: unknown type name ‘FILE’
+   40 | void config_print(const config_t *c, FILE *f);
+      |                                      ^~~~
+include/config.h:8:1: note: ‘FILE’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+    7 | #include "common.h"
+  +++ |+#include <stdio.h>
+    8 | 
+src/config.c: In function ‘parse_int_list’:
+src/config.c:30:28: warning: implicit declaration of function ‘strdup’; did you mean ‘strcmp’? [-Wimplicit-function-declaration]
+   30 |     int n = 0; char *dup = strdup(s); char *tok = strtok(dup, ",");
+      |                            ^~~~~~
+      |                            strcmp
+src/config.c:30:28: warning: initialization of ‘char *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+src/config.c: In function ‘parse_u64_list’:
+src/config.c:35:28: warning: initialization of ‘char *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+   35 |     int n = 0; char *dup = strdup(s); char *tok = strtok(dup, ",");
+      |                            ^~~~~~
+src/config.c: In function ‘parse_ldbl_list’:
+src/config.c:40:28: warning: initialization of ‘char *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+   40 |     int n = 0; char *dup = strdup(s); char *tok = strtok(dup, ",");
+      |                            ^~~~~~
+make: *** [Makefile:35: src/config.o] Error 1

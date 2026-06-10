@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"92577818 congruence_checks.csv.gz\n12814677 critical_events.csv.gz\n697777 defect_windows.csv\n2804 fourier_comparison.csv\n16706 height_tail.csv\n2475363 post_exit.csv\n110276445 shadow_search.csv\n8298 spectral_gaps.csv\n63541894 tilt_law.csv\n8682 trace_determinant.csv\ntotal:\n270M\t."}

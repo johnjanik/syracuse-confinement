@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\npdflatex -interaction=nonstopmode finite_spectral_shadows.tex >/tmp/fss.log 2>&1; pdflatex -interaction=nonstopmode finite_spectral_shadows.tex >/tmp/fss.log 2>&1\ngrep -E \"^!\" /tmp/fss.log | head -5; grep -c \"Warning.*undefined\" /tmp/fss.log; pdfinfo finite_spectral_shadows.pdf | grep Pages"}

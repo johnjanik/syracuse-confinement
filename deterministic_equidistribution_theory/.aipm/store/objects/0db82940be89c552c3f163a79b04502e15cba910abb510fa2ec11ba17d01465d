@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_stubs.c","new_string":"STUB(exp_defect_windows,  \"defect-windows\")","old_string":"STUB(exp_scan_height,     \"scan-height\")\nSTUB(exp_tilt_law,        \"tilt-law\")\nSTUB(exp_defect_windows,  \"defect-windows\")","replace_all":false}

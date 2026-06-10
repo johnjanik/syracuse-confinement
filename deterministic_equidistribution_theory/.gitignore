@@ -1,0 +1,10 @@
+# regenerable experiment outputs (hundreds of MB; rebuild via c_suite Makefile + scripts)
+c_suite/out/
+c_suite/out_large/
+c_suite/bin/
+*.o
+# latex intermediates
+*.aux
+*.log
+*.toc
+*.out.tex

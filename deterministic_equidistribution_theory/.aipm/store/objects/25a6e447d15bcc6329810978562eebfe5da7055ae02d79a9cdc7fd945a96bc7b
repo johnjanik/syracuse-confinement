@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"c=7: dim=2916\n  m= 7: sigma1^(1/m)=0.9040  Schur R^(1/2m)=0.9280  A_m=R/Delta^m=7.685e+02  A^(1/2m)=1.6074\n  m= 9: sigma1^(1/m)=0.8363  Schur R^(1/2m)=0.8620  A_m=R/Delta^m=1.359e+03  A^(1/2m)=1.4931\n  m=14: sigma1^(1/m)=0.7443  Schur R^(1/2m)=0.7676  A_m=R/Delta^m=2.907e+03  A^(1/2m)=1.3295"}

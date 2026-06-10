@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\ngrep -q '^out_large/' .gitignore || printf 'out_large/\\nrun_large.sh\\n' >> .gitignore\ncat .gitignore"}

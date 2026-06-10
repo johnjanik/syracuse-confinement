@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"end{remark}\" finite_spectral_shadows.tex | awk -F: '$1 > 1080 && $1 < 1200' | head -3\ngrep -n \"conjectural sharp constant.$\\|stands as the conjectural sharp constant\" finite_spectral_shadows.tex | head -3"}

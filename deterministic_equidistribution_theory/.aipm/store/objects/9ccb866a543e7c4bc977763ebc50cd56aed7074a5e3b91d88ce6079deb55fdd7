@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"Pages:           7\nsha256:528567c9779786a34065f65195409c5688c91b8497cb5f92e883b72e54db7f34\nvalidation passed\n---\n-rw-rw-r-- 1 john john 325377 Jun 10 16:43 finite_spectral_shadows_computational.pdf\n-rw-rw-r-- 1 john john 671168 Jun 10 16:43 finite_spectral_shadows.pdf\n---"}

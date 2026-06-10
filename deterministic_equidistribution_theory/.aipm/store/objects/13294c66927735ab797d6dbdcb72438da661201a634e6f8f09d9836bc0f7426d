@@ -1,0 +1,1 @@
+{"command":"until ! ps -p 3020760 >/dev/null 2>&1; do sleep 5; done; cat /tmp/c7_cascade.out","description":"Wait for c=7 cascade audit to finish, then print results","run_in_background":true}

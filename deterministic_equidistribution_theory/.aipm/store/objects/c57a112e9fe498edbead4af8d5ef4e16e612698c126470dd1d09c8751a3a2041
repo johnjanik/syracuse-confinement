@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\necho \"F: $(tail -1 out_kappa/F_full.log 2>/dev/null) | rows $(grep -vc '^#' out_kappa/fourier_comparison.csv 2>/dev/null)\"\necho \"E: $(tail -1 out_kappa/E_full.log 2>/dev/null) | rows $(grep -vc '^#' out_kappa/spectral_gaps.csv 2>/dev/null)\""}

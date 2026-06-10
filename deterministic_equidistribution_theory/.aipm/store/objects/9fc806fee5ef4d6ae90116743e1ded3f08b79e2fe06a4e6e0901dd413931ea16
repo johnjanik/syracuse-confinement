@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"pairs=3000: v3(L'(a)) CONSTANT in a: 2712 (0.9040); varying: 288 (0.0960)\nexcess e = v3(L')-(d+i_min) histogram (constant cases):  {0: 982, 1: 1643, 2: 44, 3: 30, 4: 13}\nP[e=0]=0.3621  P[e=1]=0.6058  P[e=2]=0.0162  P[e>=1]=0.6379"}

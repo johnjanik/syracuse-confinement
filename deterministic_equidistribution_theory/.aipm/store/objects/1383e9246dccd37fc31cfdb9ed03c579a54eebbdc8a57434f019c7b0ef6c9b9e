@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"rows: 29\n[spectral-gaps] wrote /tmp/sync243/spectral_gaps.csv\nQ=243 s=0 worst non-coboundary: gap_ratio=0.9069 at k=27 -> kappa=0.0931"}

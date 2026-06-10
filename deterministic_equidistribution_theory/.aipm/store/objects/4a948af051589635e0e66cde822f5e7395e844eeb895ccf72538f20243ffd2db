@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_stubs.c","new_string":"STUB(exp_spectral_gaps,   \"spectral-gaps\")","old_string":"STUB(exp_defect_windows,  \"defect-windows\")\nSTUB(exp_post_exit,       \"post-exit\")\nSTUB(exp_spectral_gaps,   \"spectral-gaps\")","replace_all":false}

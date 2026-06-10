@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/sparse_matrix.c","new_string":"    int cap = A->n;                 /* m = n gives full (exact) Arnoldi */\n    if (m_max > cap) m_max = cap;","old_string":"    int cap = A->n - 1;\n    if (m_max > cap) m_max = cap;","replace_all":false}

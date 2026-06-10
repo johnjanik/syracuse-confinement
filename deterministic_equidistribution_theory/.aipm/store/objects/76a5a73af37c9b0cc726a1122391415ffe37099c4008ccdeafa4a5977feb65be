@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\nsed -n '2385,2392p' finite_spectral_shadows.tex; echo ---; sed -n '2456,2463p' finite_spectral_shadows.tex"}

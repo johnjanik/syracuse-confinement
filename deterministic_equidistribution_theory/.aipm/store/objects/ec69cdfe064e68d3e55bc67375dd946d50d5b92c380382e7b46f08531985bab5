@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes && ls collatz/lean4/.git 2>/dev/null | head -2; git check-ignore collatz/lean4/CollatzLean/FiniteSpectralShadows.lean 2>/dev/null; cd collatz/lean4 && git status --short 2>/dev/null | head -5"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nsed -i 's/A0\\.nnz,A0\\.dim/A0.nnz,i0.dim/; s/A\\.nnz,A\\.dim/A.nnz,info.dim/; s/(dim=%d)\\\\n\",\\n.*A0\\.dim/XX/' src/exp_spectral_gaps.c\ngrep -n \"A0.dim\\|A.dim\\|i0.dim\\|info.dim\" src/exp_spectral_gaps.c"}

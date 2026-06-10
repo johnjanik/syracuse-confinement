@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"limsup_{c\\\\\\\\to\\\\\\\\infty}\\\\\\\\gamma_c(s)\\\\\\\\le3^{1/(2\\\\\\\\alpha k_0)}\\|conditional high-conductor damping, corrected\" finite_spectral_shadows.tex | head -3\ngrep -n \"thm:assembly\" finite_spectral_shadows.tex | head -5"}

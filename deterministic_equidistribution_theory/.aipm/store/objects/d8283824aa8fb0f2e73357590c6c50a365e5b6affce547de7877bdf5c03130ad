@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"n=600; values within 1e-9 of 0.5: 0.8633; of 1.0: 0.1367; other: 0.0000"}

@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"DONE\n[17:47:31] I shadow-search (octaves 18..24, 80k/oct; moduli 9,27,81,243)\n[shadow-search] 1254232 windows, 53158 shadow-bearing (delta=0.100); wrote out_large/shadow_search.csv\n[17:50:23] DONE\n---\nout_large/.done\nmarker present"}

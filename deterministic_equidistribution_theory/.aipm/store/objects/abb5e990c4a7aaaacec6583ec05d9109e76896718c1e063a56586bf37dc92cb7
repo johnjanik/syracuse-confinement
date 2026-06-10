@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nfor i in 1 2 3 4 5 6 7 8 9 10; do\n  if [ -f out_large/.done ]; then echo \"DONE after ~$((i*20))s of polling\"; break; fi\n  sleep 20\ndone\necho \"=== tail of log ===\"; tail -20 out_large/run.log"}

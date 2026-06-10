@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"adversarial w=1^c, a=1, n=391321: P[h>=1]=0.0249 (bound 2/3=0.667)\n  P[h>=2|h>=1] = 0.3804  (bound 4/7 = 0.5714)  n=9762\n  P[h>=3|h>=2] = 0.4285  (bound 4/7 = 0.5714)  n=3713\n  P[h>=4|h>=3] = 0.4444  (bound 4/7 = 0.5714)  n=1591"}

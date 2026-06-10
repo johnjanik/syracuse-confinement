@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"release built\n=== timing probe: spectral-gaps Q=243 L=48 (heaviest) ===\n./collatz_tests spectral-gaps --moduli 243 --tilts 0,1 --L 48 --R 6 --bmax 20  19.07s user 0.01s system 99% cpu 19.083 total\n--- dim/nnz for that op ---\ndim=11907 nnz=61479"}

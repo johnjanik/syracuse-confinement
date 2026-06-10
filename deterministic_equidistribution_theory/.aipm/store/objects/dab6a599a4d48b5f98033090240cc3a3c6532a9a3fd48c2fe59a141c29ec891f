@@ -1,0 +1,1 @@
+{"file":{"content":"                csr_t A; operator_info_t info;\n                int rc = rhg_build(&A, &info, Q, c->L, c->R, c->bmax, s,\n                                   have_char ? &ch : NULL, 1);","filePath":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_trace_det.c","numLines":3,"startLine":76,"totalLines":120},"type":"text"}

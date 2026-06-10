@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nnohup ./run_large.sh > out_large/run.log 2>&1 &\necho \"pid $!\"; sleep 2; echo \"--- early log ---\"; cat out_large/run.log","run_in_background":true}

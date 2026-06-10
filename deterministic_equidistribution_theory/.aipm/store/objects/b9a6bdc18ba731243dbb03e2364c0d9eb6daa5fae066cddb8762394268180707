@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nsleep 1; echo \"rows now: $(grep -vc '^#' out_kappa/fourier_comparison.csv)\""}

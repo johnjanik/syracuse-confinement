@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"\nShell cwd was reset to /home/john/mynotes/deterministic_equidistribution_theory","stdout":" M ../README.md\n D ../c_scripts/Makefile\n D ../c_scripts/branch_locus.c\n D ../c_scripts/collatz_scatter.c\n D ../c_scripts/collatz_tree.c"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\n[ -f out_large/.done ] && echo \"DONE\" || echo \"still running\"\ntail -8 out_large/run.log"}

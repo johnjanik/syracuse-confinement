@@ -1,0 +1,840 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+\allowdisplaybreaks
+\setlength{\parskip}{0.4em}
+
+%==================== macros ====================
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Ccal}{\mathscr{C}}
+\newcommand{\Om}{\Omega}
+\newcommand{\Qcoll}{\mathfrak{Q}_{\mathrm{Coll}}}
+\newcommand{\Dcoll}{\mathfrak{D}_{\mathrm{Coll}}}
+\newcommand{\rhoeff}{\rho_{\mathrm{eff}}}
+\newcommand{\que}{\mathrm{que}}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\hol}{hol}
+\newcommand{\KL}[2]{D\!\left(#1\,\middle\|\,#2\right)}
+\newcommand{\epi}[1]{{\small\sffamily\textbf{[#1]}}}
+
+% prose key-statement box
+\newtcolorbox{keystatement}{%
+  enhanced, sharp corners, boxrule=0.6pt,
+  colback=black!4, colframe=black!70,
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=8pt, after skip=8pt}
+
+% titled box for the central conjectural principle
+\newtcolorbox{principlebox}[1]{%
+  enhanced, sharp corners, boxrule=0.8pt,
+  colback=black!3, colframe=black!75,
+  coltitle=black, fonttitle=\bfseries,
+  title={#1},
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt}
+
+% box for an empirical finding
+\newtcolorbox{findingbox}[1]{%
+  enhanced, sharp corners, boxrule=0.6pt,
+  colback=Green!4, colframe=Green!45!black,
+  coltitle=black, fonttitle=\bfseries,
+  title={#1},
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=8pt, after skip=8pt}
+
+\theoremstyle{plain}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+%==================== title ====================
+\title{Finite Spectral Shadows for the Collatz Valuation Cocycle}
+\author{John A. Janik\\
+john.janik@gmail.com}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document merges the theoretical note proposing the deterministic defect
+cocycle $\Dcoll$ for the accelerated Collatz/Syracuse map with the results of a
+dedicated C numerical test suite built to probe it. Part~I states the object and
+the conjectural \emph{Quenched Inverse Principle} unchanged in substance from the
+original note, with the corrections suggested in review folded in as remarks.
+Parts~II--IV report the suite: its construction, the per-experiment findings, and
+a dedicated analysis relating the empirically detected ``shadow'' windows to the
+finite transfer-operator gaps. The headline outcomes are (i) the load-bearing
+$\bmod\,3^r$ congruence identity is verified to $\sim\!2.4\times10^{7}$ checks;
+(ii) the finite character-sector gap $\lvert\hat p(\xi)\rvert<1$ is realized, but
+the \emph{exact} coupled operator departs materially from the i.i.d.\ Fourier
+shadow; and (iii) single-orbit shadows correlate with the operator gap only at
+the level of the tilt (they concentrate at the critical tilt $s=1$, where the gap
+is weakest), while the per-sector signal is confounded by finite residue-class
+count---a concrete instance of the ``circularity leak.'' Nothing here proves
+anything about Collatz; the purpose is to decide whether $\Dcoll$ is the right
+finite detector and where it sees the obstruction most clearly.
+\end{abstract}
+
+\begin{remark}[Status]
+Part~I builds on the pro-object $\Qcoll$ of the previous note (the quenched
+residue--height spectral shadow); project-internal terms (\textsf{H23a}, the QSD
+machinery, the residue spaces $\Om_Q$, the tilted operators
+$\Lcal_{s,Q,L,\chi}$) are carried over without restatement. The
+\emph{Quenched Inverse Principle} is conjectural. Throughout, $e(t)=e^{2\pi i t}$.
+Empirical numbers in Parts~III--IV come from the suite \texttt{collatz\_tests}
+(builds \textsf{FAST128}/\textsf{GMP}); every figure is reproducible from the
+recorded run.
+\end{remark}
+
+\tableofcontents
+
+\part{The object and the principle}
+
+\section{The obstacle that fixes the shape of the object}
+
+A single integer $x_0$ gives one deterministic valuation word
+$w(x_0)=(b_0,b_1,b_2,\dots)$, where $b_i=v_2(3x_i+1)$. The annealed law is the
+pushforward of Haar measure on $\Z_2$ under $x\mapsto v_2(3x+1)$. So ``the orbit
+obeys the annealed law'' means: the one prescribed word $w(x_0)$ equidistributes
+for the residue--height skew product. There is no ergodic theorem for a single
+prescribed non-generic point, and there cannot be: ergodicity yields
+almost-everywhere statements, which are silent about any individual orbit.
+
+This dictates the shape of the missing object. It must be a \emph{dichotomy with
+a closure}, not a measure-theoretic average: a pathwise quantity forced either to
+decay (the orbit equidistributes) or to localize as a finite, excludable
+obstruction. The quantity must reduce, at the trivial character and after
+ensemble averaging, to the annealed pressure $M(s)$ and the Cram\'er tilt; and its
+localization must land inside a fixed finite character sector, where
+\textsf{H23a} can act.
+
+\section{The object: a deterministic defect cocycle}
+
+Over each finite level $(Q,L)$, each tilt $s$, and each character $\chi\ne 1$ of
+$\Om_Q$, define the pathwise twisted Birkhoff functional
+\[
+W_n(x;\chi,s)\;=\;\frac1n\sum_{i=0}^{n-1}\chi(x_i\bmod Q)\,2^{s\Delta_{b_i}},
+\qquad \Delta_b=\log_2 3-b .
+\]
+The family of these functionals, fibered over $\Qcoll$, is the object; call it the
+\emph{deterministic defect cocycle} $\Dcoll$. At $s=0$ this is the residue Weyl
+sum: the orbit equidistributes modulo $Q$ iff $W_n(x;\chi,0)\to0$ for every
+$\chi\ne1$. The annealed pressure $M(s)$ and the critical tilt
+$p^{(1)}_b=3\cdot4^{-b}$ are the $\chi=\mathbf1$, ensemble-averaged shadow of the
+same functional, so $\Dcoll$ is the quenched lift of the thermodynamic formalism:
+$M(s)$ is what $W_n$ self-averages to when nothing obstructs.
+
+The content of $\Dcoll$ at finite level is one statement in three languages---%
+\emph{equidistribution failure}, \emph{affine/cohomological}, and
+\emph{spectral}:
+\[
+\begin{aligned}
+\limsup_n \lvert W_n(x;\chi,s)\rvert > 0
+\;\;\Longleftrightarrow\;\;&
+\chi \text{ is an approximate coboundary along the orbit}\\[2pt]
+\Longleftrightarrow\;\;&
+\Lcal_{s,Q,L,\chi}\text{ has a near-peripheral eigenstate read off from }\mu_n^x .
+\end{aligned}
+\]
+
+\begin{remark}[Correction adopted from review]
+The three-way \emph{equivalence} is too strong and is used here only in the safe
+direction. A non-decaying twisted sum signals correlation with $\chi$, but need
+not be an exact coboundary (it could be concentration, subsequential trapping,
+nonstationarity); and producing a near-\emph{top} eigenstate of
+$\Lcal_{s,Q,L,\chi}$ is precisely the open keystone, not an automatic consequence.
+The load-bearing statement is the single implication: a persistent $W_n$ bias
+$\Longrightarrow$ a nontrivial finite character shadow of the orbit, and
+(conjecturally) a near-peripheral state of $\Lcal_{s,Q,L,\chi}$.
+\end{remark}
+
+\section{Why the annealed side has a gap, explicitly}
+
+Use the exact affine cocycle
+\[
+x_n=\frac{3^n x_0+A_n}{2^{B_n}},\qquad
+A_n=\sum_{j=0}^{n-1}3^{\,n-1-j}2^{B_j},\qquad B_n=\sum_{i<n}b_i .
+\]
+Reducing modulo $3^r$, for $n\ge r$ the $3^n x_0$ term vanishes and only the last
+$r$ valuations survive.
+
+\begin{lemma}[Sliding-window congruence]\label{lem:cong}
+For $n\ge r$,
+\[
+x_n \equiv \sum_{k=1}^{r} 3^{\,k-1}\, 2^{-(b_{n-1}+\cdots+b_{n-k})} \pmod{3^r}.
+\]
+\end{lemma}
+\noindent Since $2$ is a primitive root modulo $3^r$ (order $2\cdot3^{r-1}$), the
+character value $\chi_3(x_n)$ is a sliding-window function of the partial sums
+$B_i\bmod 2\cdot3^{r-1}$. The single-symbol Fourier transform of the annealed law
+is
+\[
+\hat p(\xi)=\sum_{b\ge1}2^{-b}e(b\xi)=\frac{e(\xi)}{2-e(\xi)},
+\qquad
+\lvert\hat p(\xi)\rvert=\frac{1}{\sqrt{5-4\cos 2\pi\xi}}<1\quad(\xi\notin\Z).
+\]
+The frequencies attached to a nontrivial $\chi$ are $\xi=k/(2\cdot3^{r-1})$, all
+nonintegral, so to leading order in the i.i.d.\ model
+$\rho(\Lcal_{0,Q,L,\chi})=\max_\xi\lvert\hat p(\xi_\chi)\rvert<1$.
+\epi{Inference}; this is the i.i.d.\ value, \emph{not} the exact spectral radius
+of the coupled finite operator. The distinction is enforced throughout
+Parts~III--IV: \texttt{rho\_annealed} and \texttt{rho\_exact} are reported in
+separate columns and never substituted.
+
+\section{The Quenched Inverse Principle}
+
+\begin{principlebox}{Quenched Inverse Principle (conjectural)}
+Let $x_0$ have an infinite forward orbit, and suppose it violates the annealed law
+persistently: for some \textbf{non-coboundary} $\chi$ on some $\Om_Q$, some tilt
+$s$, and some $\delta>0$, $\lvert W_n(x_0;\chi,s)\rvert\ge\delta$ along a
+positive-density set of $n$ (or, more weakly, along blocks of length
+$\ell_j\to\infty$). Then there exist a finite pair $(Q,L)$ and a $\chi$-sector
+eigenstate of $\Lcal_{s,Q,L,\chi}$ with
+$\lvert\lambda\rvert\ge\rho(\Lcal_{s,Q,L,0})-o(1)$, exhibited by the orbit's own
+empirical measure. Conjoined with the gap
+$\rho(\Lcal_{s,Q,L,\chi})\le(1-\kappa_Q)\rho(\Lcal_{s,Q,L,0})$ for non-coboundary
+$\chi$, this is a contradiction. Hence every integer orbit equidistributes
+relative to the annealed (valuation-pushforward) residue law.
+\end{principlebox}
+
+\begin{remark}[Coboundary refinement, forced by the computations]
+The qualifier ``\textbf{non-coboundary}'' is essential and is the one substantive
+correction the numerics forced. The faithful operator has exactly one structural
+zero-gap sector---the quadratic character $\chi_2$---and it is \emph{not} a defect
+but an exact coboundary: $\chi_2(x_i)=(-1)^{b_{i-1}}$ is valuation parity in
+disguise (\cref{app:quad}), so the residues are not uniform mod $3$ (they sit at
+$\tfrac13:\tfrac23$) and $\chi_2$ belongs to the height/valuation \emph{reference}.
+H23a is therefore not ``all nontrivial characters are gapped'' but
+\[
+\boxed{\ \text{all \emph{non-coboundary} characters are gapped.}\ }
+\]
+After quotienting the (unique) coboundary, the gap is present, $Q$-uniform, and in
+fact constant (\cref{app:quad}, \cref{app:gap}). The positive-density hypothesis is
+also likely too strong---obstructions may be sparse---so the principle is stated to
+admit long blocks $\ell_j\to\infty$ (the form used in Exp.~I).
+\end{remark}
+
+\section{The keystone and the two leaks}
+
+The single arrow that is not a transcription of known structure is
+\[
+\text{persistent quenched bias along }w(x_0)\Longrightarrow
+\text{a \textbf{finite-level} approximate eigenfunction at the \textbf{top} eigenvalue.}
+\]
+
+\paragraph{Finiteness leak.} The limiting obstruction could live at
+$Q\to\infty$. Closing this needs an effective, uniform gap
+$\kappa_Q\gtrsim 1/\mathrm{polylog}(Q)$, decaying more slowly than the entropy
+production of the bias. That quantitative \textsf{H23a} is a hypothesis.
+
+\paragraph{Circularity leak.} Reading a top eigenfunction off $\mu_n^x$ presumes
+the orbit's residue frequencies are already near-stationary---what one is trying
+to prove. Breaking this needs an input not from the orbit's own statistics; the
+best candidate (a regeneration-plus-bilinear engine resting on the multiplicative
+independence of $2$ and $3$, with a Bourgain--Sarnak--Ziegler step over the
+$3$-adic frequencies) is \epi{Speculation}, and is morally Sarnak-hard.
+
+\section{Three falsifiable consequences (the test targets)}
+\label{sec:targets}
+\begin{enumerate}[leftmargin=1.6em]
+\item For each $r$, compute the exact $\rho(\Lcal_{0,3^r,L,\chi})$ and check it
+tracks $\max_k(5-4\cos(2\pi k/(2\cdot3^{r-1})))^{-1/2}$. A parametrically smaller
+coupled gap means the finiteness leak is real and returns the true $\kappa_Q$.
+\item Along long orbits, compute the windowed $W_n(x;\chi,0)$ at resonant
+frequencies; the prediction is decay with no persistent plateau. A plateau is the
+spectral shadow made visible and a direct test of the circularity leak.
+\item At $s=1$, compare $\rho(\Lcal_{1,3^r,L,\chi})$ with
+$\rho(\Lcal_{1,3^r,L,0})$. A nontrivial gap there is the statement that a high
+ascent cannot also hold a residue resonance.
+\end{enumerate}
+
+\part{The numerical test program}
+
+\section{What was built}
+
+The suite \texttt{collatz\_tests} (ISO~C11; profiles \textsf{FAST128} with
+\texttt{\_\_uint128\_t}, \textsf{GMP} with \texttt{mpz\_t}, and a \textsf{DEBUG}
+profile of invariant assertions) implements nine experiments, A--I, over the
+accelerated step $S(x)=(3x+1)/2^{b}$, $b=v_2(3x+1)$. Modules cover the core
+arithmetic, a streaming orbit scanner, finite characters (additive
+$\chi_k(a)=e(ka/Q)$ and multiplicative on $(\Z/3^r)^\times$ with $2$ a primitive
+root), the defect sums $W_{n,\ell}$ via complex prefix sums, empirical
+valuation/entropy statistics, an excursion/critical-event recorder, the finite
+residue--height operator builder, and a CSR sparse-matrix spectral toolkit.
+
+Four design requirements, adopted from review, shaped the build:
+\begin{enumerate}[leftmargin=1.6em,itemsep=1pt]
+\item the $\bmod\,3^r$ congruence (\cref{lem:cong}) is treated as a
+\emph{correctness gate} (Exp.~H), verified before any spectral code relies on it;
+\item $\rho_{\mathrm{annealed}}$ and $\rho_{\mathrm{exact}}$ are kept in separate
+columns and never interchanged (Exp.~F);
+\item the shadow search reports per-window magnitude \emph{and} length, so both
+$\limsup$ plateaus and long sparse blocks are visible---positive density is not
+required (Exp.~I);
+\item the quenched pressure is computed as $\limsup_n\frac1n\sum_{i<n}s\Delta_{b_i}$,
+not an ill-defined sum over words.
+\end{enumerate}
+
+\paragraph{A definitional caveat carried throughout.}
+The project-internal ``$C_A$-critical'' certificate is not restated in the source
+notes. The spec's literal inequality $V^2\le 2^A P$ (launch $V$, peak $P$) is
+\emph{degenerate} in practice: once the orbit descends to small record-low
+launches, $V^2$ is tiny and essentially every excursion qualifies. The suite
+therefore offers two readings via \texttt{--crit-mode}: \texttt{vsq} (literal) and
+\texttt{height} (peak $\ge$ launch$\cdot2^A$, i.e.\ ``rises $A$ octaves''), with
+\texttt{height} the default. Both are reported; the formal certificate should be
+fixed before the $B/D/I$ ``critical'' labels are treated as canonical.
+
+\part{Findings}
+
+All runs below are from a single large sweep (\textsf{FAST128} release).
+
+\section{Experiment H --- the congruence gate}
+
+\begin{findingbox}{Verified}
+\cref{lem:cong} holds in every test: \textbf{$23{,}905{,}968/23{,}905{,}968$}
+checks match (\textsf{FAST128}, seeds $3$--$999{,}999$, $r\le8$, $0$ overflow),
+plus \textbf{$144/144$} under \textsf{GMP} for a $16$-digit seed at $r=12$ with
+$n$ up to $155$ (values $\gg 2^{128}$).
+\end{findingbox}
+\noindent The load-bearing identity is sound; downstream residue/spectral code may
+rely on it. Each check compares the directly reduced orbit value $x_n\bmod 3^r$
+against the sliding-window formula using $2^{-1}\bmod 3^r$.
+
+\section{Experiment A --- height-tail census}
+
+Pre-registration: $\log_2\Pr(h\ge H)\approx -H+C$. Over octaves $10$--$28$ at
+$10^5$ seeds/octave, the per-step slope of $\log_2(\text{tail}/\text{seeds})$ at
+octave $24$ averages $\approx\mathbf{-0.97}$ for $H=3,\dots,11$ (steeper in the
+low-count tail). \textbf{Slope $-1$ confirmed.}
+
+\section{Experiment B --- the Cram\'er-tilt law}
+
+Pre-registration: the bulk valuation law of high-ascent excursions tends to
+$p^{(1)}_b=3\cdot4^{-b}$ with entropy-per-digit $\to H_2(3/4)=0.8113$.
+
+\begin{findingbox}{Cram\'er tilt confirmed (in direction)}
+Octave $26$, $2\times10^5$ seeds, boundary-excluded \emph{middle} segments of
+length $\ge16$ ($103{,}976$ segments):
+$\hat p=(0.657,0.229,0.089,0.021)$---between annealed $(.5,.25,.125,.0625)$ and
+critical $(.75,.1875,.0469,.0117)$---with
+$\KL{\hat p}{p^{(1)}}=\mathbf{0.093}\ll\KL{\hat p}{p}=0.191$ and
+entropy-per-digit $0.870$.
+\end{findingbox}
+\noindent Full segments dilute toward annealed because launch/exit boundary layers
+contaminate them---precisely what the boundary-layer test isolates. Larger scale
+roughly doubles the margin in favor of $p^{(1)}$ over the small run.
+
+\section{Experiment C --- defect windows}
+
+At $s=0$ (the residue Weyl sum) $\lvert W\rvert$ decreases with window length
+($0.31$ at $L{=}16\to0.24\to0.20\to0.11$ at $L{\approx}116$ for $Q=27$), the
+equidistribution direction. Single-orbit windows stay short (orbits terminate at
+$1$), so the asymptotic decorrelation lives in the operator experiments E/F rather
+than in single-orbit $W$.
+
+\section{Experiment D --- post-exit taboo}
+
+\begin{findingbox}{Entropy-space repulsion present}
+Octave $24$, $6{,}496$ post-exit windows: $\KL{\hat p_{\rm post}}{p}=0.177\ll
+\KL{\hat p_{\rm post}}{p^{(1)}}=0.576$, mean $M_{\rm post}(1)=0.989<1$ ($53\%$
+subcritical). Post-exit relaxes toward annealed, away from the critical tilt.
+\end{findingbox}
+\noindent This is the proposed reason two critical excursions fail to concatenate.
+
+\section{Experiments E and F --- the finite operator gap}
+
+The killed residue--height operator $\Lcal_{s,Q,L,\chi}$ is built with the forward
+residue map $a'=(3a+1)2^{-b}$ for odd $Q$ (so $2$ is invertible, covering
+$Q=3^r$), the height update $z'=z+\lfloor R(\log_23-b)\rceil$ with killing outside
+$[0,L]$, and the character phase on the source residue.
+
+\begin{findingbox}{Target 3 (the $s=1$ gap) and Target 1 (exact vs.\ annealed)}
+On the reliable \emph{residue-only} operator (Exp.~F), every nontrivial
+$3^r$-sector is gapped, $\rho(\Lcal_\chi)<\rho(\Lcal_0)$, and the gap is
+\emph{weakest at the critical tilt}: $s{=}1$ ratios run $0.54$--$0.93$ versus
+$0.22$--$0.76$ at $s{=}0$. Against the i.i.d.\ Fourier prediction
+$\lvert\hat p(\xi)\rvert$, the exact ratios deviate by $\pm0.1$--$0.36$ with
+$\mathrm{corr}=\mathbf{0.38}$ and mean $\lvert\text{dev}\rvert=0.254$ across $48$
+sectors.
+\end{findingbox}
+
+\begin{remark}[A solver defect surfaced by Part~IV, since fixed]\label{rem:Esolver}
+The \emph{killed-height} operator (Exp.~E) at first told a different story: its
+power iteration did not converge (relative residuals $3$--$9\%$; all sectors hit
+the $3000$-iteration cap), because the height-transport mode produces a
+near-degenerate band of top eigenvalues, and several reported gap ratios
+\emph{exceeded $1$}---impossible, since with $\lvert\Lcal_\chi\rvert$ equal to the
+principal operator on the same support Wielandt's theorem forces
+$\rho(\Lcal_\chi)\le\rho(\Lcal_0)$. The solver was replaced by a \textbf{restarted
+complex Arnoldi} (Krylov subspace, Hessenberg shifted-QR Ritz values, validated
+against known spectra in the unit tests). The killed-height operator now converges
+to residual $<8\times10^{-11}$ with no Wielandt violations.
+\end{remark}
+
+\begin{remark}[The uniform gap is governed by the \emph{worst} character]
+A uniform gap means $\rho(\Lcal_\chi)\le(1-\kappa_Q)\rho(\Lcal_0)$ for
+\emph{all} $\chi\ne1$, so
+$\kappa_Q=1-\max_\chi[\rho(\Lcal_\chi)/\rho(\Lcal_{\chi_0})]$---the
+\emph{worst}-gapped character. (Computed over the full group via the conjugate
+symmetry $k=1..\lfloor\phi/2\rfloor$.)
+\end{remark}
+
+\begin{findingbox}{Target 1 (the finiteness leak), full character group}
+\textbf{Residue-only (the object that governs $W$): a uniform gap survives.}
+$\kappa_Q=1-\max_\chi$ ratio \emph{stabilizes} as $Q$ grows---$0.236$ at
+$s{=}0$, $0.074$ at $s{=}1$ for all $Q\in\{27,\dots,2187\}$---bounded well away
+from $0$, with the worst character at a \emph{fixed} frequency, not $k=1$. The
+lowest-frequency $k{=}1$ char, where the annealed $1-\lvert\hat p(1/\phi)\rvert$
+collapses to $0$ ($0.42\to2\times10^{-5}$ as $Q\to2187$), is gapped by the
+\emph{exact} operator by $0.24$--$0.78$: the exact operator gaps low frequencies
+\emph{far more} than the i.i.d.\ shadow. The annealed finiteness leak is
+\textbf{refuted} for the residue operator over $3^2\to3^7$.
+\end{findingbox}
+
+\subsection*{Coupling the height to the character}
+The faithful \emph{skew-product} killed-height operator (one $b$ drives residue
+and height) has \emph{no} uniform gap: its maximum gap ratio is \emph{exactly}
+$1$, at the \textbf{quadratic character} $k=\phi/2$. This is structural, not a
+discretization artifact---it stays exactly $1$ across $R\in\{2,\dots,16\}$ and
+$L\in\{24,\dots,120\}$. The mechanism: the height is $\approx n\log_2 3-B_n$, so
+it encodes $B_n$, and the quadratic character's $2$-adic factor
+$\chi(2)^{-b}=(-1)^b$ accumulates to $(-1)^{B_n}$---a \emph{coboundary} of the
+skew product, removable by a diagonal similarity for any height geometry.
+
+\begin{findingbox}{The rebuilt coupling restores the gap}
+Decoupling the synchronization---$\Lcal=\Lcal_{\mathrm{res}}(\chi)\otimes
+T_{\mathrm{height}}$, the height a residue-independent survival factor, the
+character twisting only the residue factor (\texttt{--height-mode factored})---%
+gaps the quadratic character (ratio $0.333$ at $s{=}0$, $0.600$ at $s{=}1$, the
+residue value) and gives the killed operator the residue uniform gap exactly:
+$\kappa_Q=0.345\,(Q{=}9)\to0.236\,(Q\ge27)$ at $s{=}0$, matching F. The Kronecker
+height factor cancels in every gap ratio, so this holds for all $Q$. The
+\textbf{killed operator now inherits the stabilizing residue gap and gaps every
+character}; the skew-product $\kappa_Q=0$ is isolated to the genuine
+quadratic-character height-coboundary.
+\end{findingbox}
+
+\section{Experiment G --- trace and determinant shadows}
+
+For small $(Q,L)$, $\tr(\Lcal^1)=0$, $\tr(\Lcal^2)=1.25$, $\tr(\Lcal^3)=0$,
+$\tr(\Lcal^4)=0.594$, and $\det(1-z\Lcal)$ is smooth and positive
+($0.95$ at $z{=}0.25\to0.82$ at $z{=}0.5$): no spurious peripheral structure.
+
+\section{Experiment I --- the quenched spectral-shadow search}
+
+A window is flagged shadow-bearing when $\max_{Q,\chi,s}\lvert W\rvert\ge\delta$
+\emph{and} exceeds $3\times$ a length-scaled null $\mathrm{rms}(w)/\sqrt{\ell}$
+(the raw $\delta$-only criterion saturates at $100\%$ from short-window and
+max-over-grid inflation). Over $1{,}254{,}232$ windows (octaves $18$--$24$,
+moduli $\{9,27,81,243\}$), $4.2\%$ flag.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{by label} & windows & frac.\ shadow\\
+\midrule
+\texttt{critical\_C\_A} & $61{,}372$ & $0.084$\\
+\texttt{high\_ascent}   & $445{,}193$ & $0.054$\\
+\texttt{post\_exit}     & $747{,}621$ & $0.032$\\
+\bottomrule
+\end{tabular}
+\hspace{2em}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{by length} & windows & frac.\ shadow\\
+\midrule
+$8$--$15$   & $331{,}996$ & $0.003$\\
+$16$--$31$  & $330{,}930$ & $0.029$\\
+$32$--$63$  & $591{,}088$ & $0.072$\\
+$64$--$127$ & $218$ & $\mathbf{1.000}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent Critical excursions carry shadows most often and post-exit least
+(taboo-consistent), and the shadow rate grows monotonically with window length,
+reaching $100\%$ for the longest excursions. Whether this is the obstruction or a
+finite-size effect is exactly the question of Part~IV.
+
+\part{Relating the long shadow windows to the operator gaps}
+
+This is the direct test of the keystone arrow: do shadow windows live in sectors
+where the operator gap is small? The shadow moduli $\{9,27,81,243\}$ are all powers
+of $3$, so multiplicative characters match between Experiments I and F, and the
+join is on $(Q,\chi\text{-index},s)$. Because of \cref{rem:Esolver} the gap is
+taken from the residue-only operator (F), re-run over these moduli with a
+\emph{principal-on-units} baseline ($\chi_0=1$ on units, $0$ on non-units)---the
+apples-to-apples trivial sector for multiplicative characters.
+
+\subsection*{Tilt level: a clean correspondence}
+
+\begin{findingbox}{Shadows sit at the weakest-gap tilt}
+F shows residue-only gaps are systematically weaker (closer to $1$) at $s{=}1$ than
+at $s{=}0$. The shadows concentrate there: of $53{,}158$ shadow windows,
+$43{,}843$ ($\mathbf{82\%}$) have argmax $s{=}1$, and \textbf{all $218$ long
+windows ($\ell\ge64$) are at $s{=}1$}. Long shadows also sit in weaker-gap
+sectors: mean gap ratio $\mathbf{0.73}$ versus $0.57$ over all shadows.
+\end{findingbox}
+\noindent Both statements are the manuscript's predicted direction: a
+slowly-decaying mode is permitted precisely where the gap is weak, and the
+critical tilt is where the operator gap is weakest (Target~3 made dynamical).
+
+\subsection*{Sector level: confounded by finite residue-class count}
+
+Across sectors at fixed tilt the correspondence is weak,
+$\mathrm{corr}(\lvert W\rvert,\text{gap})=+0.247$ (right sign, small). The argmax is
+dominated by the \emph{smallest} modulus: $94\%$ of shadows pick $Q=9$
+($49{,}727$ of $53{,}158$), which has only six unit residues, so a short window's
+$\lvert\text{mean }\chi\rvert$ is large by finite-sample inflation regardless of
+the asymptotic gap (the sector $Q{=}9,k{=}3$ carries $36{,}666$ shadows yet has a
+healthy gap of $0.60$).
+
+\begin{keystatement}
+The finite operator decorrelates every nontrivial sector (all residue-only gaps
+$<1$, weakest at $s=1$). The long shadow windows correspond to it in the predicted
+direction at the level of the tilt and in gap magnitude. But the per-sector
+single-orbit shadow is dominated by small-$Q$ finite-size inflation, so it is
+\emph{not} clean evidence of an operator anti-gap. This is the circularity leak
+made concrete: reading the obstruction off one orbit's short windows is confounded;
+the operator gap is the reliable object, and it shows no anti-gap.
+\end{keystatement}
+
+\part{Assessment}
+
+\section*{Where the program stands}
+\addcontentsline{toc}{section}{Assessment}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{0.40\linewidth} p{0.52\linewidth}@{}}
+\toprule
+\textbf{Component} & \textbf{Status after testing}\\
+\midrule
+Congruence \cref{lem:cong} & verified, $2.4\times10^7$ checks \epi{Confirmed}\\
+annealed gap $\lvert\hat p(\xi)\rvert<1$ & realized; exact operator deviates from it \epi{Refined}\\
+Cram\'er tilt on critical excursions & bulk leans to $p^{(1)}$, $\KL{\cdot}{p^{(1)}}\ll\KL{\cdot}{p}$ \epi{Confirmed}\\
+post-exit taboo & $M_{\rm post}(1)<1$, repelled from $p^{(1)}$ \epi{Confirmed}\\
+finite character-sector gap (Target 3) & present, weakest at $s=1$ (residue-only) \epi{Confirmed}\\
+residue-only uniform $\kappa_Q$ (Target 1) & stabilizes $\to0.236$ ($s{=}0$)/$0.074$ ($s{=}1$) over $3^2\!\to\!3^7$; leak refuted \epi{Confirmed}\\
+killed-height uniform $\kappa_Q$ & skew-product $=0$ (quadratic coboundary, proved \cref{app:quad}); \texttt{factored} inherits residue gap \epi{Resolved}\\
+H23a operator vehicle & faithful \texttt{sync} on coboundary-quotient \epi{Decided}\\
+H23a gap (non-coboundary) & constant $\kappa_0\approx0.093$ by conductor; autonomy proved, monotonicity open \epi{Reformulated}\\
+shadow $\Rightarrow$ small operator gap & holds by tilt; per-sector confounded by $Q$ \epi{Partial}\\
+Quenched Inverse Principle / keystone & untouched; circularity leak made concrete \epi{Open}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Which operator powers H23a}
+\addcontentsline{toc}{section}{Which operator powers H23a}
+
+The proof of \cref{app:quad} forces a choice of operator, and it resolves
+cleanly in favour of the \textbf{faithful skew product (\texttt{sync})}, on a
+\emph{coboundary-quotiented} character family. The reasoning:
+
+\begin{enumerate}[leftmargin=1.6em]
+\item \textbf{Faithfulness is non-negotiable for an inverse argument.} H23a runs
+\emph{backwards}: a persistent $|W_n(x;\chi,s)|$ must force a near-peripheral
+eigenstate. That implication is valid only if the operator's spectral radius
+\emph{is} the growth rate of $W_n$. Along the real orbit a single valuation
+$b_i$ drives both the residue step and the tilt weight $2^{s\Delta_{b_i}}$, which
+is exactly the \texttt{sync} coupling. The \texttt{factored} operator draws an
+independent valuation for the height, so its spectral radius does \emph{not}
+govern $W_n$.
+
+\item \textbf{The \texttt{factored} gap is a mirage.} By \cref{cor:run},
+$W_n(x;\chi_2,0)=\frac1n\sum(-1)^{b_{i-1}}\to \E[(-1)^b]=-\tfrac13$ (confirmed:
+mean $-0.353$ over $3.2\times10^4$ orbits). The $\chi_2$ component \emph{does not
+decay}. The \texttt{factored} operator reports a gap there ($\rho<\rho_0$),
+predicting decay that does not occur---a false negative that would let a genuine
+non-decaying sector through. \texttt{sync} correctly returns
+$\rho(\Lcal_{\chi_2})=\rho(\Lcal_{\mathbf1})$ (no decay), matching reality.
+
+\item \textbf{The lone ungapped sector is not an obstruction---it is the
+reference.} $\chi_2$ is a coboundary (\cref{thm:cobound}); its Weyl sum is
+slaved to the valuation statistics, i.e.\ to the $\chi=\mathbf1$ (height/pressure)
+data. Equivalently, the orbit's residues are \emph{not} uniform mod $3$: they sit
+at $1:2$ ratio $\tfrac13:\tfrac23$, the pushforward of the valuation parity. So
+the correct annealed residue reference is this non-uniform law, and $\chi_2$
+carries no information beyond it. H23a must be posed on the quotient
+$\widehat{\Om_Q}/\langle\text{coboundaries}\rangle$, where $\chi_2$ is absorbed
+into the reference.
+
+\item \textbf{On that quotient, \texttt{sync} has a positive, $Q$-uniform gap---in
+fact a constant.} The worst non-coboundary character is the fixed conductor-$9$
+(order-$6$) sector, gap ratio $0.9069$ for every $Q\in\{9,27,81,243\}$ and both
+tilts; higher-conductor characters are strictly more gapped, and each sector's gap
+is $r$-independent because the mod-$3^c$ reduction is autonomous
+(\cref{prop:cond}). Hence
+\[
+\kappa_Q^{\text{(sync, non-coboundary)}}=\kappa_0\approx0.0931
+\quad\text{constant for all }Q=3^r,\ r\ge2
+\]
+(\cref{thm:gapconst})---stronger than the conservative $\gtrsim1/\mathrm{polylog}(Q)$.
+It is smaller than the pure residue gap $0.236$ (the height-survival mode lifts
+every sector toward $1$) but bounded away from $0$, which is all H23a needs.
+\end{enumerate}
+
+\begin{keystatement}
+\textbf{Decision.} Run H23a on the faithful \texttt{sync} skew-product operator,
+relative to the valuation-pushforward residue reference, restricting the
+character family to the coboundary-quotient. There the finite gap is
+$\kappa_Q\approx0.093$, uniform in $Q$ and $s$. The \texttt{factored} and
+residue-only operators are kept as \emph{diagnostics}: they isolate the pure
+residue decorrelation ($\kappa=1-\tfrac{2^{1+s}-1}{2^{1+s}+1}$, stabilising at
+$0.236/0.074$) and certify that $\chi_2$ is the unique difference between the two.
+\end{keystatement}
+
+\paragraph{Immediate follow-ups.}
+(1)~With the operator question settled, the remaining \emph{Sync Quotient Gap
+Theorem} (\cref{thm:gapconst}) has a clean proof program (\cref{app:gap}): the
+only missing input is monotonicity in conductor (higher-conductor characters at
+least as gapped), via complete-fiber principal-unit cancellation; combined with
+the proved autonomy (\cref{prop:cond}) this yields the \emph{constant} gap
+$\kappa_0\approx0.093$, with $\kappa_Q\gg1/\mathrm{polylog}(Q)$ as the fall-back.
+(2)~Switch the defect-window
+experiment to multiplicative characters for $3^r$ and measure per-sector
+$\lvert W_{n,\ell}\rvert$ decay against the F gap rate at fixed $(Q,\chi,s)$,
+controlling for $Q$. (3)~Normalize the shadow detector by residue-class count so
+the per-sector signal is not swamped by small $Q$. (4)~Fix the formal
+$C_A$-critical certificate so the $B/D/I$ critical labels are canonical.
+
+The object relocates the difficulty rather than removing it. The experiments show
+$\Dcoll$ behaves as advertised on the parts that are reorganizations of known
+structure---the congruence, the annealed gap, the Cram\'er tilt, the post-exit
+taboo, and a genuine finite operator gap weakest at the critical tilt---while the
+one open arrow (a persistent quenched bias forcing a top finite-level eigenstate)
+remains open, and the single-orbit shadow that would witness it is confounded by
+finite size exactly as the circularity leak predicts.
+
+\appendix
+\section{The quadratic-character coboundary: an analytic proof}
+\label{app:quad}
+
+This appendix proves the structural fact found numerically: for the faithful
+residue--height skew product, the quadratic character $\chi_2$ of $(\Z/3^r)^\times$
+is an exact coboundary, so $\rho(\Lcal_{\chi_2})=\rho(\Lcal_{\mathbf 1})$ and its
+gap vanishes; whereas every character of order $>2$ stays gapped. Write
+$b_i=v_2(3x_i+1)$, $B_n=\sum_{i<n}b_i$, and $S(x)=(3x+1)/2^{b}$.
+
+\begin{lemma}[$\chi_2$ factors through reduction mod $3$]\label{lem:fac3}
+For $r\ge1$, $(\Z/3^r)^\times$ is cyclic of order $\phi=2\cdot3^{r-1}$ and the
+quadratic character $\chi_2$ (its unique order-$2$ character) satisfies
+$\ker\chi_2=\{u:\,u\equiv1\!\!\pmod 3\}$. Equivalently $\chi_2(a)=\left(\tfrac a3\right)$,
+the Legendre symbol mod $3$: $\chi_2(a)=+1$ if $a\equiv1$ and $-1$ if $a\equiv2\pmod3$.
+\end{lemma}
+\begin{proof}
+$2$ is a primitive root mod $3^r$, so the group is cyclic of order $\phi$ and
+$\ker\chi_2$ is its unique index-$2$ subgroup, the squares, of order $3^{r-1}$.
+Reduction $(\Z/3^r)^\times\!\to(\Z/3)^\times\cong\Z/2$ has kernel
+$\{u\equiv1\!\pmod3\}$, also of order $3^{r-1}$. A cyclic group has a unique
+subgroup of each order, so the two coincide; hence $\chi_2$ depends only on
+$a\bmod3$, equalling $+1$ on $a\equiv1$ and $-1$ on $a\equiv2$.
+\end{proof}
+
+\begin{proposition}[Key identity]\label{prop:key}
+For every odd $x$, with $b=v_2(3x+1)$,
+\[
+\chi_2\!\left(S(x)\bmod 3^r\right)=(-1)^{b}.
+\]
+In particular the character of the image depends only on $b$, not on $x$, and
+$\chi_2(x_{i+1})=(-1)^{b_i}$ along any orbit.
+\end{proposition}
+\begin{proof}
+Work mod $3$. Since $2\equiv-1\pmod3$ and $3x+1\equiv1\pmod3$,
+\[
+S(x)=(3x+1)\,2^{-b}\equiv 1\cdot(-1)^{-b}\equiv(-1)^{b}\pmod 3 .
+\]
+Thus $S(x)\equiv1\pmod3$ iff $b$ is even and $S(x)\equiv2\pmod3$ iff $b$ is odd;
+by \cref{lem:fac3}, $\chi_2(S(x))=(-1)^b$. (Note $3x+1\equiv1\pmod3$ makes $S(x)$ a
+unit, so $\chi_2(S(x))\ne0$.)
+\end{proof}
+
+\begin{corollary}[The running character is the valuation parity]\label{cor:run}
+$\displaystyle\prod_{i=1}^{n}\chi_2(x_i)=(-1)^{B_n}$, and
+$\prod_{i=0}^{n-1}\chi_2(x_i)=\chi_2(x_0)(-1)^{B_{n-1}}$. The quadratic character
+accumulated along the orbit is exactly $(-1)$ to the cumulative $2$-adic valuation.
+\end{corollary}
+\begin{proof}
+Immediate from \cref{prop:key}: $\prod_{i=1}^n\chi_2(x_i)=\prod_{i=0}^{n-1}(-1)^{b_i}=(-1)^{B_n}$.
+\end{proof}
+
+\begin{theorem}[$\chi_2$ is a coboundary of the residue--valuation skew product]
+\label{thm:cobound}
+On the skew product with state $(a,\tau)\in(\Z/3^r)^\times\times(\Z/2)$ and
+dynamics $(a,\tau)\xrightarrow{b}\big((3a+1)2^{-b},\,\tau+b\big)$, set
+$d(a,\tau)=\chi_2(a)\,(-1)^{\tau}\in\{\pm1\}$. Then on every edge
+\[
+\frac{d(a',\tau')}{d(a,\tau)}=\chi_2(a).
+\]
+Consequently the twisted annealed transfer operator obeys
+$\Lcal_{\chi_2}=D\,\Lcal_{\mathbf 1}\,D^{-1}$ with $D=\mathrm{diag}(d)$, so
+$\rho(\Lcal_{\chi_2})=\rho(\Lcal_{\mathbf 1})$ and $\kappa=0$, for every tilt $s$
+and any height discretization.
+\end{theorem}
+\begin{proof}
+By \cref{prop:key}, $\chi_2(a')=(-1)^b$, and $\tau'=\tau+b$ gives
+$(-1)^{\tau'}=(-1)^\tau(-1)^b=(-1)^\tau\chi_2(a')$. Hence, using $\chi_2(a')^2=1$,
+\[
+d(a',\tau')=\chi_2(a')(-1)^{\tau'}=\chi_2(a')\,(-1)^\tau\chi_2(a')=(-1)^\tau,
+\qquad
+\frac{d(a',\tau')}{d(a,\tau)}=\frac{(-1)^\tau}{\chi_2(a)(-1)^\tau}=\chi_2(a).
+\]
+With the character carried on the source, the matrix element of $D^{-1}\Lcal_{\chi_2}D$
+on this edge is $d(a',\tau')^{-1}\,w_s(b)\chi_2(a)\,d(a,\tau)=w_s(b)$, the matrix
+element of $\Lcal_{\mathbf 1}$. So the operators are conjugate by the real
+orthogonal $D$, hence isospectral.
+\end{proof}
+
+\paragraph{Why the residue alone is gapped, and the exact ratio.} Without the
+$\tau$-coordinate, $\chi_2$ is \emph{not} a coboundary: the candidate potential
+would be $a$-only, forcing $(-1)^b=1$. Indeed $\chi_2$ factors through mod $3$, on
+which the dynamics is $\epsilon\mapsto(-1)^b$ on $\{\pm1\}$; the $2\times2$ twisted
+operator $M_{\chi_2}[\epsilon',\epsilon]=\epsilon\sum_{b:(-1)^b=\epsilon'}w_s(b)$ has
+eigenvalues $0$ and $\sum_b(-1)^b w_s(b)$, giving the closed form
+\[
+\frac{\rho(\Lcal^{\mathrm{res}}_{\chi_2})}{\rho(\Lcal^{\mathrm{res}}_{\mathbf 1})}
+=\frac{\bigl|\sum_b(-1)^b w_s(b)\bigr|}{\sum_b w_s(b)}
+=\frac{2^{1+s}-1}{2^{1+s}+1}
+\quad\Big(=\tfrac13\text{ at }s{=}0,\ \tfrac35\text{ at }s{=}1\Big),
+\]
+matching Experiment F exactly. Adding $\tau$ supplies the coordinate that absorbs
+the alternating sign and lifts the ratio to $1$.
+
+\begin{remark}[Only the quadratic character]
+For a character $\chi$ of order $d>2$, $\chi(3a+1)$ is \emph{not} constant: by
+\cref{lem:fac3} $3a+1$ is a square, and $\chi$ restricted to the squares (order
+$3^{r-1}$) is nontrivial when $d>2$. Then $\chi(a')=\chi(3a+1)\chi(2)^{-b}$ depends
+on $a$, the per-edge phase is not a function of $(b,\tau)$ alone, and no diagonal
+$D$ on the skew product trivialises it---so $\chi$ stays gapped. This is exactly
+why the maximum gap ratio over the full group equals $1$ only at $k=\phi/2$.
+\end{remark}
+
+\begin{remark}[Height connection; \texttt{sync} vs \texttt{factored}]
+The valuation parity is the height's parity: $H_n=n\log_2 3-B_n+O(1)$, so
+$\tau=B_n\bmod2$ is carried by the residue--height state in the \texttt{sync}
+operator (one $b$ drives residue and height together), which therefore inherits
+the coboundary and shows $\kappa_Q=0$ for all $R,L$---as observed. The
+\texttt{factored} operator draws the height's valuation \emph{independently} of the
+residue's $b$, so $\tau$ no longer records the residue valuation, the coboundary
+is broken, and the gap returns to the residue value
+$1-\tfrac{2^{1+s}-1}{2^{1+s}+1}$ (and the worst-character $\kappa_Q$ stabilises).
+All claims here were checked numerically: the identity of \cref{prop:key} over
+$10^5$ seeds, \cref{cor:run} along every tested orbit, and
+\cref{thm:cobound} by direct diagonalisation (residue-only ratio $1/3$;
+residue$\times$parity ratio $1$).
+\end{remark}
+
+\section{The sync quotient gap: a constant, by conductor}
+\label{app:gap}
+
+This appendix sharpens the remaining target. After quotienting the unique
+coboundary, the faithful \texttt{sync} operator has a gap that is not merely
+$Q$-uniform but \emph{constant}, governed by a single fixed finite operator.
+
+\begin{lemma}[Coboundary classification]\label{lem:cobclass}
+A character $\chi$ of $U_Q=(\Z/3^r)^\times$ is a coboundary of the synchronized
+residue--valuation skew product iff $\chi\in\langle\chi_2\rangle=\{1,\chi_2\}$.
+\end{lemma}
+\noindent\emph{Status.} The forward direction is \cref{thm:cobound}. For
+uniqueness, write $U_{3^r}\cong\{\pm1\}\times C$ with $C=1+3\Z/3^r$ the principal
+units (the squares $=\ker\chi_2$); since coboundaries form a group containing
+$\chi_2$, it suffices to show no nontrivial character of $C$ is a coboundary. By
+Wielandt's equality theorem this is equivalent to $\rho(\Lcal_{\chi})<\rho(\Lcal_0)$
+for every $\chi\notin\langle\chi_2\rangle$, which the full-character-group
+computation confirms for $Q\le3^4$ (every $k\ne\phi/2$ has gap ratio $<1$). An
+analytic proof reduces to showing the principal-unit functional equation
+$\psi(3a+1)=\psi(a^2)$ has no nontrivial solution $\psi$ on $C$ (it already fails
+at $r=2$); we leave the all-$r$ statement as \cref{lem:cobclass}.
+
+\begin{proposition}[Conductor reduction and $Q$-independence]\label{prop:cond}
+For $1\le c\le r$, a character of conductor $3^c$ depends only on $a\bmod 3^c$, and
+its synchronized twisted operator is carried by the reduction of the dynamics mod
+$3^c$. That reduction is \emph{autonomous}: $(3a+1)\bmod 3^c$ depends only on
+$a\bmod 3^{c-1}$, so $x_{i+1}\bmod 3^c$ is a function of $(x_i\bmod 3^c,\,b_i)$
+alone. Hence the gap ratio of a conductor-$3^c$ sector is \textbf{independent of
+$r$}.
+\end{proposition}
+\begin{proof}
+$3a\equiv 3(a\bmod 3^{c-1})\pmod{3^c}$, so $(3a+1)2^{-b}\bmod 3^c$ is determined by
+$a\bmod 3^{c}$ and $b$; the induced operator on $(\Z/3^c)^\times\times(\text{height})$
+makes no reference to $r$.
+\end{proof}
+
+\begin{theorem}[Sync quotient gap is constant]\label{thm:gapconst}
+Order the non-coboundary characters by conductor. Numerically, for every
+$Q=3^r$ ($r\ge2$) and every tilt $s\in[0,1]$, the gap ratio is largest at the
+\emph{smallest} conductor $3^2$ and decreases with conductor:
+\[
+\begin{array}{c|ccccc}
+\text{conductor} & 3\,(\chi_2) & 9 & 27 & 81 & 243\\\hline
+\text{order} & 2 & 6 & 9 & 54 & 81\\
+\text{gap ratio} & 1.0000 & \mathbf{0.9069} & 0.8530 & 0.8261 & 0.7306
+\end{array}
+\]
+each entry being $r$-independent (\cref{prop:cond}). Consequently the worst
+non-coboundary sector is the fixed conductor-$9$ (order-$6$) character, and
+\[
+\kappa_Q^{\,\mathrm{sync}/\mathrm{cob}}
+=1-0.9069=\kappa_0\approx 0.0931
+\qquad\text{for all }Q=3^r,\ r\ge2,
+\]
+a \emph{constant}, not merely $\gtrsim 1/\mathrm{polylog}(Q)$.
+\end{theorem}
+\noindent\emph{Status.} \cref{prop:cond} (each conductor's gap is $r$-independent)
+is proved; the value $\kappa_0$ is the gap of the fixed conductor-$9$ operator (a
+small matrix, exactly computable). The remaining input is monotonicity in
+conductor---that higher-conductor characters are at least as gapped---which the
+data show cleanly and which is the content of the cancellation step below.
+
+\paragraph{Proof program for the gap theorem.}
+\begin{enumerate}[leftmargin=1.6em,itemsep=1pt]
+\item \textbf{Coboundary classification} (\cref{lem:cobclass}): $\langle\chi_2\rangle$
+is the only character coboundary; reduces to a principal-unit functional equation.
+\item \textbf{Principal-unit cancellation:} for each non-coboundary $\chi$, a
+finite admissible block from every bulk state carries untwisted mass $\ge\alpha$
+on which $\lvert\E[\chi(\text{endpoint})]\rvert\le 1-\eta$. Where the block images
+contain a full coset of a subgroup $H$ with $\chi|_H\ne1$, cancellation is
+\emph{exact} ($\sum_{u\in H}\chi(uh)=0$)---the likely source of the flat,
+conductor-monotone gap.
+\item \textbf{Conductor reduction} (\cref{prop:cond}): each sector's gap is a fixed
+$r$-independent number; the extremal one is conductor $9$.
+\item \textbf{Height/QSD transfer:} the synchronized height weights on the paired
+cancelling blocks are comparable ($w_s(w_1)/w_s(w_2)\in[C^{-1},C]$ uniformly for
+$s\in[0,1]$) and the blocks stay in the QSD bulk up to $O(e^{-cL})$, so the
+cancellation survives killing.
+\end{enumerate}
+Together these give $\kappa_Q\ge\kappa_0>0$; the conservative fall-back target is
+$\kappa_Q\gg1/\mathrm{polylog}(Q)$.
+
+\begin{remark}[What the numerics now mean]
+The flatness of $\kappa_Q$ through $Q=3^5$ and the worst frequency at $\xi=1/6$
+say the extremal obstruction is \emph{bounded-conductor} (conductor $9$), not a
+high-conductor random walk whose gap would decay like $Q^{-c}$. High-conductor
+principal-unit characters are killed strongly (apparently by near-complete-fiber
+averaging), leaving a single fixed low-level sector---hence a true constant gap.
+\end{remark}
+
+\end{document}

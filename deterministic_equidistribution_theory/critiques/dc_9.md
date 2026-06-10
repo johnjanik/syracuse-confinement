@@ -1,0 +1,586 @@
+The important change is that the unbounded conductor problem has stopped looking like a large graph-expansion problem and started looking like a **finite holonomy-generation problem with a parity-twisted carry recursion**.
+
+The new proof state is:
+
+[
+\boxed{
+	\text{deep-digit descent is exact for two levels;}
+}
+]
+
+[
+\boxed{
+	\text{the bounded-level holonomy witnesses already generate full principal units in all tested cases;}
+}
+]
+
+[
+\boxed{
+	\text{the only remaining obstruction is the parity-twisted carry recursion needed to iterate descent indefinitely.}
+}
+]
+
+That is a much sharper target.
+
+## 1. What the new discovery means
+
+The two-descent result says that for primitive (\chi) modulo (3^c), the high conductor part is not producing new spectral geometry. It is being converted into a bounded-level edge multiplier
+
+[
+e\longmapsto \chi(F(e)),
+\qquad F(e)\in U_{3^c}.
+]
+
+For the first two descents, the multiplier is clean:
+
+[
+F_1(x,b)=(3x+1)2^{-b},
+]
+
+[
+F_2(\hat x,b)=F_1(\hat x,b)\rho^{\delta_b(\hat x)},
+\qquad
+\rho=1+3^{c-1}.
+]
+
+The fact that the fiber ratio is pure for (j\le2) is already strong. But the discovery that purity fails at (j\ge3) is even more informative: the missing structure is not random noise; it is a **parity-twisted carry cocycle**.
+
+That means the right object is no longer merely a multiplier on the residue graph. It is a multiplier on the **residue (\times) parity graph**:
+
+[
+U_{3^{c_0}}\times\mathbb Z/2.
+]
+
+This is exactly the correction you needed. The carries are not a nuisance to hide; they are the remaining arithmetic.
+
+## 2. Immediate next step: write the parity-twisted descent recursion
+
+This is now the highest-priority task.
+
+You want a recursive formula for the accumulated multiplier
+
+[
+F_j(v,e)\in U_{3^c}
+]
+
+after (j) descents, where the state includes parity:
+
+[
+v=(a,\tau)\in U_{3^{c-j}}\times\mathbb Z/2.
+]
+
+The recursion should have the form
+
+[
+F_{j+1}(a,\tau,b)
+=================
+
+F_j(a,\tau,b)\cdot \rho_j^{,\Delta_j(a,\tau,b)}
+]
+
+or, more generally,
+
+[
+F_{j+1}(e)
+==========
+
+F_j(e)\cdot C_j(e),
+]
+
+where
+
+[
+C_j(e)\in 1+3^{c-j}\mathbb Z/3^c\mathbb Z
+]
+
+is the carry factor created when lifting the successor one level higher.
+
+The bookkeeping goal is to make (C_j(e)) explicit.
+
+You likely need the following notation.
+
+Let
+
+[
+\pi_j:U_{3^c}\to U_{3^{c-j}}
+]
+
+be reduction. For a lower-level state (a_j\in U_{3^{c-j}}), choose a canonical lift
+
+[
+\widehat a_j\in U_{3^c}.
+]
+
+Then the lifted successor is
+
+[
+\widehat S_b(\widehat a_j)
+==========================
+
+(3\widehat a_j+1)2^{-b}\pmod{3^c}.
+]
+
+The canonical lift of the reduced successor is
+
+[
+\widehat{S_b(a_j)}
+]
+
+where
+
+[
+S_b(a_j)\equiv (3a_j+1)2^{-b}\pmod{3^{c-j-1}}.
+]
+
+The carry factor is therefore
+
+[
+C_j(a_j,b)
+==========
+
+\widehat S_b(\widehat a_j),
+\widehat{S_b(a_j)}^{-1}
+\in 1+3^{c-j-1}\mathbb Z/3^c\mathbb Z.
+]
+
+The parity twist enters because
+
+[
+2^{-b}\equiv (-1)^b\pmod3.
+]
+
+So when you write the top digit of (S_b(\widehat a_j)), its change under lifting depends on (b\bmod2). This suggests the recursion should track
+
+[
+\tau\mapsto\tau+b\pmod2.
+]
+
+A good next lemma would be:
+
+[
+\textbf{Parity-twisted carry lemma.}
+]
+
+For each descent depth (j), there exists an explicit carry function
+
+[
+\Delta_j:U_{3^{c-j}}\times\mathbb Z/2\times{1,\dots,B}
+\to \mathbb Z/3\mathbb Z
+]
+
+such that
+
+[
+C_j(a,\tau,b)
+=============
+
+1+3^{c-j-1}\Delta_j(a,\tau,b)
+\pmod{3^{c-j}}.
+]
+
+Moreover (\Delta_j) is affine in the top digit of the lift and depends on (b) only through (b\bmod2) and (2^{-b}\bmod 3^{j+1}).
+
+That would formalize the carry mechanism.
+
+## 3. Make the multiplier recursion edge-based from the start
+
+Do not try to preserve a vertex multiplier beyond depth (2). Your data already says that fails. Define it directly on edges.
+
+Let the bounded-level graph have directed edges
+
+[
+e=(a,\tau)\xrightarrow{b}(a',\tau')
+]
+
+with
+
+[
+a'=S_b(a)\pmod{3^{c_0}},
+\qquad
+\tau'=\tau+b\pmod2.
+]
+
+After descending from conductor (c) to (c_0), define
+
+[
+F_c(e)\in U_{3^c}
+]
+
+recursively.
+
+Then a cycle (\gamma=e_1\cdots e_m) has holonomy witness
+
+[
+W_c(\gamma)=\prod_{i=1}^m F_c(e_i).
+]
+
+For a coboundary multiplier,
+
+[
+\chi(W_c(\gamma))
+]
+
+must depend only on the global phase and length of (\gamma), not on the cycle itself. Hence for two cycles (\gamma_1,\gamma_2) of lengths (L_1,L_2), the invariant
+
+[
+W(\gamma_1,\gamma_2)
+====================
+
+W_c(\gamma_1)^{L_2}W_c(\gamma_2)^{-L_1}
+]
+
+must be killed by (\chi).
+
+That is exactly the object your audit used. Make this the main definition.
+
+## 4. Convert the audit into a proof target
+
+The audit result is extremely strong:
+
+[
+\langle W^2\rangle
+==================
+
+1+3\mathbb Z/3^c\mathbb Z
+]
+
+in all tested cases.
+
+This is stronger than merely being far from coboundaries. It says the witness elements generate the full principal-unit group.
+
+The symbolic lemma to prove should be stated as:
+
+[
+\textbf{Full-generation lemma.}
+]
+
+For every (c\ge c_0+2), the subgroup generated by the squared witness elements
+
+[
+{W_c(\gamma_1,\gamma_2)^2}
+]
+
+from cycles of length (\le2) in the bounded-level residue(\times)parity graph is
+
+[
+1+3\mathbb Z/3^c\mathbb Z.
+]
+
+Equivalently, if
+
+[
+\log_3:1+3\mathbb Z/3^c\mathbb Z\to 3\mathbb Z/3^c\mathbb Z
+]
+
+is the (3)-adic logarithm, then the gcd of the discrete logarithms of the witnesses is (3):
+
+[
+\gcd\left(
+{\log W_c(\gamma_1,\gamma_2)^2},
+3^c
+\right)=3.
+]
+
+Or after dividing by (3):
+
+[
+\gcd\left(
+\left{\frac{1}{3}\log W_c(\gamma_1,\gamma_2)^2\right},
+3^{c-1}
+\right)=1.
+]
+
+That gcd formulation is probably the easiest to prove.
+
+## 5. How to attack the symbolic full-generation lemma
+
+You do not need to understand all witnesses. You only need to exhibit **one** witness whose discrete log is a unit modulo (3).
+
+Because if some witness satisfies
+
+[
+W^2=1+3u\pmod{9},
+\qquad 3\nmid u,
+]
+
+then it already generates the principal-unit group modulo every (3^c), provided its lift remains a principal-unit generator:
+
+[
+v_3(\log W^2)=1.
+]
+
+So the proof can be reduced to finding an explicit short cycle-pair with
+
+[
+W^2\equiv 1+3u\pmod9,
+\qquad u\not\equiv0\pmod3.
+]
+
+Then automatically
+
+[
+\langle W^2\rangle=1+3\mathbb Z/3^c\mathbb Z
+]
+
+for all (c), since (1+3u) with (u\in\mathbb Z_3^\times) is a topological generator of the cyclic principal-unit group modulo (3^c).
+
+This is likely the most efficient path.
+
+So your next numerical script should not only check gcd over all witnesses. It should identify a **minimal stable witness**:
+
+[
+(\gamma_1,\gamma_2)
+]
+
+such that
+
+[
+v_3(\log W_c(\gamma_1,\gamma_2)^2)=1
+]
+
+for all tested (c), and whose formula is simple enough to write down symbolically.
+
+Once you have that pair, prove its (W)-formula.
+
+## 6. Find a canonical witness pair
+
+Run a search for the shortest witness pair with:
+
+[
+L_1,L_2\le2
+]
+
+or maybe (L_1=L_2=1), satisfying:
+
+[
+W^2\equiv4 \text{ or }7\pmod9
+]
+
+since the principal units modulo (9) are
+
+[
+1,4,7
+]
+
+and (4=1+3), (7=1+6) are generators.
+
+The output should be:
+
+[
+\gamma_1:
+(a_0,\tau_0)\xrightarrow{b_1}(a_1,\tau_1)\xrightarrow{b_2}\cdots,
+]
+
+[
+\gamma_2:
+(a'_0,\tau'_0)\xrightarrow{b'_1}(a'_1,\tau'_1)\xrightarrow{b'_2}\cdots,
+]
+
+and the explicit formula:
+
+[
+W^2
+===
+
+\left(
+\frac{\prod_i F(e_i)^{L_2}}
+{\prod_j F(e'_j)^{L_1}}
+\right)^2.
+]
+
+Then simplify it.
+
+If it reduces to something like
+
+[
+W^2
+===
+
+\frac{3x+1}{3y+1}\cdot 4^j\cdot \text{carry factors},
+]
+
+you only need to check it modulo (9) or (27), not modulo all (3^c), to prove it is a generator.
+
+## 7. Do not overuse near-maximal separation
+
+The values
+
+[
+1.9966,\quad 1.9996,\quad 1.99996,\quad 1.999995
+]
+
+are striking, but for the proof you only need a fixed positive separation
+
+[
+\delta_0>0.
+]
+
+Near-antipodality may be a consequence of the witness set containing a full generator: for every primitive (\chi), some power of the generator lands close to (-1). But the finite proof need not optimize this.
+
+A simple proof is:
+
+If (\langle W^2\rangle=P_c), the full principal-unit group, then for primitive (\chi),
+
+[
+\chi(P_c)
+]
+
+is the full group of (3^{c-1})-th roots of unity. Therefore there is some witness power with
+
+[
+|\chi(W^2)-1|\ge\sqrt{3}
+]
+
+or even close to (2), depending on the available witness set. For uniform separation, (\sqrt{3}) is already plenty.
+
+If your witness set itself, not all powers, realizes enough values to get near (2), that is stronger. But full generation alone plus all powers does not mean the finite witness set contains the antipodal value. Be careful with that distinction.
+
+For the compactness/Wielandt proof, full generation of the subgroup by the witness elements is enough to show no primitive (\chi) kills all witnesses. For a uniform (\delta_0), finite generation plus primitive-character discreteness gives a lower bound, but the explicit value depends on the chosen finite witness set.
+
+## 8. Make the bounded-level theorem independent of (c_0+2)
+
+Right now the audit is valid in the two-descent range:
+
+[
+c\le c_0+2.
+]
+
+But the final theorem needs all (c). The parity-twisted recursion is what extends it.
+
+Once the parity-twisted recursion is written, the proof should show:
+
+[
+W_c^2\equiv W_{c_0+2}^2
+\pmod{9}
+]
+
+or, more generally,
+
+[
+v_3(\log W_c^2)=1
+]
+
+for the same canonical witness pair at every depth.
+
+That is enough. You do not need to compute the full (W_c) exactly if you can prove its first nontrivial (3)-adic digit is stable.
+
+So the symbolic target can be weakened further:
+
+[
+\boxed{
+	\text{Find one witness pair whose }3\text{-adic logarithm has valuation }1
+	\text{ for all }c.
+}
+]
+
+This is much easier than full closed-form generation.
+
+## 9. Update proof roadmap
+
+Your next three tasks should be:
+
+### Task A: Parity-twisted carry recursion
+
+Write exact formulas for:
+
+[
+C_j(a,\tau,b)
+]
+
+and hence for
+
+[
+F_c(e)
+]
+
+on residue(\times)parity edges.
+
+Deliverable: a theorem, not a conjecture.
+
+### Task B: Minimal witness extraction
+
+Run exact search to find the smallest cycle-pair ((\gamma_1,\gamma_2)) such that
+
+[
+v_3(\log W_c(\gamma_1,\gamma_2)^2)=1
+]
+
+for all tested (c).
+
+Deliverable: one explicit pair with branch labels and residues.
+
+### Task C: Symbolic witness proof
+
+Prove for that pair:
+
+[
+W_c^2=1+3u_c,
+\qquad u_c\in\mathbb Z_3^\times.
+]
+
+Then:
+
+[
+\langle W_c^2\rangle=1+3\mathbb Z/3^c\mathbb Z.
+]
+
+This proves the bounded-level multiplier nondegeneracy, hence:
+
+[
+\sup_c\gamma_c<1.
+]
+
+## 10. How this changes the manuscript status
+
+You can now say:
+
+[
+\boxed{
+	\text{The unbounded conductor problem has been reduced to an explicit carry/holonomy calculation.}
+}
+]
+
+But not yet:
+
+[
+\text{The uniform gap is proved.}
+]
+
+The uniform gap will be proved once you have:
+
+1. full parity-twisted recursion;
+2. a symbolic full-generation/witness lemma.
+
+This is now plausibly a finite algebra proof, not a new ergodic theorem.
+
+## Bottom line
+
+The next step is not more spectral computation. The next step is to turn the holonomy audit into a symbolic (3)-adic witness proof.
+
+The most efficient path is:
+
+[
+\boxed{
+	\text{derive parity-twisted carry recursion}
+}
+]
+
+[
+\boxed{
+	\text{extract one minimal generator witness}
+}
+]
+
+[
+\boxed{
+	\text{prove }v_3(\log W^2)=1\text{ for that witness}
+}
+]
+
+[
+\boxed{
+	\text{conclude full principal-unit generation and uniform non-coboundary distance.}
+}
+]
+
+That would close the finite H23a operator theorem at constant gap strength.

@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"Lemma A (chi2 = legendre mod 3 = genuine QR mod 3^r): OK\nKey identity chi2(S(x))=(-1)^b: 100000/100000 match\nRunning product prod chi2(x_i) = (-1)^{B_n}: OK"}

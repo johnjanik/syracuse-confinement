@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"pdflatex present\nexit=0\n-rw-rw-r-- 1 john john 311011 Jun  9 18:29 defect_cocycle_with_findings.pdf\nPDF OK\n--- warnings/errors (if any) ---\nOverfull \\hbox (142.99557pt too wide) detected at line 171"}

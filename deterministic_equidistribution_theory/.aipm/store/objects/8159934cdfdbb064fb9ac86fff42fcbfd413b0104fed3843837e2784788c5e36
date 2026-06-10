@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"joined shadows=53158  mean|W|=0.6983  mean gap_ratio=0.5675  corr(|W|,gap)=0.247\nlong(>=64): n=218  mean gap_ratio=0.7286"}

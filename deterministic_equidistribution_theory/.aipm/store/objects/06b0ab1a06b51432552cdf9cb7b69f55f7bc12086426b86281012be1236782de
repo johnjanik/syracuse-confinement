@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"=== F (residue-only, Arnoldi) over shadow moduli ===\n[fourier-compare] wrote out_large/fourier_comparison.csv\nany F gap_ratio>1?\n(none=good)"}

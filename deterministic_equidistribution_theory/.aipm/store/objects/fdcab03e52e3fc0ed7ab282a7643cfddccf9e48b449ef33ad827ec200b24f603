@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"CLAIM 1 (F class-bijective): 7070400 pair-checks, 0 failures\nCLAIM 2 (per-step bound): worst observed P / theoretical bound = 1.000000  (must be <= 1)\nC1 = 1.719590, bound Q~_L <= 3*C1 = 5.1588; exact Q~_L (L=1..7) = 3.00,3.10,3.32,3.53,3.70,3.90,4.04 - all below"}

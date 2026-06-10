@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/tests/Makefile","new_string":"CORE := ../src/modarith.c ../src/orbit_scan.c ../src/bigval.c ../src/sparse_matrix.c","old_string":"CORE := ../src/modarith.c ../src/orbit_scan.c ../src/bigval.c","replace_all":false}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\npdflatex -interaction=nonstopmode defect_cocycle_with_findings.tex >/tmp/dcf_build.log 2>&1\ngrep -A3 \"Overfull \\\\\\\\hbox (142\" /tmp/dcf_build.log | head -8\necho \"--- tex lines 166-176 ---\"\nsed -n '166,176p' defect_cocycle_with_findings.tex"}

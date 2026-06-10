@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":" boundary: n=800  frac(S=0)=0.000  mean|S|/phi=0.5737  nonzero |S|/phi: mean=0.574  max=1.000\n   deeper: n=800  frac(S=0)=0.000  mean|S|/phi=1.0000  nonzero |S|/phi: mean=1.000  max=1.000\n(locked skipped: 1087, tries 29314)"}

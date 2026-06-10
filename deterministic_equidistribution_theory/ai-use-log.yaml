@@ -1,0 +1,10 @@
+policy:
+  ai_not_author: true
+  human_responsibility: true
+  raw_transcripts_private_by_default: true
+project:
+  profile: experimental-science
+  title: Deterministic Defect Cocycle — Collatz Equidistribution
+records: []
+schema_version: aipm.public_log.v1
+tools: []

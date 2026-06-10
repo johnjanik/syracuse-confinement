@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"built\n57:            ldbl r = csr_spectral_radius_arnoldi(&A0, ARN_M0, ARN_MMAX, ARN_TOL, NULL, NULL);\n73:                ldbl r = csr_spectral_radius_arnoldi(&A, ARN_M0, ARN_MMAX, ARN_TOL, NULL, NULL);"}

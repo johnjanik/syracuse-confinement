@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\nsed -n '1232,1320p' finite_spectral_shadows.tex"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nmkdir -p /tmp/sync243\nnohup ./collatz_tests spectral-gaps --moduli 243 --tilts 0 --L 48 --R 6 --bmax 20 --char-cap 27 --output-dir /tmp/sync243 > /tmp/sync243/log 2>&1 &\necho \"launched Q=243 sync confirmation (worst non-coboundary is k=27, xi=1/6), pid $!\"","run_in_background":true}

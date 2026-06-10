@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"section\\|end{document}\" finite_spectral_shadows_computational.tex | tail -8"}

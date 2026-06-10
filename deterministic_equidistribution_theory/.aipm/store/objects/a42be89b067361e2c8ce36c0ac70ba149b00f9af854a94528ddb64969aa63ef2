@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\necho \"=== iterations(col11) & residual(col12) for Q=9 s=1 sectors ===\"\ngrep -v '^#' out_large/spectral_gaps.csv | grep -v '^Q,L' | awk -F, '$1==9 && $5==\"1.0000\"{printf \"k=%s ctype=%-7s rho=%.6f iters=%s residual=%s gap_units=%.4f\\n\",$7,$6,$8,$11,$12,$17}'"}

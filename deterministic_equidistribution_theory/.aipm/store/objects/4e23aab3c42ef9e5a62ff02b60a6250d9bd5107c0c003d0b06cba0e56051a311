@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"windows=1687  mean M_post(1)=0.9907  frac(M_post(1)<1)=0.519\n  mean KL_to_p=0.1776  mean KL_to_p1=0.5657"}

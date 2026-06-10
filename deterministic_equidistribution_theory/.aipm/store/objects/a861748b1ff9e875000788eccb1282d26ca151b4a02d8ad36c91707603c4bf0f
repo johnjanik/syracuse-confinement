@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/collatz/lean4\ntimeout 590 ~/.elan/bin/lake build CollatzLean.FiniteSpectralShadows 2>&1 | tail -3\ntimeout 300 ~/.elan/bin/lake env lean /tmp/axcheck.lean 2>&1 | head -8"}

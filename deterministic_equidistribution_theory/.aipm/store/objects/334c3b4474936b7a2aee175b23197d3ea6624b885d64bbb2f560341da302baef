@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"exhausted\\|sharpest possible\\|phases-and-counting\" finite_spectral_shadows.tex | head -5"}

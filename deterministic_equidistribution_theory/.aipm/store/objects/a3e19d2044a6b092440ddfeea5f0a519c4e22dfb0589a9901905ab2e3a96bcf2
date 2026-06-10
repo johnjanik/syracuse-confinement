@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/c_suite/src/exp_spectral_gaps.c","new_string":"                    rho_principal = csr_spectral_radius_arnoldi(&Ap, ARN_M0, ARN_MMAX, ARN_TOL, NULL, NULL);","old_string":"                    rho_principal = csr_spectral_radius(&Ap, MAXIT, TOL, RESTARTS, NULL, NULL);","replace_all":false}

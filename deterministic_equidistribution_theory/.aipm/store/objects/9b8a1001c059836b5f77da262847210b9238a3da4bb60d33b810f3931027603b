@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\necho \"=== ailog validate ===\"; ailog validate 2>&1 | tail -5\necho \"=== ailog doctor ===\"; ailog doctor 2>&1 | tail -6\necho \"=== captures recorded this project ===\"; ailog report 2>&1 | head -20 || true"}

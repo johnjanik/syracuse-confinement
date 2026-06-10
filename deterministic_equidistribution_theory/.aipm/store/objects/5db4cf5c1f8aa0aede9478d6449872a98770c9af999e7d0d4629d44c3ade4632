@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"<stdin>:16: SyntaxWarning: invalid escape sequence '\\;'\nok\nPages:           33"}

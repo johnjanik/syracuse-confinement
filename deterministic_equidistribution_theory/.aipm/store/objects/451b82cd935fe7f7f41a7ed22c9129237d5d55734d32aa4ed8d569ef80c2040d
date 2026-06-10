@@ -1,0 +1,1 @@
+{"command":"ls /home/john/mynotes/collatz/lean4/ 2>/dev/null && cat /home/john/mynotes/collatz/lean4/lakefile.lean 2>/dev/null || cat /home/john/mynotes/collatz/lean4/lakefile.toml 2>/dev/null; ls /home/john/mynotes/collatz/lean4/Collatz/ 2>/dev/null | head"}

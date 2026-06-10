@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"exit: \n-rwxrwxr-x 1 john john 115872 Jun  9 15:03 collatz_tests\nBUILD_OK"}

@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"sha256:c5f827c7f2e0f834cf64e6aba4973ed2d22048794f581841777f2b6b16fe7463\n=== doctor ===\n  ! sessions: 1 unfinalized Claude session buffer(s)\n  ✓ disclosure: ai-use-log.yaml up to date\n  ✓ validation: passes\n8 checks, 1 warning(s), 0 error(s)"}

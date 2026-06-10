@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"conditional only on\\|op:onecond\\|op:cellsum\" finite_spectral_shadows.tex | grep -v \"^2[01]\" | head -12"}

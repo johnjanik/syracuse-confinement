@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nawk -F, '!/^#/ && $5>=16 {n++; m+=$8; if($8<1)lt++; k1+=$7; k0+=$6}\n  END{ if(n)printf \"windows=%d  mean M_post(1)=%.4f  frac(M_post(1)<1)=%.3f\\n  mean KL_to_p=%.4f  mean KL_to_p1=%.4f\\n\",n,m/n,lt/n,k0/n,k1/n }' out/post_exit.csv"}

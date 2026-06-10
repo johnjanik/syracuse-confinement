@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"live route\\|conj:schur\\|eigenvector-aware\\|Large-\\$m\\$\\|Status of earlier\" finite_spectral_shadows.tex | head -30"}

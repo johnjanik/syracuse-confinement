@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\nsed -n '2215,2222p' finite_spectral_shadows.tex; echo ----; sed -n '2588,2602p' finite_spectral_shadows.tex; echo ----\ngrep -n \"conditional only on\" finite_spectral_shadows.tex"}

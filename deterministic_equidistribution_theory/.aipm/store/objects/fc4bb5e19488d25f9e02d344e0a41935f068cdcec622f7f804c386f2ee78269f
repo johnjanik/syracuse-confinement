@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\n./collatz_tests scan-height --octave-min 12 --octave-max 20 --seeds-per-octave 40000 --apertures 4,6,8 2>&1 | tail -12"}

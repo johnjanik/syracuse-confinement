@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nnohup ./collatz_tests spectral-gaps --moduli 9,27,81,243 --tilts 0,0.5,1,1.5 --L 48 --R 6 --bmax 20 --char-cap 4 --output-dir out_large > out_large/E_arnoldi.log 2>&1 &\necho \"E launched pid $!\"","run_in_background":true}

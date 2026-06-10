@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory\ngrep -n \"quenched shadow rigidity\\|no orbit may cast\" finite_spectral_shadows.tex | head -3\nsed -n '/keystone. Its first half/,/terminus/p' finite_spectral_shadows.tex | head -14"}

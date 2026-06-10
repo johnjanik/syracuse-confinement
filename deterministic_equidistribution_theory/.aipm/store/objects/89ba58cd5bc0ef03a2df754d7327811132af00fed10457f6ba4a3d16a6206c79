@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes && git status --short -- deterministic_equidistribution_theory collatz/lean4 2>/dev/null | head -40; echo \"===\"; git status --short -- deterministic_equidistribution_theory collatz/lean4 | wc -l"}

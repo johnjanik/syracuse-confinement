@@ -1,0 +1,3401 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+\allowdisplaybreaks
+\setlength{\parskip}{0.4em}
+
+%==================== macros ====================
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Om}{\Omega}
+\newcommand{\UQ}{U_{3^r}}
+\newcommand{\Dcoll}{\mathfrak{D}_{\mathrm{Coll}}}
+\DeclareMathOperator{\tr}{tr}
+\newcommand{\KL}[2]{D\!\left(#1\,\middle\|\,#2\right)}
+
+\newtcolorbox{principlebox}[1]{%
+  enhanced, sharp corners, boxrule=0.8pt,
+  colback=black!3, colframe=black!75,
+  coltitle=black, fonttitle=\bfseries, title={#1},
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=10pt, after skip=10pt}
+
+\newtcolorbox{keystatement}{%
+  enhanced, sharp corners, boxrule=0.6pt,
+  colback=black!4, colframe=black!70,
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  before skip=8pt, after skip=8pt}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{openproblem}{Open Problem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{convention}{Convention}
+
+\crefname{conjecture}{Conjecture}{Conjectures}
+\Crefname{conjecture}{Conjecture}{Conjectures}
+\crefname{definition}{Definition}{Definitions}
+\Crefname{definition}{Definition}{Definitions}
+
+\title{Finite Spectral Shadows for the Collatz Valuation Cocycle}
+\author{John A. Janik\\\texttt{john.janik@gmail.com}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study residue equidistribution for the accelerated Collatz/Syracuse map
+$S(x)=(3x+1)/2^{v_2(3x+1)}$ through a pathwise twisted Birkhoff functional---the
+\emph{deterministic defect cocycle} $W_n(x;\chi,s)$---and the finite
+residue--height transfer operators $\Lcal_{s,Q,L,\chi}$ that govern it. Our aim
+is not to prove the Collatz conjecture but to identify, rigorously, the correct
+finite spectral object and the correct quotient on which its gap should be
+sought. We prove two clean finite identities: a \emph{sliding-window congruence}
+expressing $x_n\bmod 3^r$ as a finite window of the valuation word, and the fact
+that the quadratic character $\chi_2$ of $(\Z/3^r)^\times$ satisfies
+$\chi_2(S(x))=(-1)^{v_2(3x+1)}$, i.e.\ $\chi_2$ is \emph{valuation parity in
+disguise} and is an exact coboundary of the faithful residue--valuation skew
+product. Consequently the right form of the finite spectral hypothesis (``H23a'')
+is a gap for all \emph{non-coboundary} characters of the \emph{faithful}
+(synchronized) operator, not for all nontrivial characters. We then prove three
+theorems about that operator: a \emph{classification of coboundaries}
+($\operatorname{Cob}=\langle\chi_2\rangle$, for arbitrary positive branch
+weights), whence by Wielandt's theorem a \emph{strict} spectral gap for every
+non-coboundary character at every finite level and tilt; a \emph{conductor
+collapse} (the nonzero spectrum of a conductor-$3^c$ sector is computed at level
+$3^c$), which reduces uniformity of the gap in $Q$ to the boundedness of a
+single sequence of computable constants $\gamma_c(s)$; and a \emph{rotation
+identity} showing the quadratic sector of the killed height-strip operator is a
+rigid rotation of the principal one. The uniformity question is then
+\emph{resolved}: a threshold ($m=c$) Schur analysis of the adjoint kernel
+yields bounded Plancherel shells for the renewal constants
+($\tilde Q_L\le3C_1<5.16$), cascade row contraction at rate $(\sqrt3/2)^c$,
+a level-cost law with the exact constant $\tfrac47<3^{-1/2}$, and a
+root-ball analysis closing the degenerate budget---together the finite
+H23a theorem $\sup_c\gamma_c(0)\le(\sqrt3/2)^{1/2}+o(1)<1$ at $s=0$. On
+the global side we prove the \emph{keystone arrow} (every bad orbit casts
+a finite non-coboundary two-point shadow), reduce the remaining quenched
+exclusion to a joint $(2,3)$-adic max-plus rigidity, and prove two
+unconditional exclusion theorems: periodic traps via linear forms in
+logarithms, and---by a new \emph{repetition rigidity} argument in which
+repeated valuation blocks are exact cycles---all bounded-discrepancy
+valuation words of subexponential complexity, in particular every
+Sturmian word. A counterexample must therefore mimic randomness at every
+banded scale. The elementary core (the $2$-adic coding lemma and
+repetition rigidity) is machine-verified in Lean~4. A companion
+computational report~\cite{companion} documents the numerical suite.
+\end{abstract}
+
+\tableofcontents
+
+\begin{convention}
+From \cref{sec:identities} onward the residue space is specialised to
+$\UQ=(\Z/3^r\Z)^\times$, $Q=3^r$, and all characters are multiplicative unless
+stated otherwise. The additive-character experiments reported in the companion
+are diagnostic only and are not the final operator vehicle. The character twist
+in the transfer operator is always placed on the \emph{source} vertex $a$ (see
+\cref{conv:twist}); with endpoint twisting the coboundary formulae are conjugate
+but take a different form.
+\end{convention}
+
+\part{The object and the open inverse principle}
+
+\section{The obstacle that fixes the shape of the object}
+
+A single odd integer $x_0$ produces one deterministic valuation word
+$w(x_0)=(b_0,b_1,\dots)$, $b_i=v_2(3x_i+1)\ge1$, with $x_{i+1}=S(x_i)$. The
+annealed law is the pushforward of Haar measure on $\Z_2$ under
+$x\mapsto v_2(3x+1)$, i.e.\ $\Pr(b)=2^{-b}$. ``The orbit obeys the annealed law''
+asserts that the one prescribed word $w(x_0)$ equidistributes for the
+residue--height skew product. No ergodic theorem applies to a single prescribed
+non-generic point, so the missing object cannot be a measure-theoretic average.
+
+It must instead be a \emph{dichotomy with a closure}: a pathwise quantity forced
+either to decay (the orbit equidistributes) or to localise as a finite,
+excludable obstruction. It must reduce, at the trivial character and after
+ensemble averaging, to the annealed pressure and the Cram\'er tilt; and its
+localisation must land in a fixed finite character sector.
+
+\section{The deterministic defect cocycle}
+\label{sec:cocycle}
+
+For each modulus $Q$, height truncation $L$, tilt $s$, and character $\chi$ of
+the residue space, define the pathwise twisted Birkhoff functional
+\[
+W_n(x;\chi,s)=\frac1n\sum_{i=0}^{n-1}\chi(x_i\bmod Q)\,2^{\,s\Delta_{b_i}},
+\qquad \Delta_b=\log_2 3-b .
+\]
+The family $\{W_n(x;\chi,s)\}$ fibered over the finite levels is the
+\emph{deterministic defect cocycle} $\Dcoll$. At $s=0$ it is the residue Weyl
+sum, so $x_i\bmod Q$ equidistributes iff $W_n(x;\chi,0)\to0$ for all $\chi\ne1$.
+At the trivial character the ensemble average reproduces the annealed pressure
+$M(s)=\sum_{b\ge1}2^{-b}2^{s\Delta_b}=3^s/(2^{1+s}-1)$ and its Cram\'er root
+$M(1)=1$ with tilted law $p^{(1)}_b=3\cdot4^{-b}$. Thus $\Dcoll$ is the quenched
+lift of the thermodynamic formalism.
+
+At finite level the intended content is, informally, an equivalence between
+equidistribution failure, an approximate coboundary along the orbit, and a
+near-peripheral eigenstate of $\Lcal_{s,Q,L,\chi}$. We use only the safe
+direction.
+
+\begin{remark}
+The full three-way equivalence is too strong. A non-decaying twisted sum signals
+correlation with $\chi$ but need not be an exact coboundary (it may reflect
+concentration, subsequential trapping, or nonstationarity); and producing a
+near-\emph{top} eigenstate is precisely the open keystone. The load-bearing
+implication is: a persistent $W_n$ bias $\Rightarrow$ a nontrivial finite
+character shadow, and (conjecturally) a near-peripheral state of
+$\Lcal_{s,Q,L,\chi}$.
+\end{remark}
+
+\section{The inverse principle (conjectural)}
+
+\begin{principlebox}{Quenched Inverse Principle (conjectural)}
+Let $x_0$ have an infinite forward orbit and suppose, for some
+\emph{non-coboundary} character $\chi$ on some $\UQ$, some tilt $s$, and some
+$\delta>0$, that $\lvert W_n(x_0;\chi,s)\rvert\ge\delta$ along blocks of length
+$\ell_j\to\infty$. Then there exist a finite pair $(Q,L)$ and a $\chi$-sector
+eigenstate of $\Lcal_{s,Q,L,\chi}$ with $\lvert\lambda\rvert\ge
+\rho(\Lcal_{s,Q,L,0})-o(1)$, exhibited by the orbit's empirical measure.
+Conjoined with the non-coboundary gap
+$\rho(\Lcal_{s,Q,L,\chi})\le(1-\kappa_Q)\rho(\Lcal_{s,Q,L,0})$, this is a
+contradiction. Hence every orbit satisfying the hypotheses has \emph{no
+persistent non-coboundary finite spectral shadow}.
+\end{principlebox}
+
+\begin{remark}[Scope of the conclusion]
+This does not by itself give full equidistribution. It excludes persistent
+non-coboundary finite spectral shadows. If, in addition, every bounded-deficit or
+large-deviation failure of the annealed law produces such a shadow---the keystone
+inverse arrow---then the relevant quenched obstruction is excluded. The keystone
+is open and is morally a normality/disjointness statement for the $2$-adic word,
+of Sarnak-hard flavour.
+\end{remark}
+
+\paragraph{The two leaks.} Closing the principle quantitatively requires (i) a
+\emph{finiteness} input: a uniform gap $\kappa_Q$ that does not decay faster than
+the entropy production of the bias (the subject of \cref{sec:target}); and (ii) a
+\emph{circularity} input: reading a top eigenfunction off the orbit's own
+empirical measure presumes near-stationarity, which is what one is proving. The
+companion report shows the second leak is real at the single-orbit level.
+
+\part{Rigorous finite identities}
+\label{sec:identities}
+
+These identities are the rigorous core: they bridge the valuation word and the
+residue characters, and they pin down the unique structural degeneracy of the
+operator.
+
+\begin{convention}\label{conv:twist}
+The transfer operator $\Lcal_{s,Q,L,\chi}$ has matrix element, on an edge
+$(a,z)\xrightarrow{b}(a',z')$ with $a'\equiv(3a+1)2^{-b}$ and
+$z'=z+\lfloor R(\log_2 3-b)\rceil$ (killed off $[0,L]$),
+\[
+\Lcal_{s,Q,L,\chi}[(a',z'),(a,z)]=2^{-b}2^{s\Delta_b}\,\chi(a),
+\]
+i.e.\ the character twist sits on the \emph{source} residue $a$.
+\end{convention}
+
+\section{The sliding-window congruence}
+
+\begin{lemma}[Sliding-window congruence]\label{lem:cong}
+With $B_n=\sum_{i<n}b_i$ and the exact affine iterate
+$x_n=(3^n x_0+A_n)/2^{B_n}$, $A_n=\sum_{j=0}^{n-1}3^{\,n-1-j}2^{B_j}$, one has for
+$n\ge r$
+\[
+x_n\equiv\sum_{k=1}^{r}3^{\,k-1}\,2^{-(b_{n-1}+\cdots+b_{n-k})}\pmod{3^r}.
+\]
+\end{lemma}
+\begin{proof}
+Modulo $3^r$ the term $3^n x_0$ vanishes for $n\ge r$. In $A_n$ the summand
+indexed by $j$ carries $3^{\,n-1-j}$, which is nonzero mod $3^r$ only when
+$n-1-j<r$, i.e.\ $j\in\{n-r,\dots,n-1\}$. Writing $j=n-k$ ($k=1,\dots,r$) gives
+$3^{\,n-1-j}=3^{\,k-1}$, so $A_n\equiv\sum_{k=1}^r 3^{k-1}2^{B_{n-k}}\pmod{3^r}$.
+Since $2$ is a unit mod $3^r$, multiply by $2^{-B_n}$:
+$x_n\equiv\sum_{k=1}^r3^{k-1}2^{B_{n-k}-B_n}=\sum_{k=1}^r
+3^{k-1}2^{-(b_{n-k}+\cdots+b_{n-1})}\pmod{3^r}$.
+\end{proof}
+
+\noindent Thus a finite $3^r$-residue character is a finite sliding-window
+observable of the valuation process---one of the few rigorous bridges from
+valuation word to residue shadow. Since $2$ is a primitive root mod $3^r$ (order
+$\phi=2\cdot3^{r-1}$), the resonant frequencies attached to nontrivial characters
+are $\xi=k/(2\cdot3^{r-1})$, and the single-symbol Fourier transform
+$\hat p(\xi)=\sum_{b\ge1}2^{-b}e(b\xi)=e(\xi)/(2-e(\xi))$ obeys
+$\lvert\hat p(\xi)\rvert=(5-4\cos2\pi\xi)^{-1/2}<1$ for $\xi\notin\Z$---the
+annealed decorrelation mechanism. (The companion confirms the \emph{exact}
+operator departs from this i.i.d.\ value.)
+
+\section{The quadratic character is valuation parity}
+
+\begin{lemma}[$\chi_2$ factors through reduction mod $3$]\label{lem:fac3}
+$\UQ$ is cyclic of order $\phi=2\cdot3^{r-1}$, and its unique order-$2$ character
+$\chi_2$ has $\ker\chi_2=\{u:\,u\equiv1\!\!\pmod3\}$. Equivalently
+$\chi_2(a)=+1$ if $a\equiv1$ and $-1$ if $a\equiv2\pmod3$.
+\end{lemma}
+\begin{proof}
+$2$ is a primitive root mod $3^r$, so the group is cyclic and $\ker\chi_2$ is its
+unique index-$2$ subgroup (the squares), of order $3^{r-1}$. Reduction
+$\UQ\to(\Z/3)^\times\cong\Z/2$ has kernel $\{u\equiv1\!\pmod3\}$, also of order
+$3^{r-1}$; in a cyclic group the subgroup of a given order is unique, so the two
+coincide.
+\end{proof}
+
+\begin{theorem}[Key identity]\label{thm:key}
+For every odd $x$, with $b=v_2(3x+1)$,
+\[
+\chi_2\!\bigl(S(x)\bmod 3^r\bigr)=(-1)^{b}.
+\]
+Hence $\chi_2(x_{i+1})=(-1)^{b_i}$ along every orbit.
+\end{theorem}
+\begin{proof}
+Work mod $3$: $2\equiv-1$ and $3x+1\equiv1$, so
+$S(x)=(3x+1)2^{-b}\equiv(-1)^{b}\pmod3$. By \cref{lem:fac3},
+$\chi_2(S(x))=(-1)^b$. (Since $3x+1\equiv1\pmod3$, $S(x)$ is a unit.)
+\end{proof}
+
+\begin{corollary}\label{cor:run}
+$\prod_{i=1}^n\chi_2(x_i)=(-1)^{B_n}$: the accumulated quadratic character is
+exactly the parity of the cumulative $2$-adic valuation. In particular the
+residues are \emph{not} uniform mod $3$; they occur in ratio
+$\Pr(x\equiv1)=\sum_{b\text{ even}}2^{-b}=\tfrac13$, $\Pr(x\equiv2)=\tfrac23$.
+\end{corollary}
+
+\section{The quadratic coboundary and the operator dichotomy}
+
+Consider the synchronized residue--valuation skew product with state
+$(a,\tau)\in\UQ\times(\Z/2)$ and dynamics
+$(a,\tau)\xrightarrow{b}\bigl((3a+1)2^{-b},\,\tau+b\bigr)$ (one valuation $b$
+drives both coordinates), and let $\Lcal_{\chi}$ be the corresponding twisted
+annealed operator (\cref{conv:twist}), $\Lcal_{\mathbf1}$ the principal one.
+
+\begin{theorem}[Quadratic coboundary]\label{thm:cobound}
+The phase $d(a,\tau)=\chi_2(a)(-1)^{\tau}\in\{\pm1\}$ satisfies
+$d(a',\tau')/d(a,\tau)=\chi_2(a)$ on every edge. Hence
+$\Lcal_{\chi_2}=D\,\Lcal_{\mathbf1}\,D^{-1}$ with $D=\mathrm{diag}(d)$, so
+$\rho(\Lcal_{\chi_2})=\rho(\Lcal_{\mathbf1})$: the $\chi_2$ sector has \emph{no
+gap}, for every tilt $s$ and any height discretisation.
+\end{theorem}
+\begin{proof}
+By \cref{thm:key} $\chi_2(a')=(-1)^b$, and $\tau'=\tau+b$ gives
+$(-1)^{\tau'}=(-1)^\tau\chi_2(a')$. Thus
+$d(a',\tau')=\chi_2(a')(-1)^{\tau'}=(-1)^\tau$ and
+$d(a',\tau')/d(a,\tau)=(-1)^\tau/(\chi_2(a)(-1)^\tau)=\chi_2(a)$. With the source
+twist, the conjugated matrix element is $d(a',\tau')^{-1}2^{-b}2^{s\Delta_b}
+\chi_2(a)d(a,\tau)=2^{-b}2^{s\Delta_b}$, the principal element; $D$ is real
+orthogonal, so the operators are isospectral.
+\end{proof}
+
+So $\chi_2$ is not a defect---it belongs to the height/valuation reference. This
+forces the operator question.
+
+\begin{proposition}[Residue-only gap; the $\Lcal$ dichotomy]\label{prop:dich}
+Without the valuation-parity coordinate, $\chi_2$ is not a coboundary: on the
+$\{\pm1\}$ (mod $3$) reduction the twisted $2\times2$ operator has eigenvalues $0$
+and $\sum_b(-1)^bw_s(b)$, giving the closed-form residue-only gap ratio
+\[
+\frac{\rho(\Lcal^{\mathrm{res}}_{\chi_2})}{\rho(\Lcal^{\mathrm{res}}_{\mathbf1})}
+=\frac{\bigl|\sum_b(-1)^bw_s(b)\bigr|}{\sum_bw_s(b)}
+=\frac{2^{1+s}-1}{2^{1+s}+1}
+\qquad\Bigl(\tfrac13\text{ at }s{=}0,\ \tfrac35\text{ at }s{=}1\Bigr),
+\quad w_s(b)=2^{-b}2^{s\Delta_b}.
+\]
+\end{proposition}
+
+\begin{remark}[Faithful \texttt{sync} vs.\ \texttt{factored}; why faithfulness is forced]
+Two finite operators couple residue and height. The \emph{faithful}
+(\texttt{sync}) operator uses one valuation $b$ for both, matching the orbit; the
+\texttt{factored} operator $\Lcal_{\mathrm{res}}(\chi)\otimes T_{\mathrm{height}}$
+draws the height's valuation independently. The factored operator reports a gap
+at $\chi_2$, but \cref{cor:run} shows $W_n(x;\chi_2,0)\to-\tfrac13\ne0$: the
+$\chi_2$ component does not decay. The factored operator therefore predicts decay
+that does not occur. Because the inverse principle runs \emph{backwards} (a
+persistent $W_n$ must force a peripheral eigenstate), the operator's spectral
+radius must equal the true growth rate of $W_n$; only \texttt{sync} qualifies. We
+adopt the faithful \texttt{sync} operator and use \texttt{factored}/residue-only
+operators only as diagnostics.
+\end{remark}
+
+\section{Classification of coboundaries and the strict gap at every level}
+\label{sec:class}
+
+We now prove that $\chi_2$ is the \emph{only} nontrivial coboundary of the
+synchronized skew product---the central finite theorem of this paper. Throughout
+this section the operator is the synchronized residue--parity operator of
+\cref{thm:cobound}: states $(a,\tau)\in\UQ\times(\Z/2)$, edges
+$(a,\tau)\xrightarrow{b}(S_b(a),\tau+b)$ with $S_b(a)=(3a+1)2^{-b}$, source twist,
+and \emph{arbitrary} positive summable branch weights $w_b>0$ (in particular
+$w_b=2^{-b}2^{s\Delta_b}$ for any tilt $s$). We allow the twisted-conjugacy
+(Wielandt) form with a global phase.
+
+\begin{theorem}[Coboundary classification]\label{thm:class}
+Let $\chi$ be a character of $\UQ$, and suppose there exist $\lambda\in S^1$ and
+$d:\UQ\times(\Z/2)\to S^1$ with
+\[
+d\bigl(S_b(a),\tau+b\bigr)=\lambda\,\chi(a)\,d(a,\tau)
+\qquad\text{for all }a\in\UQ,\ b\ge1,\ \tau\in\Z/2 .
+\]
+Then $\chi\in\{\mathbf1,\chi_2\}$. Conversely both occur ($\chi=\mathbf1$ with
+$d\equiv1$; $\chi=\chi_2$ with $d(a,\tau)=\chi_2(a)(-1)^\tau$, $\lambda=1$, by
+\cref{thm:cobound}).
+\end{theorem}
+\begin{proof}
+\emph{Step 1 ($d$ factors through $(\chi_2,\tau)$).} Fix $(a,\tau)$ and compare
+the edges with valuations $b$ and $b+2$: they have the same parity increment and
+$S_{b+2}(a)=4^{-1}S_b(a)$, so the displayed identity gives
+\[
+d\bigl(4^{-1}S_b(a),\,\tau+b\bigr)=\lambda\chi(a)d(a,\tau)=d\bigl(S_b(a),\,\tau+b\bigr).
+\]
+For fixed $a$, as $b$ ranges over $\Z_{\ge1}$ the residue $S_b(a)$ ranges over the
+coset $(3a+1)\langle2\rangle=\UQ$ (since $2$ is a primitive root mod $3^r$), and
+for each fixed value $v=S_b(a)$ the residue class of $b$ mod $\phi$ is determined,
+so letting $\tau$ vary gives both parities $\sigma=\tau+b$. Hence
+$d(4^{-1}v,\sigma)=d(v,\sigma)$ for \emph{every} $(v,\sigma)$: $d(\cdot,\sigma)$
+is constant on cosets of $\langle4\rangle$. Since $\UQ$ is cyclic,
+$\langle4\rangle=\langle2^2\rangle$ is its unique index-$2$ subgroup, the squares
+$=\ker\chi_2$ (\cref{lem:fac3}). Therefore $d(a,\tau)=D(\chi_2(a),\tau)$ for some
+$D:\{\pm1\}\times\Z/2\to S^1$.
+
+\emph{Step 2 ($\chi$ is trivial on the squares).} Substituting into the identity
+and using $\chi_2(S_b(a))=(-1)^b$ (\cref{thm:key}),
+\[
+D\bigl((-1)^b,\,\tau+b\bigr)=\lambda\,\chi(a)\,D(\chi_2(a),\tau)
+\qquad\text{for all }a,b,\tau .
+\]
+Fix $b$ and $\tau$: the left side does not depend on $a$, so
+$a\mapsto\chi(a)D(\chi_2(a),\tau)$ is constant on $\UQ$. In particular $\chi$ is
+constant on the subgroup $\ker\chi_2$ of squares; a character constant on a
+subgroup equals $1$ there. Hence $\chi$ factors through
+$\UQ/\ker\chi_2\cong\Z/2$, i.e.\ $\chi\in\{\mathbf1,\chi_2\}$.
+\end{proof}
+
+\begin{lemma}[Irreducibility]\label{lem:irred}
+The principal synchronized operator $\Lcal_{\mathbf1}$ on $\UQ\times(\Z/2)$ is
+irreducible (indeed primitive): every state is reachable from every state in
+exactly two steps.
+\end{lemma}
+\begin{proof}
+From any $a$, one step reaches any prescribed residue $v$ (choose $b$ with
+$2^{-b}=v/(3a+1)$, possible since $2$ generates $\UQ$), and the parity increment
+of that step is determined by $v$ alone: $b\equiv[\chi_2(v)=-1]\pmod 2$, because
+$\chi_2(v)=(-1)^b$. Given a target $(u,\sigma)$, choose the intermediate residue
+$v$ with $\chi_2(v)$ set so that the two forced parity increments sum to
+$\sigma-\tau$; both square classes are nonempty, so this is always possible.
+\end{proof}
+
+\begin{corollary}[Strict spectral gap at every finite level]\label{cor:strict}
+For every $r\ge2$, every tilt $s$, and every character
+$\chi\notin\{\mathbf1,\chi_2\}$ of $\UQ$,
+\[
+\rho\bigl(\Lcal^{\mathrm{par}}_{s,Q,\chi}\bigr)<\rho\bigl(\Lcal^{\mathrm{par}}_{s,Q,\mathbf1}\bigr),
+\]
+where $\Lcal^{\mathrm{par}}$ denotes the synchronized residue--parity operator. In
+particular $\kappa^{\mathrm{par}}_Q(s)>0$ for every fixed $Q=3^r$ and $s$.
+\end{corollary}
+\begin{proof}
+$\lvert\Lcal_{\chi}\rvert=\Lcal_{\mathbf1}$ entrywise (the twist has unit
+modulus), and $\Lcal_{\mathbf1}$ is irreducible (\cref{lem:irred}). By Wielandt's
+equality theorem, $\rho(\Lcal_\chi)=\rho(\Lcal_{\mathbf1})$ would force
+$\Lcal_\chi=e^{i\varphi}D\,\Lcal_{\mathbf1}D^{-1}$ with $D$ diagonal
+unimodular---which is precisely the identity hypothesised in \cref{thm:class}
+with $\lambda=e^{-i\varphi}$. By \cref{thm:class} this requires
+$\chi\in\{\mathbf1,\chi_2\}$, a contradiction.
+\end{proof}
+
+\begin{remark}
+The proof of \cref{thm:class} is purely structural: it uses only which edges
+exist (the richness of the branch set), not the values of the weights. It
+therefore holds simultaneously for all tilts and for any summable positive
+weighting of the valuations, and it bypasses the principal-unit functional
+equation entirely. This resolves the coboundary-classification question for the
+synchronized skew product; see \cref{sec:strip} for the height-strip refinement.
+\end{remark}
+
+\section{Conductor autonomy and collapse}
+
+\begin{proposition}[Conductor reduction is autonomous]\label{prop:cond}
+A character of conductor $3^c$ depends only on $a\bmod3^c$. Since
+$3a\equiv3(a\bmod3^{c-1})\pmod{3^c}$, the quantity $(3a+1)2^{-b}\bmod3^c$ is a
+function of $(a\bmod3^c,b)$ alone; hence the mod-$3^c$ reduction of the dynamics
+is autonomous, and the gap ratio of a conductor-$3^c$ sector is \emph{independent
+of the ambient $r$} once $r\ge c$.
+\end{proposition}
+\begin{proof}
+Immediate from $3a\equiv3(a\bmod3^{c-1})\pmod{3^c}$: the induced twisted operator
+on $(\Z/3^c)^\times\times(\text{height})$ makes no reference to $r$.
+\end{proof}
+
+Autonomy gives an embedding of the level-$3^c$ spectrum into the level-$3^r$
+operator. The following sharper statement says nothing else survives: the
+\emph{entire} nonzero spectrum of a conductor-$3^c$ sector is computed at level
+$3^c$.
+
+\begin{theorem}[Conductor collapse]\label{thm:collapse}
+Let $\chi$ have conductor $3^c$, $2\le c\le r$. Then for the synchronized
+operator at level $Q=3^r$ (residue--parity, or the height-strip operator with or
+without killing),
+\[
+\operatorname{spec}\bigl(\Lcal^{(r)}_{\chi}\bigr)\setminus\{0\}
+=\operatorname{spec}\bigl(\Lcal^{(c)}_{\chi}\bigr)\setminus\{0\}.
+\]
+Consequently every gap ratio is exactly conductor-determined, and
+\[
+\kappa_{3^r}(s)=1-\max_{2\le c\le r}\gamma_c(s),
+\qquad
+\gamma_c(s)=\max_{\operatorname{cond}\chi=3^c}
+\frac{\rho(\Lcal^{(c)}_{s,\chi})}{\rho(\Lcal^{(c)}_{s,\mathbf1})},
+\]
+a maximum of finitely many $r$-independent constants. In particular
+$\kappa_{3^r}$ is non-increasing in $r$, and (with \cref{cor:strict})
+$\kappa^{\mathrm{par}}_{3^r}(s)>0$ for every fixed $r$; uniform positivity as
+$r\to\infty$ is equivalent to $\sup_c\gamma_c(s)<1$.
+\end{theorem}
+\begin{proof}
+Work with the Koopman form $M_\chi g(a,\cdot)=\chi(a)\sum_b w_b\,g(S_b(a),\cdot)$,
+where $(\cdot)$ stands for the auxiliary coordinate (parity $\tau$, or the strip
+coordinate $z$ with or without killing); the argument below acts only on the
+$a$-dependence and carries the auxiliary coordinate along unchanged. Here
+$A(a)=3a+1$ and $S_b(a)=A(a)2^{-b}$. Every function of $(a,\cdot)$ expands
+uniquely as $g=\sum_{\eta\in\widehat{U_{3^r}}}\eta\otimes g_\eta(\cdot)$; the
+conductor of $\eta$ is the least $3^j$ such that $\eta$ factors through
+$U_{3^j}$, and we set
+\[
+V_j=\Bigl\{\textstyle\sum_\eta\eta\otimes g_\eta:\ g_\eta=0\text{ unless }
+\operatorname{cond}\eta\le3^j\Bigr\},
+\qquad V_0\subset V_1\subset\cdots\subset V_r .
+\]
+For a single character $\eta$,
+\[
+M_\chi(\eta\otimes u)=\chi\cdot(\eta\circ A)\otimes(\text{transported }u),
+\qquad A(a)=3a+1 .
+\]
+The function $\eta\circ A$ depends only on $a\bmod3^{e-1}$ where
+$3^e=\operatorname{cond}\eta$ (since $3a\bmod3^{e}$ depends only on
+$a\bmod3^{e-1}$), so its Fourier support lies in conductors $\le3^{e-1}$;
+multiplying by $\chi$ moves support into conductors $\le3^{\max(c,e-1)}$. Hence
+\[
+M_\chi V_j\subseteq V_{\max(c,\,j-1)} .
+\]
+Thus $V_c$ is invariant, and on the quotient filtration
+$V_c\subset V_{c+1}\subset\cdots\subset V_r$ the induced maps are strictly
+lowering, so $M_\chi$ is nilpotent on $V_r/V_c$ (of index $\le r-c$). Therefore
+$\operatorname{spec}(M_\chi)=\operatorname{spec}(M_\chi|_{V_c})\cup\{0\}$, and
+$M_\chi|_{V_c}$ is the level-$3^c$ operator by \cref{prop:cond}. The principal
+radii agree at all levels ($M_{\mathbf1}\mathbf1=\bigl(\sum_bw_b\bigr)\mathbf1$),
+giving the ratio statement.
+\end{proof}
+
+\begin{remark}
+\cref{thm:collapse} is confirmed exactly by computation: on the residue--parity
+operator each $\gamma_c$ is identical across all ambient levels tested
+($Q\le3^6$), e.g.\ $\gamma_2(0)=0.654654$ and $\gamma_3(0)=0.763817$ at every
+$Q$. The same collapse holds for the killed height-strip operator (the proof
+never touches the height index), which is why the strip conductor table of
+\cref{sec:numerics} is $r$-independent.
+\end{remark}
+
+\section{Height-strip rigidity of the quadratic sector}
+\label{sec:strip}
+
+On the discretised height strip (integer scale $R\ge1$, increment
+$z'=z+c^\ast-Rb$ with $c^\ast=\lfloor R\log_23\rceil$, truncation to $z\in[0,L]$
+with killing) the quadratic sector is not merely peripheral---its spectrum is a
+rigid rotation of the principal one.
+
+\begin{proposition}[Rotation identity]\label{prop:rot}
+Let $D=\operatorname{diag}\bigl(\chi_2(a)\,e^{i\pi z/R}\bigr)$. Then on the
+height-strip operator, truncated or not, and for every tilt $s$,
+\[
+\Lcal_{\chi_2}=e^{-i\pi c^\ast/R}\,D\,\Lcal_{\mathbf1}\,D^{-1},
+\qquad\text{hence}\qquad
+\operatorname{spec}\bigl(\Lcal_{s,Q,L,\chi_2}\bigr)
+=e^{-i\pi c^\ast/R}\operatorname{spec}\bigl(\Lcal_{s,Q,L,\mathbf1}\bigr).
+\]
+\end{proposition}
+\begin{proof}
+On an edge $(a,z)\to(a',z+c^\ast-Rb)$, using $\chi_2(a')=(-1)^b$
+(\cref{thm:key}) and $e^{i\pi(c^\ast-Rb)/R}=e^{i\pi c^\ast/R}(-1)^b$,
+\[
+\frac{d(a',z')}{d(a,z)}
+=\frac{\chi_2(a')e^{i\pi z'/R}}{\chi_2(a)e^{i\pi z/R}}
+=\chi_2(a')\,(-1)^b\,e^{i\pi c^\ast/R}\,\chi_2(a)
+=e^{i\pi c^\ast/R}\,\chi_2(a),
+\]
+since $\chi_2(a')(-1)^b=1$ and $\chi_2(a)^{-1}=\chi_2(a)$. This is the twisted
+coboundary identity with $\lambda=e^{i\pi c^\ast/R}$; as $D$ is diagonal in
+$(a,z)$ it commutes with the truncation to $z\in[0,L]$.
+\end{proof}
+
+\begin{keystatement}
+$\chi_2$ is part of the baseline dynamics, not an obstruction to
+equidistribution: its sector is a rigid rotation of the principal one, its Weyl
+sum is slaved to the valuation statistics, and it is quotiented into the
+reference law.
+\end{keystatement}
+
+\noindent This explains the machine-precision equality
+$\rho(\Lcal_{\chi_2})=\rho(\Lcal_{\mathbf1})$ observed on the killed strip for
+every $(R,L)$ tested. For characters \emph{outside} $\langle\chi_2\rangle$ no
+product-form strip potential exists: a potential
+$d(a,z)=\chi'(a)e^{i\omega z}$ satisfies the strip coboundary identity iff
+$\chi'(2)e^{i\omega R}=1$ and $\chi'(3a+1)=\lambda'\chi(a)\chi'(a)$ on $\UQ$; an
+exhaustive search over all character pairs for $r\le4$ finds only
+$(\chi',\chi)=(\mathbf1,\mathbf1)$ and $(\chi_2,\chi_2)$. (The general---%
+non-product-form---strip classification reduces to this principal-unit
+functional equation and is left open; \cref{cor:strict} settles the
+residue--parity case unconditionally.)
+
+\part{Numerical evidence (summary)}
+\label{sec:numerics}
+
+The full suite \texttt{collatz\_tests} (ISO~C11; \textsf{FAST128}/\textsf{GMP}
+backends; Arnoldi spectral solver) and Experiments A--I are documented in the
+companion~\cite{companion}; every figure there is reproducible. We summarise only
+what bears on the statements above.
+
+\begin{enumerate}[leftmargin=1.6em]
+\item \textbf{Congruence (\cref{lem:cong}).} Verified in
+$23{,}905{,}968/23{,}905{,}968$ checks (seeds $3$--$10^6$, $r\le8$, native) and
+$144/144$ in exact \textsc{gmp} arithmetic for a $16$-digit seed at $r=12$ with
+$n$ up to $155$ (values $\gg2^{128}$).
+\item \textbf{Key identity (\cref{thm:key}) and \cref{cor:run}.}
+$\chi_2(S(x))=(-1)^b$ holds in $10^5/10^5$ tested seeds;
+$W_n(x;\chi_2,0)$ has empirical mean $-0.353\approx-\tfrac13$ over
+$3.2\times10^4$ orbits, confirming the residues are biased $\tfrac13:\tfrac23$.
+\item \textbf{Annealed laws.} Height tails fit $\log_2\Pr(h\ge H)\approx-H$
+(slope $\approx-0.97$); high-ascent excursion bulk leans to the Cram\'er tilt
+$p^{(1)}$ ($\KL{\cdot}{p^{(1)}}=0.093\ll\KL{\cdot}{p}=0.191$, boundary-excluded).
+\item \textbf{Operator gaps.} On the residue-only operator every nontrivial
+sector is gapped; \cref{prop:dich} is reproduced to the digit.
+\cref{thm:class,cor:strict} are confirmed: on the residue--parity operator, a
+full-group scan finds exactly one peripheral sector ($k=\phi/2=\chi_2$) at every
+level and tilt. \cref{thm:collapse} is confirmed \emph{exactly}: each $\gamma_c$
+is identical across all ambient levels. The computed sequences:
+\[
+\begin{array}{c|ccccc}
+\gamma_c\ (\text{residue--parity}) & c{=}2 & c{=}3 & c{=}4 & c{=}5 & c{=}6\\\hline
+s=0 & 0.6547 & \mathbf{0.7638} & 0.7629 & 0.7202 & 0.7147\\
+s=1 & 0.9078 & 0.8691 & \mathbf{0.9264} & 0.9210 & 0.9021
+\end{array}
+\]
+\[
+\begin{array}{c|cccc}
+\gamma_c\ (\text{killed strip},\,s{=}0) & c{=}2 & c{=}3 & c{=}4 & c{=}5\\\hline
+ & \mathbf{0.9069} & 0.8530 & 0.8261 & 0.7306
+\end{array}
+\]
+Both sequences are bounded away from $1$ and peak at a \emph{fixed small}
+conductor (boldface), decaying beyond it. Note the residue--parity sequence is
+\emph{not} monotone in $c$ (e.g.\ $\gamma_4>\gamma_2$ at $s{=}1$), while the
+killed strip is monotone over the tested range: the extremal conductor depends on
+the operator, but bounded-conductor extremality is seen in both. See
+\cref{sec:target}.
+\item \textbf{Shadow $\Rightarrow$ gap, only by tilt.} In a $1.25\times10^6$-window
+search, single-orbit ``shadows'' concentrate at the weakest-gap tilt $s=1$ ($82\%$
+of flagged windows; $100\%$ of long ones) and in weaker-gap sectors, but the
+per-sector signal is dominated by the smallest modulus---the circularity leak made
+explicit.
+\end{enumerate}
+
+\begin{remark}[Provisional labels]
+The conclusions involving the labels \texttt{critical\_C\_A}, \texttt{high\_ascent},
+and \texttt{post\_exit} (Experiments B, D, I) are \emph{exploratory} until the
+formal $C_A$-critical certificate is fixed: the literal criterion $V^2\le2^A P$ is
+degenerate and the suite uses a working \texttt{height} definition. These results
+should not be read as theorem evidence in their current form.
+\end{remark}
+
+\part{The refined H23a target}
+\label{sec:target}
+
+The finite-operator side is now largely a theorem. \cref{thm:class} classifies
+the coboundaries; \cref{cor:strict} gives a strict gap at every finite level;
+\cref{thm:collapse} reduces uniformity in $Q$ to a single sequence of computable
+constants. What remains open is one statement about that sequence.
+
+\begin{keystatement}
+This work identifies the correct operator (the faithful \texttt{sync}
+synchronized operator), \emph{proves} the correct quotient
+($\operatorname{Cob}=\langle\chi_2\rangle$, \cref{thm:class}), proves a strict
+non-coboundary gap at every finite level (\cref{cor:strict}), and proves that the
+uniform gap is governed by the $r$-independent conductor sequence
+$\gamma_c(s)$ (\cref{thm:collapse}):
+\[
+\kappa_{3^r}(s)=1-\max_{2\le c\le r}\gamma_c(s),\qquad
+\gamma_c(s)<1\ \text{for every }c .
+\]
+The single remaining finite-operator statement is that
+$\sup_c\gamma_c(s)<1$.
+\end{keystatement}
+
+\noindent\textbf{Proof status.}
+\begin{itemize}[leftmargin=1.6em,itemsep=1pt]
+\item \emph{Proved:} $\chi_2$ is an exact coboundary (\cref{thm:cobound});
+$\operatorname{Cob}=\langle\chi_2\rangle$ on the residue--parity skew product
+(\cref{thm:class}); strict gap $\rho(\Lcal_\chi)<\rho(\Lcal_{\mathbf1})$ at every
+finite level for every non-coboundary $\chi$ and tilt (\cref{cor:strict});
+conductor autonomy and collapse (\cref{prop:cond,thm:collapse}); the
+height-strip rotation identity (\cref{prop:rot}); the residue-only $\chi_2$
+ratio $\tfrac{2^{1+s}-1}{2^{1+s}+1}$ (\cref{prop:dich}); one-step mode damping
+with the coboundary modes as the only undamped ones (\cref{lem:damp}); the
+stability extraction step---near-peripheral spectrum yields a near-coboundary
+(\cref{prop:stab}); \emph{exact descent}---the primitive sector at level $3^c$
+is isospectral to a multiplier-twisted operator one level down, so deep-digit
+comparisons are lossless (\cref{thm:descent,cor:descentcomp}).
+\item \emph{Proved (canonical witness):} the explicit cycle pair of
+\cref{thm:witness} has $W\equiv4\bmod9$, giving full principal-unit generation
+and the uniform $\sqrt3$ cube-root separation for every primitive character---%
+on the two-descent range unconditionally, and for all $c$ granted carry depth.
+\item \emph{Proved (pair-correlation engine):} the phase formula
+(\cref{prop:paircorr}); the \emph{exact nonstationary vanishing} lemma
+(\cref{lem:vanish}); the collision classification and mass identity
+(\cref{lem:collision}); the endpoint obstruction---fixed-$n$ operator-norm
+bounds are structurally false, so the assembly must run through spectral/trace
+quantities (\cref{prop:endpoint}); and the trace identity
+$\operatorname{tr}((T^m)^*T^m)=\dim\Delta_s^m+\Theta_{m,c}$ with the thin
+remainder verified $\le6\times10^{-4}$ and decreasing in $c$
+(\cref{lem:trace}).
+\item \emph{Proved (assembly bookkeeping):} the thin-sector bound
+(\cref{lem:thin}), and---two further structural negative results---fixed-$m$
+chain powers bound the norm rather than the spectral radius (non-normal
+inflation), while the single trace saturates \emph{exactly} at $\rho^2\le1$ at
+$s=0$, with zero margin (\cref{prop:marginal}).
+\item \emph{Proved (wrap-regime collision flattening):} the walk--window
+factorization $C_w=2^{B_{m-1}}X_w$ (\cref{lem:walkwindow}) and the
+pigeonhole-flatness of the wrap-regime law,
+$\operatorname{Col}_m(c)\le\mathrm{poly}(c)\,3^{-c}$ at $m\ge(1+\varepsilon)c$
+(\cref{lem:flat}; measured $3^c\operatorname{Col}\approx2$): the deep digits of
+the window variable determine the suffix exactly (no wrapping of partial sums
+beyond scale $O(\log c)$). This is the renewal-flattening half of the wrap
+conjecture, in collision form.
+\item \emph{Open (one lemma):} lift-phase chain cancellation
+(\cref{conj:wrap}): pure counting is once more exactly marginal, so the chain
+decay must come from the character phases carried by the source lifts
+$a_{j+1}\in a_j+3^{c-m}\Z$ at each link. It implies
+$\limsup_c\gamma_c(s)\le\sqrt{\Delta_s}<1$ in the limit (\cref{thm:assembly}),
+the high-conductor damping theorem with conjecturally sharp constant
+$\gamma_\infty(s)=\sqrt{(2^{1+s}-1)/(2^{1+s}+1)}$---matched by the observed
+tail at $s=0$.
+\item \emph{Proved (three-level descent):} two scalar descents plus one rank-2
+descent (\cref{thm:descent,thm:rank2}, the latter verified to twelve digits)---%
+a fixed dimension reduction by $27/2$. \emph{Disproved (rank saturation):}
+deeper carries depend on $b\bmod2\cdot3^j$ and the internal classes refine by
+$\times3$ per level; the nonzero-eigenvalue count grows $\approx\times3$ per
+level (\cref{rem:saturation}), so descent stalls at depth three and there is
+\emph{no} bounded-level reduction. The fixed-$c_0$ holonomy program is
+therefore limited to $c\le c_0+3$; the canonical witness and generation
+theorems hold on that range.
+\item \emph{Open (short-witness coverage = the quantitative heart):} generation
+does not imply coverage; the uniform gap needs $\delta_c(L_0)\ge\delta_0$ at
+fixed witness length (\cref{conj:mult}, strong $\Rightarrow$ constant gap;
+weak/polylog $\Rightarrow$ $\kappa_Q\gg(\log Q)^{-2A}$, \cref{thm:condunif}).
+The controlled-length audit finds near-maximal coverage already at $L=1$ on the
+audited range; the fixed-$c_0$ asymptotics await Task~A. Comparison-graph
+expansion (\cref{conj:exp}) remains an independent route to the polylog form
+(\cref{thm:condpolylog}).
+\item \emph{Open (strip classification):} the non-product-form coboundary
+classification for the killed strip (the residue--parity case is settled;
+product-form strip potentials are excluded numerically for $r\le4$).
+\item \emph{Conditional:} a constant sync-quotient gap (\cref{cor:const});
+a polylog gap under comparison-graph expansion (\cref{thm:condpolylog}).
+\end{itemize}
+
+\begin{conjecture}[Bounded-conductor extremality]\label{conj:ext}
+For each tilt $s\in[0,1]$ the sequence $\gamma_c(s)$ of \cref{thm:collapse}
+attains its supremum at a fixed finite conductor:
+$\sup_{c\ge2}\gamma_c(s)=\max_{c\le c_0}\gamma_c(s)<1$. Numerically
+$c_0=3$ ($s{=}0$) and $c_0=4$ ($s{=}1$) for the residue--parity operator
+(through $c=6$), and $c_0=2$ for the killed strip at $s=0$ (through $c=5$, where
+the sequence is monotone decreasing). Caution: monotonicity in $c$ \emph{fails}
+for the residue--parity operator ($\gamma_4>\gamma_2$ at $s{=}1$), so the correct
+target is boundedness/extremality, not monotonicity.
+\end{conjecture}
+
+\begin{corollary}[Conditional constant gap]\label{cor:const}
+Assume \cref{conj:ext}. Then for all $Q=3^r$ ($r\ge2$) and $s\in[0,1]$,
+\[
+\rho(\Lcal_{s,Q,\chi})\le(1-\kappa_0(s))\,\rho(\Lcal_{s,Q,\mathbf1}),
+\qquad \chi\notin\langle\chi_2\rangle,
+\qquad
+\kappa_0(s)=1-\max_{c\le c_0}\gamma_c(s)>0,
+\]
+a \emph{constant} determined by finitely many computable operators. For the
+residue--parity operator the computed values give
+$\kappa_0(0)=1-0.7638=0.2362$ and $\kappa_0(1)=1-0.9264=0.0736$; for the killed
+strip at $s=0$, $\kappa_0=1-0.9069=0.0931$. This is stronger than the fall-back
+target $\kappa_Q\gg1/\mathrm{polylog}(Q)$, for which it suffices that
+$\gamma_c\le1-c^{-A}$ for some $A$.
+\end{corollary}
+\begin{proof}
+Immediate from \cref{thm:collapse}: $\kappa_{3^r}=1-\max_{2\le c\le r}\gamma_c$,
+and under \cref{conj:ext} the maximum is attained at $c\le c_0$, independent of
+$r$. Each $\gamma_c<1$ by \cref{cor:strict} applied at level $3^c$.
+\end{proof}
+
+\section{Toward $\sup_c\gamma_c<1$: stability of the classification}
+\label{sec:stability}
+
+The route we consider most promising is a \emph{quantitative} version of
+\cref{thm:class}: near-peripheral spectrum forces a near-coboundary, and the
+exact rigidity of the classification proof should then produce a contradiction
+for non-coboundary characters. Two ingredients of this program are proved here;
+the third is formulated precisely.
+
+\subsection*{One-step mode damping}
+
+Write the Koopman form of the synchronized operator at level $Q=3^c$ as
+$M_\chi g(a,\tau)=\chi(a)\sum_{b\ge1}w_b\,g(S_b(a),\tau+b)$ with
+$w_b=3^sq^{\,b}$, $q=2^{-(1+s)}$, $W=\sum_bw_b=3^sq/(1-q)$. Fourier modes are
+$\eta\otimes\epsilon$ with $\eta\in\widehat{U_Q}$ and $\epsilon\in\{0,1\}$ the
+parity frequency. (Scope note: the classification \cref{thm:class} is
+\emph{weight-free}; the explicit multiplier below is special to the geometric
+branch weights $w_b\propto q^b$.)
+
+\begin{lemma}[One-step mode damping]\label{lem:damp}
+For every mode,
+\[
+M_\chi(\eta\otimes\epsilon)=c_{\eta,\epsilon}\,\bigl[\chi\cdot(\eta\circ A)\bigr]\otimes\epsilon,
+\qquad
+c_{\eta,\epsilon}=\sum_{b\ge1}w_b\,\zeta^b=\frac{3^sq\,\zeta}{1-q\zeta},
+\qquad
+\zeta=\eta(2)^{-1}(-1)^{\epsilon},
+\]
+so that
+\[
+\frac{\lvert c_{\eta,\epsilon}\rvert}{W}
+=\frac{1-q}{\lvert1-q\zeta\rvert}\;\le\;1,
+\]
+with equality iff $\zeta=1$, i.e.\ iff
+$(\eta,\epsilon)\in\{(\mathbf1,0),(\chi_2,1)\}$---precisely the two coboundary
+modes (the constants and the potential $d(a,\tau)=\chi_2(a)(-1)^\tau$ of
+\cref{thm:cobound}). Quantitatively, if $\theta=\arg\zeta$ then
+$1-\lvert c\rvert/W\asymp q\theta^2/(1-q)^2$ for small $\theta$; the
+``swapped'' modes $(\mathbf1,1)$ and $(\chi_2,0)$ have $\zeta=-1$ and damping
+ratio exactly $\frac{1-q}{1+q}=\frac{2^{1+s}-1}{2^{1+s}+1}$, the constant of
+\cref{prop:dich}.
+\end{lemma}
+\begin{proof}
+$\eta(S_b(a))(-1)^{\epsilon(\tau+b)}
+=\eta(3a+1)\,\eta(2)^{-b}(-1)^{\epsilon b}\,(-1)^{\epsilon\tau}$, and the $b$-sum
+is geometric. $\eta(2)=1$ iff $\eta=\mathbf1$ and $\eta(2)=-1$ iff $\eta=\chi_2$,
+since $2$ generates $U_Q$.
+\end{proof}
+
+\noindent\cref{lem:damp} quantifies the mechanism: every non-coboundary mode is
+strictly damped in one step, at a rate governed by the angle of $\eta(2)$. It
+also exposes the difficulty: the least-damped primitive mode at conductor $3^c$
+has $\theta=\pi/3^{c-1}$, hence one-step damping $\asymp9^{-c}$; a proof of a
+\emph{uniform} gap cannot ride a single mode and must use the spreading of
+Fourier mass under $\eta\mapsto\eta\circ A$ (whose coefficients are Jacobi-type
+sums with square-root cancellation). This is the analytic heart that remains.
+
+\subsection*{Near-peripheral spectrum forces a near-coboundary}
+
+\begin{proposition}[Stability, extraction step]\label{prop:stab}
+Let $\mu$ be an eigenvalue of $M_\chi$ with $\lvert\mu\rvert=(1-\varepsilon)W$,
+$\varepsilon\ge0$, and let $\varphi$ be an associated eigenfunction,
+$\psi=\lvert\varphi\rvert$, $u=\varphi/\psi$ on $\{\psi>0\}$,
+$\lambda=\mu/\lvert\mu\rvert$. Let $\nu$ be the positive left Perron vector of
+$M_{\mathbf1}$. Define the nonnegative per-edge defect
+\[
+\delta(x,b)=w_b\Bigl[\psi(S_bx)-\operatorname{Re}\bigl(\overline{\lambda\chi(a)u(x)}\,
+\varphi(S_bx)\bigr)\Bigr],\qquad x=(a,\tau).
+\]
+Then $\sum_b\delta(x,b)=\bigl(M_{\mathbf1}\psi-(1-\varepsilon)W\psi\bigr)(x)\ge0$
+pointwise on $\{\psi>0\}$, and
+\[
+\sum_x\nu(x)\sum_b\delta(x,b)=\varepsilon W\,\langle\nu,\psi\rangle .
+\]
+Consequently, for every $t>0$, outside an edge set of
+$\nu$-weighted defect mass $\le\varepsilon W\langle\nu,\psi\rangle/t$ the
+unimodular potential $d=u$ satisfies the coboundary identity
+$d(S_bx)\approx\lambda\chi(a)d(x)$ with
+$w_b\,\psi(S_bx)\bigl(1-\cos(\text{phase error})\bigr)\le t$. In particular,
+comparing the branches $b$ and $b{+}2$ of a common source yields approximate
+$\langle4\rangle$-invariance, $d(4^{-1}v,\sigma)\approx d(v,\sigma)$, on
+high-mass edges---the quantitative form of Step~1 of \cref{thm:class}.
+\end{proposition}
+\begin{proof}
+The eigen-equation gives
+$\lvert\mu\rvert\psi(x)=\operatorname{Re}\bigl(\overline{\lambda\chi(a)u(x)}\,
+\chi(a)\sum_bw_b\varphi(S_bx)\bigr)
+=\sum_bw_b\operatorname{Re}\bigl(\overline{\lambda\chi(a)u(x)}\varphi(S_bx)\bigr)
+\cdot\lvert\chi(a)\rvert$, whence
+$\sum_b\delta(x,b)=M_{\mathbf1}\psi(x)-\lvert\mu\rvert\psi(x)$, which is
+$\ge0$ pointwise and has the stated $\nu$-mass since
+$\langle\nu,M_{\mathbf1}\psi\rangle=W\langle\nu,\psi\rangle$. The tail bound is
+Chebyshev's inequality; each defect term dominates
+$w_b\psi(S_bx)(1-\cos)$ of the phase mismatch.
+\end{proof}
+
+\subsection*{Exact descent: lossless propagation across deep digits}
+
+The deepest digits turn out to need no approximate propagation at all. The
+mechanism is that the level-$3^c$ dynamics reads only $a\bmod3^{c-1}$ (the same
+compression behind \cref{prop:cond}), so states in a common fiber of
+$U_{3^c}\to U_{3^{c-1}}$ have \emph{identical} branch sums.
+
+\begin{theorem}[Exact descent]\label{thm:descent}
+Let $\chi$ be primitive of conductor $3^c$, $c\ge2$, and let $M_\chi$ be the
+synchronized operator at level $3^c$ with branch weights $w_b>0$. Define, on
+functions of $(\bar a,\tau)\in U_{3^{c-1}}\times\Z/2$,
+\[
+N_1g(\bar a,\tau)=\chi\bigl(A(\bar a)\bigr)\sum_{b\ge1}w_b\,\chi(2)^{-b}\,
+g\bigl(S_b(\bar a)\bmod3^{c-1},\,\tau+b\bigr),
+\]
+where $A(\bar a)=3\bar a+1$ is a well-defined element of $U_{3^c}$ (it depends
+only on $\bar a\bmod3^{c-1}$). Then
+\[
+\operatorname{spec}(M_\chi)\setminus\{0\}
+=\operatorname{spec}(N_1)\setminus\{0\},
+\]
+with eigenspaces in bijection via $\varphi(a,\tau)=\chi(a)\,g(a\bmod3^{c-1},\tau)$.
+In particular the primitive-sector ratio $\gamma$ at level $3^c$ equals
+$\rho(N_1)/W$, computed one level down.
+\end{theorem}
+\begin{proof}
+Suppose $M_\chi\varphi=\mu\varphi$, $\mu\ne0$. The branch sum
+$\Sigma(\bar a,\tau)=\sum_bw_b\varphi(S_b(a),\tau+b)$ depends only on
+$(\bar a,\tau)$, because $S_b(a)\bmod3^c=A(\bar a)2^{-b}$ is a function of
+$(\bar a,b)$. Hence
+$\varphi(a,\tau)=\mu^{-1}\chi(a)\Sigma(\bar a,\tau)=:\chi(a)g(\bar a,\tau)$
+\emph{exactly}, at every state. Substituting this form of $\varphi$ at the
+successors and using
+$\chi(S_b(a))=\chi(A(\bar a))\chi(2)^{-b}$,
+\[
+\mu\,g(\bar a,\tau)=\sum_bw_b\,\chi(S_b(a))\,g\bigl(S_b(a)\bmod3^{c-1},\tau+b\bigr)
+=N_1g(\bar a,\tau),
+\]
+and $g\ne0$ since $\varphi\ne0$. Conversely, given $N_1g=\mu g$ with $\mu\ne0$,
+set $\varphi(a,\tau)=\chi(a)g(\bar a,\tau)\ne0$; the same computation gives
+$M_\chi\varphi=\mu\varphi$. The two maps are mutually inverse on eigenspaces.
+\end{proof}
+
+\begin{remark}
+Verified numerically: at $(Q,k,s)=(81,1,0),(81,1,1),(243,5,0)$ the nonzero
+spectra agree (top eigenvalues match to the eigenvalue condition number,
+$\rho$ to ten digits); the complementary spectrum of $M_\chi$ is nilpotent, seen
+numerically as pseudospectral rings of radius $\approx10^{-8}$.
+\end{remark}
+
+\begin{corollary}[Descent and the comparison graph]\label{cor:descentcomp}
+Every nonzero-eigenvalue eigenfunction satisfies
+$\varphi(a,\tau)\chi(a)^{-1}=\varphi(a',\tau)\chi(a')^{-1}$ whenever
+$a\equiv a'\pmod{3^{c-1}}$---the deep-digit comparisons of the conditional
+argument hold \emph{exactly}, with zero defect, and the same factorization can
+be iterated: composing descents expresses the primitive sector at level $3^c$
+as an explicitly phased operator at any level $3^{c_0}$ (the multiplier of the
+$j$-th descended operator is a product of $\chi$-values along depth-$j$
+branches). Consequently the expansion needed in \cref{conj:exp} below is
+required only at a \emph{bounded} level: what remains is that the accumulated
+unimodular multiplier system at a fixed level $3^{c_0}$ stays uniformly (in
+$c$) away from the coboundary class---a finite-dimensional non-degeneracy
+statement, since at fixed dimension ``$\delta$-far from every coboundary''
+implies a gap $\kappa(\delta)>0$ by Wielandt's theorem and compactness.
+\end{corollary}
+
+\subsection*{The descended multiplier and its holonomy}
+
+By \cref{thm:descent} the bounded-level object carrying all remaining
+information is the \emph{accumulated multiplier}: after descending from level
+$3^c$ to level $3^{c_0}$, each edge $e$ of the fixed level-$c_0$ graph carries a
+phase $\chi(F(e))$ for an explicit, character-independent element
+$F(e)\in U_{3^c}$.
+
+\begin{proposition}[Two-descent multiplier recursion]\label{prop:multrec}
+With canonical least-residue lifts, the first descent gives
+$F_1(x,b)=(3x+1)2^{-b}\in U_{3^c}$ (the level-$c$ lift of the successor), and
+the second descent gives
+\[
+F_2(\hat x,b)=F_1(\hat x,b)\,\rho^{\,\delta_b(\hat x)},\qquad
+\rho=1+3^{c-1},
+\]
+where $\delta_b(\hat x)\in\{0,1,2\}$ is the top digit of the successor
+$S_b(\hat x)$ at the upper level relative to the canonical lift of its
+reduction. Both steps are exact: the fiber ratio
+$F_j(x+\delta3^{\ell},b)F_j(x,b)^{-1}=\rho^{\delta}$ is independent of $(x,b)$
+for $j\le2$ (verified exactly in computation). At depth $j\ge3$ the fiber ratio
+acquires a parity twist---the successor's top digit shifts by a quantity
+depending on $b\bmod2$ through $2^{-b}\equiv(-1)^b\pmod3$---so the multiplier
+must be treated as an edge multiplier on the residue--parity graph; the
+resolution is the rank-$2$ descent below.
+\end{proposition}
+
+\begin{theorem}[Rank-2 parity-twisted descent]\label{thm:rank2}
+At the third descent the fiber ratio of the accumulated multiplier has the exact
+form
+\[
+\frac{m(\hat a+\delta3^{L-1},b)}{m(\hat a,b)}
+=\chi\bigl(r_0(\hat a,\delta)\bigr)\cdot\omega^{\,\delta(-1)^b},
+\qquad
+r_0(\hat a,\delta)=1+\delta3^{L}(3\hat a+1)^{-1}\in1+3^{L}\Z,
+\quad
+\omega=\chi(1+3^{c-1}),
+\]
+with $L$ the current level. Splitting the branch sum by parity classes
+$b\equiv\epsilon\pmod2$ and setting
+$A_\epsilon(\hat a,\tau)=\sum_{b\equiv\epsilon}w_b\,m(\hat a,b)\,
+g(S_b\hat a,\tau+\epsilon)$, every $\mu\ne0$ eigenfunction satisfies the exact
+fiber expansion
+$\mu\,g(\hat a+\delta3^{L-1},\tau)
+=\chi(r_0)\bigl[\omega^{\delta}A_0(\hat a,\tau)+\omega^{-\delta}A_1(\hat a,\tau)\bigr]$,
+and the pair $(A_0,A_1)$ satisfies a closed eigenproblem one level down:
+\[
+\mu A_\epsilon(\hat a,\tau)=\sum_{b\equiv\epsilon(2)}w_b\,m(\hat a,b)\,
+\chi\bigl(r_0(\hat v_b,\delta_b)\bigr)
+\bigl[\omega^{\delta_b}A_0(\hat v_b,\tau+\epsilon)
++\omega^{-\delta_b}A_1(\hat v_b,\tau+\epsilon)\bigr],
+\]
+with $\hat v_b$ the reduced successor and $\delta_b$ its top digit. The
+correspondence is a bijection on nonzero eigenspaces: the primitive sector
+descends exactly onto a \emph{rank-2} operator on
+$U_{3^{L-1}}\times\Z/2\times\{0,1\}$.
+\end{theorem}
+\begin{proof}
+The fiber-ratio formula is the computation in the proof sketch of
+\cref{prop:multrec} made exact: the $F_1$-part of the ratio is
+$(3(\hat a+\delta3^{L-1})+1)/(3\hat a+1)=r_0$, independent of $b$, and the
+accumulated $\rho^{\delta_b}$-part shifts by
+$\rho^{\delta(-1)^b}$ because the successor moves by
+$\delta3^{L-1}\cdot3\cdot2^{-b}\equiv\delta(-1)^b3^{L}$ at the upper level. The
+fiber expansion follows by splitting the eigen-equation at the fiber point into
+parity classes; substituting it at the successors closes the system on
+$(A_0,A_1)$, and the two maps (restriction to $(A_0,A_1)$; reconstruction of
+$g$ from the fiber expansion) are mutually inverse on nonzero eigenspaces,
+exactly as in \cref{thm:descent}. Verified numerically at $(c,k,s)=(5,1,0)$:
+the full $324$-dimensional primitive operator and the $24$-dimensional rank-2
+descended operator have equal spectral radius to twelve digits and matching
+significant spectra.
+\end{proof}
+
+\begin{proposition}[Negative result: rank saturation fails; descent stalls at
+depth three]\label{rem:saturation}
+An earlier draft conjectured that the internal rank stays $2$ under all further
+descents. \emph{This is false.} At the second rank-2 step the fiber variation
+of the accumulated $\rho^{\delta_b}$-factors shifts the successor at \emph{two}
+digit positions, through $\delta\cdot2^{-b}\bmod9$: the carry depends on
+$b\bmod6$, not just on the parity $b\bmod2$, and each further descent refines
+the internal classes by another factor of $3$. The bounded-level reduction
+therefore does not continue. This is confirmed unconditionally by the
+nonzero-eigenvalue count of the full primitive operator ($s=0$):
+\[
+\begin{array}{c|cccc}
+c & 4 & 5 & 6 & 7\\\hline
+\#\{|\lambda|>10^{-2}\} & 8 & 20 & 56 & 160\\
+4\phi_{c-3}\ \text{(three-level reduction)} & 24 & 24 & 72 & 216
+\end{array}
+\]
+The count grows by a factor $\approx3$ per level and is bounded by
+$4\phi_{c-3}$, exactly as predicted by a \emph{fixed three-level} reduction
+(two scalar descents $+$ one rank-2 descent, a constant dimension factor
+$27/2$) followed by no further collapse. Consequently the fixed-$c_0$
+multiplier tables of the preceding discussion exist only for $c\le c_0+3$, and
+the bounded-level holonomy program (\cref{conj:mult} in its fixed-$c_0$,
+$c\to\infty$ reading) cannot be fed by descent: the witness audit below is
+valid on its stated range and does not extend asymptotically by this route.
+What survives in full: exact descent and the rank-2 step
+(\cref{thm:descent,thm:rank2}); the carry-depth property \emph{on that range};
+the canonical witness and full generation on that range; the classification,
+collapse, and strict-gap theorems, which never used bounded-level descent. The
+quantitative uniform-gap question reverts to the conductor sequence itself
+(\cref{conj:ext}), for which the descent data adds new favourable evidence: the
+primitive-sector radii \emph{decrease} in $c$
+($0.7629,\,0.6454,\,0.6154,\,0.6025$ at $k$ small, $s=0$, $c=4,\dots,7$)---high
+conductor is increasingly damped, consistent with bounded-conductor
+extremality.
+\end{proposition}
+
+\subsection*{The high-conductor damping problem}
+
+With bounded-level descent excluded, the remaining quantitative theorem is a
+\emph{tail estimate}, attacked as an oscillation problem rather than a
+compactness problem.
+
+\begin{conjecture}[High-conductor damping]\label{conj:hcd}
+There are $c_1$ and $\delta>0$ such that for every $c\ge c_1$, every primitive
+$\chi$ of conductor $3^c$, and every $s\in[0,1]$,
+$\rho(M_\chi)\le(1-\delta)W$. With the strict gap at each finite level
+(\cref{cor:strict}) and conductor collapse (\cref{thm:collapse}), this is
+equivalent to $\sup_c\gamma_c(s)<1$ (\cref{conj:ext}).
+\end{conjecture}
+
+\noindent The available mechanisms are: the exact coboundary classification
+(\cref{thm:class}); one-step mode damping with equality only at the coboundary
+modes (\cref{lem:damp}); stability extraction (\cref{prop:stab}); three-level
+descent and the eigencount control (\cref{thm:descent,thm:rank2,rem:saturation});
+and the numerically decreasing tail of $\gamma_c$.
+
+In the character basis the operator has matrix
+$K[t_1,t_0]=c_{t_0,\epsilon}\,J(k-t_1,t_0)$, where
+\[
+J(u,v)=\frac1\phi\sum_{a\in U_{3^c}}e_u(a)\,e_v(3a+1)
+\]
+are $p$-adic Jacobi sums. Two structural facts, computed exactly for
+$c\le7$: \emph{(i)} conductor lowering makes each column of $J$ supported on a
+fixed fraction $2/9$ of the frequencies, with exact resonance columns
+($\lvert J\rvert=1$) at low conductor; \emph{(ii)} the entrywise bound is
+useless---$\rho(\lvert K\rvert)/W=1.85,\,3.22,\,5.58,\,9.66$ at $c=4,\dots,7$,
+growing by exactly $\sqrt3$ per level, while the true ratio is
+$\approx0.6$: at $c=7$ a factor $\approx16$ of \emph{phase cancellation}
+separates the truth from any magnitude argument. The gap is therefore a genuine
+oscillation phenomenon. The natural formulations are:
+
+\begin{enumerate}[leftmargin=1.6em]
+\item \emph{Mode spreading / finite-time damping:} show that along the mode
+evolution $\eta\mapsto\chi\cdot(\eta\circ A)$ the near-undamped condition
+$\eta(2)^{-1}(-1)^\epsilon\approx1$ cannot persist for $m$ consecutive steps
+(with $m$ absolute, or $m\ll c^A$ for polylog), using the phases of $J$, not
+only the magnitudes.
+\item \emph{Van der Corput / pair correlation:} bound
+$\lVert M_\chi^n\rVert_2$ for $n\asymp c$ via the word-pair correlation sums
+$\sum_a\chi\bigl(\Phi_w(a)/\Phi_{w'}(a)\bigr)$; stationarity of the phase
+ratios forces the exact coboundary relations, which are classified, so only
+the $\langle\chi_2\rangle$ sector can resist---a quantitative use of
+\cref{thm:class}. The arithmetic input is $p$-adic stationary phase for the
+rational functions $\Phi_w/\Phi_{w'}$, where bounded (not square-root)
+cancellation suffices.
+\end{enumerate}
+
+\subsection*{The pair-correlation engine}
+
+The second route is now equipped with its exact arithmetic. Both pieces below
+are rigorous; the first is a restatement of \cref{lem:cong}'s affine cocycle.
+
+\begin{proposition}[Pair-correlation phase formula]\label{prop:paircorr}
+For a branch word $w=(b_0,\dots,b_{n-1})$ set $B_j(w)=\sum_{i<j}b_i$ and
+\[
+C_w=\sum_{j=0}^{n-1}3^{\,n-1-j}2^{B_j(w)} .
+\]
+Then the $n$-step map along $w$ is
+$S_w(a)=(3^na+C_w)\,2^{-B_n(w)}$, and for two words $w,w'$,
+\[
+R_{w,w'}(a)=\frac{S_w(a)}{S_{w'}(a)}
+=2^{\,B_n(w')-B_n(w)}\,\frac{3^na+C_w}{3^na+C_{w'}},
+\qquad
+\frac{R'_{w,w'}}{R_{w,w'}}(a)
+=\frac{3^n\,(C_{w'}-C_w)}{(3^na+C_w)(3^na+C_{w'})}.
+\]
+Since $C_w\equiv2^{B_{n-1}}\not\equiv0\pmod3$, the denominators are units on
+$U_{3^c}$, so the logarithmic derivative has \emph{constant} $3$-adic valuation
+$d=n+v_3(C_w-C_{w'})$ with unit leading part. Stationarity of the pair phase is
+exactly high $3$-adic divisibility of $C_w-C_{w'}$; note $C_w$ does not depend
+on the last symbol $b_{n-1}$.
+\end{proposition}
+
+\begin{lemma}[Exact nonstationary vanishing]\label{lem:vanish}
+Let $\chi$ be primitive of conductor $3^c$ and let $w,w'$ satisfy
+$d=n+v_3(C_w-C_{w'})\le c-2$. Then
+\[
+\sum_{a\in U_{3^c}}\chi\bigl(R_{w,w'}(a)\bigr)=0 .
+\]
+\end{lemma}
+\begin{proof}
+Write $L=(\log R)'=R'/R$, so $v_3(L(a))=d$ with unit part
+$\mu(a)=3^{-d}L(a)$, and $v_3(L')\ge d+n>d$. Split $a=a_0+3^{c-d-1}t$ with
+$t\in\Z/3^{d+1}$ (every lift of a unit is a unit). Taylor expansion of
+$\log R$ gives
+\[
+R(a)/R(a_0)=1+3^{c-1}\,t\,\mu(a_0)\,(1+O(3))+E,
+\]
+where every higher term $E$ has valuation
+$\ge2(c-d-1)+d=2c-d-2\ge c$ because $d\le c-2$. Hence
+$\chi(R(a))=\chi(R(a_0))\,e\bigl(\kappa\,\mu(a_0)t/3\bigr)$ for a unit
+$\kappa$ ($\chi$ primitive is nontrivial on $1+3^{c-1}\Z$). For each fixed
+$a_0$ the inner sum over $t\in\Z/3^{d+1}$ runs over full periods of a
+nontrivial third root of unity ($\mu(a_0)$ is a unit), so it vanishes
+identically.
+\end{proof}
+
+\noindent Verified exactly: for $n=2,3$ and $c=6,7$ the sampled pair sums are
+machine zeros precisely on the predicted range $n+v_3(C_w-C_{w'})\le c-2$, with
+structured values ($\tfrac12$, $1$) only in the near-stationary transition
+zone.
+
+\begin{lemma}[Collision classification and collision mass]\label{lem:collision}
+$C_w$ depends only on the prefix $(b_0,\dots,b_{n-2})$, via the recursion
+$C_w=3C_{w^-}+2^{B_{n-1}}$. Conversely, distinct prefixes give distinct
+constants: if $B_{n-1}(w)=B_{n-1}(w')$ this follows by induction
+($3(C_{w^-}-C_{w'^-})=0$ forces prefix equality); the unequal-$B_{n-1}$ case is
+excluded by $2$-adic digit analysis of
+$2^{B}(2^{\Delta}-1)=3(C_{w^-}-C_{w'^-})$ (the left side has $2$-adic valuation
+$B_{n-1}\ge n-1$, forcing implausibly deep $2$-adic agreement of the prefixes),
+verified exhaustively for $n\le5$, $b_i\le12$: the number of distinct constants
+is exactly $12^{\,n-1}$. Consequently the exactly-stationary pair mass is
+\[
+\sum_{C}\Bigl(\sum_{w:\,C_w=C}p_s(w)\Bigr)^2=\Delta_s^{\,n-1},
+\qquad
+\Delta_s=\sum_b p_s(b)^2=\frac{2^{1+s}-1}{2^{1+s}+1},
+\]
+confirmed numerically to truncation accuracy ($0.05$--$0.2\%$ at $B=12$).
+\end{lemma}
+
+\subsection*{Assembly via trace powers}
+
+Two structural facts dictate the shape of the assembly.
+
+\begin{proposition}[Endpoint obstruction: fixed-$n$ norm bounds fail]
+\label{prop:endpoint}
+A matrix entry of $(T^n)^*T^n$ constrains the source $a$ to a coset of
+$1+3^{c-n}\Z$, on which every nonstationary pair phase is \emph{constant}
+(its logarithmic derivative has valuation $d\ge n$, and
+$(c-n)+d\ge c$). Hence \cref{lem:vanish} produces no within-entry
+cancellation, and the fixed-$n$ bound
+$\lVert T^n\rVert^2\le\Delta_s^{n-1}+o_c(1)$ is \emph{false}: at $s=0$,
+$\lVert T^2\rVert^2\approx1.63$ versus $\Delta_0=0.33$ (stable in $c$). The
+operator norm of a fixed power is inflated by the non-normal (nilpotent)
+structure; only spectral quantities can obey the $\Delta_s$ scaling.
+\end{proposition}
+
+\begin{lemma}[Trace identity, main term]\label{lem:trace}
+For fixed $m$ and $B$, and $c$ large,
+\[
+\operatorname{tr}\bigl((T^m)^*T^m\bigr)
+=\dim\cdot\Delta_s^{\,m}\;+\;\Theta_{m,c},
+\]
+where the main term comes from word pairs with coincident endpoints and equal
+$2$-power parts: $S_w(a)=S_{w'}(a)$ with $B_m(w)=B_m(w')$ forces $C_w=C_{w'}$
+with the source $a$ ranging over \emph{all} of $U_{3^c}$; by
+\cref{lem:collision} such pairs agree in the first $m-1$ symbols, hence (the
+path phase $\Psi_w(a)=\prod_{i<m}\chi(x_i)$ being blind to the last symbol)
+have \emph{identical} path phases, contributing mass exactly $\Delta_s^m$ per
+state; equal $B_m$ then forces $w=w'$. The thin remainder $\Theta_{m,c}$
+collects pairs with $2^{B_m(w)}\ne2^{B_m(w')}$, whose source $a$ is confined to
+lower-dimensional fibers. Numerically
+$\Theta_{m,c}/(\dim\Delta_s^m)\le6\times10^{-4}$ for $m\le4$ at $c=6$,
+\emph{decreasing} in $c$ ($\le2\times10^{-4}$ at $c=7$), and the $m=1$
+identity is exact.
+\end{lemma}
+
+\begin{lemma}[Thin-sector bound]\label{lem:thin}
+In the no-wrap regime (branch cutoff $B$, word length $m$ with
+$C_w<3^c$ for all truncated words), the thin remainder of \cref{lem:trace}
+satisfies
+\[
+\Theta_{m,c}\;\le\;C\,m^2B\,\bigl(\tfrac32\bigr)^{m}\cdot3^{m} ,
+\qquad\text{hence}\qquad
+\frac{\Theta_{m,c}}{\dim\Delta_0^{\,m}}\le
+C\,m^2B\,\Bigl(\tfrac92\Bigr)^{m}3^{-c}\xrightarrow[c\to\infty]{}0
+\quad\text{for }m\le0.7\,c .
+\]
+\end{lemma}
+\begin{proof}
+A thin pair has $2^{B(w')}\ne2^{B(w)}$; the endpoint equation
+$3^ma\,(2^{B'}-2^{B})=C_{w'}2^{B}-C_w2^{B'}$ has unit solutions only if
+$v_3(\mathrm{RHS})=m+v$, $v=v_3(2^{\Delta}-1)\le1+\log_3(mB)$, and then $a$ is
+confined to a class with at most $3^{m+v}$ unit solutions. Solvability
+constrains $C_{w'}\equiv C_w2^{\,B'-B}\pmod{3^{m+v}}$; in the no-wrap regime
+the collision classification (\cref{lem:collision}) puts at most one prefix in
+each class, of mass $\le(1-r)^{m-1}\le2^{-(m-1)}$ at $s=0$. Summing over the
+$O(mB/3^v)$ values of $\Delta$ at each valuation $v$ and bounding all phases by
+$1$ gives the display; the comparison with $\dim\Delta_0^m=4\cdot3^{c-1-m}$ is
+immediate.
+\end{proof}
+
+\begin{proposition}[Two structural obstructions to the naive assembly]
+\label{prop:marginal}
+\emph{(a) Fixed-$m$ chain powers fail.} For fixed $m$,
+$\operatorname{tr}\bigl[((T^m)^*T^m)^k\bigr]^{1/k}\to\lVert T^m\rVert^2$ as
+$k\to\infty$, and the non-normal inflation makes $\lVert T^m\rVert^2>1$ for
+small $m$ ($\lVert T^2\rVert^2\approx1.62$, $\lVert T^3\rVert^2\approx1.15$,
+stable in $c$): chain powers at fixed $m$ bound the \emph{norm}, not the
+spectral radius, and yield no gap (verified:
+$\operatorname{tr}(P_2^k)=324,\,350,\,402$ at $c=7$, flat in $k$).
+\emph{(b) The single trace is exactly marginal.} From
+$\rho^{2m}\le\operatorname{tr}((T^m)^*T^m)=\dim\Delta_s^m(1+o(1))$ one gets
+$\rho^2\le3^{\,c/m}\Delta_s(1+o(1))$, optimal at the largest admissible $m$;
+the pigeonhole floor (collision mass $\ge\asymp3^{-c}$) blocks $m\gg c$, and at
+$m\asymp c$ the bound saturates at $\rho^2\le3\Delta_s$---which at $s=0$ equals
+$1$ \emph{exactly}. The structural coincidence $\Delta_0=1/3$,
+$\dim\asymp3^c$ leaves zero margin: no single-trace argument can produce the
+gap.
+\end{proposition}
+
+\noindent The two obstructions intersect to locate the true remaining problem:
+the trace analysis must run in the \emph{wrap regime}, with $m\asymp c$
+\emph{and} chain order $k\ge2$, where the word constants wrap modulo $3^c$ and
+collisions are governed by the equidistribution of $C_w\bmod3^c$ rather than by
+integer injectivity.
+
+\subsection*{The wrap regime: collision flattening (proved) and lift-phase
+cancellation (open)}
+
+The wrap-regime analysis splits into a distributional half, which we can prove,
+and a chain-phase half, which we localize precisely.
+
+\begin{lemma}[Walk--window factorization]\label{lem:walkwindow}
+For any word $w$ of length $m\ge c$,
+\[
+C_w\equiv2^{\,B_{m-1}}\,X_w\pmod{3^c},
+\qquad
+X_w=\sum_{k=0}^{c-1}3^{k}\,2^{-(b_{m-1-k}+\cdots+b_{m-2})}\ \ (k\ge1),\ \
+X_w\equiv1+3\Z ,
+\]
+i.e.\ the constant is a unit multiple of a \emph{window variable} depending
+only on the last $c-1$ symbols, by the same reversal as the sliding-window
+congruence (\cref{lem:cong}). The walk factor $2^{B_{m-1}}$ and the window are
+coupled only through the last $c-1$ increments.
+\end{lemma}
+
+\begin{lemma}[Wrap-regime collision flattening]\label{lem:flat}
+At $s=0$, for $m\ge(1+\varepsilon)c$,
+\[
+\operatorname{Col}_m(c)=\Pr\bigl[C_w\equiv C_{w'}\bmod3^c\bigr]
+\;\le\;K(c)\,3^{-c},
+\qquad K(c)=O(\mathrm{poly}(c)) ,
+\]
+and numerically $3^c\operatorname{Col}_m(c)\approx2$ at $m=2c$
+($1.75,1.81,1.88,1.93,1.98$ for $c=4,\dots,8$), $\approx4$ at $m=c$: the
+wrap-regime law of $C_w$ is pigeonhole-flat up to a small constant.
+\end{lemma}
+\begin{proof}[Proof sketch]
+By \cref{lem:walkwindow} and Cauchy--Schwarz (conditioning on the walks and one
+window), $\operatorname{Col}_m(c)\le\max_\rho\Pr[X'/X=\rho]\le
+\operatorname{Col}(X)$. For the window variable, the digit at scale $3^k$
+constrains the backward partial sum $s_k$ modulo $2\cdot3^{k-1}$; since
+$s_k\le\max b\cdot c=O(c)$, there is \emph{no wrapping} once
+$2\cdot3^{k-1}>s_{\max}$, i.e.\ for all $k\ge k_0=O(\log_3c)$: the deep digits
+determine the partial sums---hence the suffix symbols---\emph{exactly}. Fibers
+of $X$ are therefore single suffixes up to the $O(\log c)$ shallow digits, and
+\[
+\operatorname{Col}(X)\le3^{O(\log c)}\sum_{\text{suffixes}}p(\cdot)^2
+=\mathrm{poly}(c)\,\Delta_0^{\,c-O(\log c)}=\mathrm{poly}(c)\,3^{-c+O(\log c)} .
+\qedhere
+\]
+\end{proof}
+
+\noindent This proves the renewal-flattening half of the wrap conjecture in its
+$L^2$ (collision) form: the distribution of $C_w\bmod3^c$ offers no
+collision excess for the chain trace to exploit against us. What it does
+\emph{not} yet provide is the gap itself: a pure counting bound on
+$\operatorname{tr}(P_m^k)$---keeping only collided links and bounding all
+phases by $1$---is once again \emph{marginal} (the per-link factor
+$3^m\cdot\text{per-target mass}$ is $\asymp K\ge1$ at every $m$, by the same
+zero-margin coincidence as \cref{prop:marginal}). The decay seen in the
+measured chain traces must therefore come from the \emph{lift phases}: at each
+chain link the source lifts $a_{j+1}\in a_j+3^{c-m}\Z$ carry character phases
+through the next link's words, and these lift sums cancel
+(vanishing-lemma style, in the lift variable) except on an exponentially thin
+set. The remaining statement is:
+
+\begin{conjecture}[Lift-phase chain cancellation; \emph{superseded}]\label{conj:wrap}
+For $m\asymp c$ and some $k_0\ge2$, the chain trace with lift-phase
+cancellation included satisfies
+$\operatorname{tr}\bigl[((T^m)^*T^m)^{k_0}\bigr]\le
+3^{\,c-\epsilon mk_0+o(c)}$ for some $\epsilon>0$, uniformly over primitive
+$\chi$. Together with \cref{lem:flat} this is the full wrap-regime input.
+\emph{Status: superseded as the live finite-side input. The threshold
+cascade route (\cref{lem:pinning,prop:rowcontract}) requires neither
+chain traces nor lift-phase cancellation; its single analytic input is the
+threshold flattening statement \cref{op:flat}. This conjecture and
+\cref{thm:assembly} below are retained as documentation of the earlier
+trace-side route.}
+\end{conjecture}
+
+\begin{theorem}[Lift-sum factorization]\label{thm:liftfact}
+In the chain-trace expansion of $\operatorname{tr}[((T^m)^*T^m)^k]$, fix the
+words and the base source $a_1$. The link constraints give
+$a_{j+1}=a_1+D_j+3^{c-m}T_j$ with $D_j$ word-determined and
+$T_j=t_1+\cdots+t_j$ the cumulative lifts; the chain phase collapses to a
+product over the \emph{adjacent} word pairs at the sources,
+\[
+\prod_{j=1}^{k}\chi\bigl(R_j(a_j)\bigr),
+\qquad
+R_j=\text{pair-correlation phase of }(w_{j-1},w'_j)
+\text{ (the $i{=}0$ factors cancel),}
+\]
+and since $a_j$ depends only on $T_{j-1}$ and the map
+$(t_1,\dots,t_{k-1})\mapsto(T_1,\dots,T_{k-1})$ is triangular, the lift sum
+factorizes \emph{exactly} into independent one-variable sums:
+\[
+\sum_{\mathbf t\in(\Z/3^m)^{k-1}}\ \prod_{j}\chi\bigl(R_j(a_j)\bigr)
+=\chi(R_1(a_1))\prod_{j=2}^{k}\ \sum_{T\in\Z/3^m}
+\chi\bigl(R_j(\alpha_j+3^{c-m}T)\bigr).
+\]
+The multivariate lift-phase problem is therefore \emph{univariate}: a coset
+character sum of a pair-correlation phase, per link.
+\end{theorem}
+
+\begin{lemma}[Coset dichotomy]\label{lem:coset}
+Let $R$ be a pair-correlation phase, $\chi$ primitive mod $3^c$, and let
+$d=v_3\bigl((\log R)'(\alpha)\bigr)$ be the \emph{pointwise} valuation at the
+coset base. Then (under the window $2(c-m)+d+1\ge c$)
+\[
+\sum_{T\bmod 3^m}\chi\bigl(R(\alpha+3^{c-m}T)\bigr)=
+\begin{cases}
+0, & d\le m-1,\\
+3^m\,\chi(R(\alpha)), & d\ge m .
+\end{cases}
+\]
+There is no intermediate boundary behaviour: at $d=m-1$ the Postnikov linear
+coefficient $\lambda_1=3^{-(c-1)}\bigl[\log R(\alpha+3^{c-m})-\log
+R(\alpha)\bigr]$ is a unit by definition of $d$, and the full-period mod-$3$
+sum vanishes. Verified exhaustively: at $(c,m,n)=(8,4,4)$ and $(7,3,3)$, all
+$1{,}734$ sampled configurations with pointwise $d=m-1$ have
+$\lambda_1\in\{1,2\}$ and machine-zero sums; all non-vanishing cases have
+$\lambda_1=0$, i.e.\ true valuation $\ge m$. (An earlier draft reported a
+boundary anomaly; it was an artifact of classifying by the \emph{nominal}
+valuation $\min_i[i+v_3(\Delta C_i)]$---degenerate minima, where the leading
+units cancel mod $3$, raise the true valuation in $\approx16\%$ of nominal
+boundary cases. The degeneracy costs one mod-$3$ condition per level, so the
+migrated mass is geometrically controlled.)
+\end{lemma}
+
+\begin{proposition}[Trace-method ceiling]\label{rem:sixth}
+By \cref{thm:liftfact,lem:coset}, a chain survives only if every adjacent pair
+is true-stationary ($v_3((\log R_j)')\ge m$), which prefix-locks the words up
+to geometrically thin degenerate-minima corrections; the surviving phases are
+then \emph{exactly constant} per coset, and two further exact resources
+apply---the base-point sum over $a_1$ (a complete $U$-sum, vanishing unless
+$v_3(\sum_jL_j)\ge c-1$) and the cyclic closure constraint (worth
+$\mathrm{poly}\cdot3^{-(c-m)}$ by collision flattening). Carrying out the
+complete accounting with all of these, every variant lands at bounds of the
+form $\rho^2\le3^{\,1/m}\cdot(\text{const}/\sqrt m)^{1/m}\to1$: strictly below
+$1$ at every finite level---re-deriving the strict gap---but with no uniform
+$\delta$. Since the coset weights are exactly $\{0,1\}$ (no intermediate
+values; \cref{lem:coset}), the boundary-transition-operator route degenerates,
+and the conclusion is structural: \emph{the trace method has a marginality
+ceiling}. The surviving deep-stationary chains carry unimodular constant
+phases and trace mass $\Theta(3^k)$, which the inequality
+$\rho^{2mk}\le\operatorname{tr}$ cannot convert into a uniform gap---the trace
+mass is carried by many small eigenvalues, not by $\rho$. A proof of
+$\sup_c\gamma_c<1$ therefore requires a non-trace mechanism: either direct
+operator-norm control of $\lVert T^mg\rVert$ on the structured complement of
+the deep-stationary sector (an eigenvector-aware estimate), or the finite-$Q$
+certificate route of the prior program. The numerically observed limit
+$\gamma_\infty(s)=\sqrt{\Delta_s}$ stands as the conjectural sharp constant.
+\end{proposition}
+
+\subsection*{The live route: eigenvector-aware norm control}
+
+Three measurements settle how the non-trace route must run. Let
+$P_{\mathrm{stat}}$ project onto the modes of conductor $\le3^{c-m}$ (the
+functions constant on the lift cosets---the deep-stationary directions).
+
+\emph{(i) Top eigenvectors avoid the stationary sector.} At
+$(c,k)=(6,1),(7,5)$ the top right eigenvector carries mass only
+$0.01$--$0.11$ on $\mathcal H_{\mathrm{stat}}$ for $m=2,3,4$: the trace
+ceiling is produced by spectrally irrelevant small modes, exactly as the
+ceiling analysis predicted.
+
+\emph{(ii) The compressed stationary operator vanishes---exactly.} The
+measurement $\rho\bigl(P_{\mathrm{stat}}T^mP_{\mathrm{stat}}\bigr)^{1/m}
+\le3\times10^{-4}$ that motivated the block decomposition is in fact machine
+roundoff of an exact identity:
+
+\begin{theorem}[Conductor raising; exact stationary ejection]\label{thm:eject}
+Let $\chi$ be primitive modulo $3^c$ and let $P_{\mathrm{top}}$ project onto
+the modes $\eta\otimes\varepsilon$ with $\eta$ of conductor exactly $3^c$.
+Then
+\[
+P_{\mathrm{top}}^{\perp}\,T_{\chi,c,s}=0:
+\]
+the image of the synchronized Koopman operator lies entirely in the
+top-conductor sector. Consequently, for every threshold $j<c$, writing
+$P_{\le j}$ for the projection onto modes of conductor $\le3^j$,
+\[
+P_{\le j}\,T^m=0\qquad(m\ge1),
+\]
+so in particular $P_{\mathrm{stat}}T^mP_{\mathrm{stat}}=0$ identically; and
+$\operatorname{spec}(T)\setminus\{0\}
+=\operatorname{spec}(P_{\mathrm{top}}TP_{\mathrm{top}})\setminus\{0\}$: all
+spectral action takes place in the primitive sector, of dimension
+$8\cdot3^{c-2}$ (two thirds of the space).
+\end{theorem}
+
+\begin{proof}
+It suffices to check the spanning modes $g=\eta\otimes\varepsilon$. By the
+synchronization rule,
+\[
+(Tg)(a,\tau)
+=\chi(a)\,\eta(3a+1)\,\varepsilon(\tau)\cdot
+\sum_{b\ge1}w_b\,\eta(2)^{-b}\varepsilon(b),
+\]
+so up to a scalar the output is the function $a\mapsto\chi(a)\,\eta(3a+1)$
+(times a parity character). Since $3a+1\bmod3^c$ depends only on
+$a\bmod3^{c-1}$, the function $a\mapsto\eta(3a+1)$ factors through the
+reduction $U_{3^c}\to U_{3^{c-1}}$ and hence lies in the span of the
+multiplicative characters $\zeta$ of conductor $\le3^{c-1}$ (these are exactly
+the functions invariant under $\ker(U_{3^c}\to U_{3^{c-1}})$, by dimension
+count). For any such $\zeta$, the restriction of $\chi\zeta$ to that kernel
+equals the restriction of $\chi$, which is nontrivial because $\chi$ is
+primitive; hence $\operatorname{cond}(\chi\zeta)=3^c$ exactly. Every Fourier
+component of the output therefore has top conductor. The corollaries follow
+from $P_{\le j}P_{\mathrm{top}}=0$ and
+$\operatorname{im}T\subseteq\mathcal H_{\mathrm{top}}$.
+\end{proof}
+
+\begin{remark}
+The identity is one-sided: $TP_{\mathrm{top}}^{\perp}\ne0$ (measured norm
+$\approx1.16$)---low-conductor modes feed the primitive sector and never
+return. In transfer (pushforward) form the statement transposes to
+$MP_{\le j}=0$; both forms were verified to $10^{-13}$ at $c=5,6$, together
+with the exact agreement of $\operatorname{spec}(T)$ and
+$\operatorname{spec}(P_{\mathrm{top}}TP_{\mathrm{top}})$ to all computed
+digits. This settles the block-decomposition corner exactly ($A=0$, not
+merely small), and it explains measurement (i) structurally: the
+deep-stationary trace mass counted by the ceiling (\cref{rem:sixth}) lives in
+directions that $T$ ejects in a single step and that no power ever revisits.
+\end{remark}
+
+\emph{(iii) The norm decay rate is empirically $c$-uniform at $m\gtrsim c$.}
+\[
+\begin{array}{c|ccccc}
+\sigma_1(T^m)^{1/m} & m{=}4 & m{=}8 & m{=}12 & m{=}16 & m{=}20\\\hline
+c=5 & 0.9647 & 0.8088 & 0.7470 & 0.7199 & 0.7044\\
+c=6 & 0.9626 & 0.8373 & 0.7655 & 0.7284 & 0.7087\\
+c=7 & 0.9644 & 0.8658 & 0.7782 & 0.7302 & 0.7025
+\end{array}
+\]
+At $m=20$ the rate is flat in $c$ to $\pm0.6\%$. The structural reason is
+exact: for $m\ge c$ the endpoint obstruction of \cref{prop:endpoint}
+\emph{evaporates}.
+
+\begin{proposition}[Complete-kernel formula]\label{prop:completekernel}
+Let $m\ge c$. Then $3^m\equiv0\pmod{3^c}$, so the $m$-step endpoint
+$S_w(a)\equiv C_w2^{-B_m(w)}\pmod{3^c}$ is determined by the word alone,
+independently of the source $a$. Consequently the kernel of $T^m$ factorizes
+as
+\[
+K_m\bigl((x,\sigma),(a,\tau)\bigr)
+=\sum_{\substack{w:\;C_w2^{-B_m(w)}\equiv x\ (3^c)\\ B_m(w)\equiv\sigma-\tau\ (2)}}
+p_s(w)\,\Psi_w(a),
+\qquad
+\Psi_w(a)=\prod_{i=0}^{m-1}\chi\bigl(x_i(a,w)\bigr),
+\]
+and the entries of $H_m=(T^m)^*T^m$ are \emph{complete word-pair sums}:
+\[
+H_m\bigl((a,\tau),(a',\tau')\bigr)
+=\sum_{\substack{(w,w'):\;C_w2^{-B_m(w)}\equiv C_{w'}2^{-B_m(w')}\ (3^c)\\
+B_m(w)\equiv B_m(w')+\tau'-\tau\ (2)}}
+p_s(w)\,p_s(w')\,\overline{\Psi_w(a)}\,\Psi_{w'}(a').
+\]
+The common-endpoint constraint selects word pairs only---no source coset
+appears---so the incomplete-coset obstruction of \cref{prop:endpoint} is
+structurally absent in this regime, and the Schur test becomes available.
+\end{proposition}
+
+\paragraph{Row-sum audit (Schur sharpness).} For the unweighted Schur bound
+$\lVert T^m\rVert^2\le R_m:=\sup_{\xi}\sum_{\xi'}\lvert H_m(\xi,\xi')\rvert$
+(states $\xi=(a,\tau)$), at $s=0$ and $m=c,\,c+2,\,2c$:
+\[
+\begin{array}{c|ccc|ccc|ccc}
+& \multicolumn{3}{c|}{c=5} & \multicolumn{3}{c|}{c=6}
+& \multicolumn{3}{c}{c=7}\\
+m & 5 & 7 & 10 & 6 & 8 & 12 & 7 & 9 & 14\\\hline
+\sigma_1(T^m)^{1/m} & 0.9231 & 0.8364 & 0.7706
+                    & 0.9096 & 0.8373 & 0.7655
+                    & 0.9040 & 0.8363 & 0.7443\\
+R_m^{1/(2m)}        & 0.9547 & 0.8600 & 0.7849
+                    & 0.9350 & 0.8567 & 0.7823
+                    & 0.9280 & 0.8620 & 0.7676
+\end{array}
+\]
+The Schur bound tracks $\sigma_1^{1/m}$ within $3\%$ at every $(c,m)$, and
+singular-vector weights move it by $\le1\%$ in either direction: the
+\emph{unweighted} row sum is essentially sharp, so the Schur norm is the
+correct vehicle and no weighted refinement is forced. At $m=2c$ the bound
+itself descends in $c$ ($0.7849,\,0.7823,\,0.7676$). The effective constant
+$A_m(c)=R_m/\Delta_s^m$ of the anticipated shape $R_m\le A_m\Delta_s^m$
+satisfies $A_m^{1/(2m)}=1.61,\,1.49,\,1.33$ at $c=7$, $m=7,9,14$
+(descending): the row-multiplicity growth rate is $\approx1.8^m$, comfortably
+below the critical rate $3^m$ at which the bound
+$\lVert T^m\rVert^{1/m}\le A_m^{1/(2m)}\sqrt{\Delta_s}$ becomes vacuous at
+$s=0$.
+
+\paragraph{Degenerate-minimum mass audit (the class-IV test).} The proposed
+row-sum decomposition treats by absolute value the class of word pairs whose
+\emph{nominal} nonstationarity $d_{\mathrm{nom}}=\min_i[i+v_3(\Delta C_i)]\le
+c-2$ degenerates, through mod-$3$ cancellation among the leading terms, to
+true pointwise valuation $d_{\mathrm{true}}(a)\ge c-1$---escaping the
+vanishing lemma. A Monte Carlo audit ($2\times10^6$ pairs per configuration,
+$c=5,6,7$, $m=c,\,c+2,\,2c$; classifier validated against exact complete
+sums: machine zeros for nondegenerate pairs, $|S|/\varphi\in[0.5,1]$ for all
+classified-degenerate pairs) gives a sharp two-sided verdict. The
+\emph{level-cost mechanism is confirmed exactly}: $\Pr[d_{\mathrm{true}}-
+d_{\mathrm{nom}}\ge k]$ decays by a factor $3$ per level at every $(c,m)$.
+But the \emph{aggregate mass lemma fails in the large-$m$ regime}: the
+degenerate mass is flat in $m$ (degeneration is a prefix-local phenomenon),
+and its conditional rate among endpoint-matched pairs rises from
+$\approx\frac17$ of the unconditional rate at $m=c$ to full decorrelation at
+$m=2c$. Consequently the absolute-value bound on the class,
+$2\varphi\cdot\Pr[\text{matched}\wedge\text{degenerate}]$, is \emph{not}
+$O(\rho^m)$: at $m=2c$ it exceeds the entire measured row sum by factors
+$14,\,31,\,77$ for $c=5,6,7$. In the regime $m=c$, however, endpoint matching
+\emph{suppresses} degeneracy (the window and the prefix overlap), and the
+class-IV mass is only $2$--$4\%$ of the measured row sum, stable-to-decaying
+in $c$. The strategic consequence: the Schur bookkeeping must be run at
+$\alpha=1$ (i.e.\ $m=c$, the completeness threshold), where a pure mass
+treatment of the degenerate class empirically suffices and the row-sum rate
+to beat is $R_c^{1/2c}=0.9547,\,0.9350,\,0.9280$ (descending in $c$); at
+$\alpha\ge2$ the degenerate class would itself require phase cancellation.
+\paragraph{The adjoint-side kernel and the threshold audit.} The
+bookkeeping is run on the adjoint-side kernel $G_m=T^m(T^m)^*$, whose
+entries carry \emph{complete source sums}: for states $\xi=(x,\sigma)$,
+$\xi'=(x',\sigma')$,
+\[
+G_m(\xi,\xi')
+=\sum_{\substack{w\to x,\;w'\to x'\\ B_m(w)-B_m(w')\equiv\sigma-\sigma'\ (2)}}
+p_s(w)\,p_s(w')\;\chi(2)^{\sum_i(B_i'-B_i)}
+\sum_{a\in U_{3^c}}\chi\!\Bigl(\,\prod_{i=1}^{m-1}
+\frac{3^ia+C_i(w)}{3^ia+C_i(w')}\Bigr),
+\]
+so the coset dichotomy applies \emph{pair by pair}: class I (nonstationary
+nondegenerate pairs) contributes exactly zero to every entry. In a full word
+enumeration at $c=4,5$ ($m=c$, sup row) all $5.6\times10^5$ resp.\
+$8.5\times10^6$ class-I pairs give machine zeros, and the four-class
+absolute mass reproduces the matrix row sum from above with $\approx20\%$
+internal cancellation margin. The $G$-form row rates at $m=c$ are
+\[
+R_G^{1/(2c)}=1.0743,\;1.0294,\;1.0003,\;0.9854,\;0.9720
+\qquad(c=4,\dots,8),
+\]
+descending and below $1$ from $c=7$. The exact class decomposition
+identifies the controlling class: stationarity at threshold is the
+\emph{congruence cascade} $v_3(\Delta C_i)\ge c-1-i$ for every interior $i$,
+equivalently the nested conditions $B_i\equiv B_i'\pmod{2\cdot3^{\,c-2-i}}$,
+one factor of $3$ deeper per level of $c$. The twisted near-locked pairs
+satisfying this cascade (class II) carry $58\%$ resp.\ $48\%$ of the sup-row
+mass at $c=4,5$ with per-class rate $1.0373\to0.9762$ (below $1$ from
+$c=5$); the locked class III is second ($0.9883\to0.9618$); the degenerate
+class IV is subordinate ($0.8406$); the untwisted remainder is negligible
+($0.60$).
+
+\subsection*{The near-locked cascade bound}
+
+The class-II combinatorics announced above can be made exact and proved.
+Write $t_i=B_i(w)-B_i(w')$ and $D_i=2^{B_i}-2^{B_i'}$, so that
+$\Delta C_1=0$ and $\Delta C_{i+1}=3\Delta C_i+D_i$.
+
+\begin{theorem}[Cascade equivalence]\label{thm:cascade}
+For a pair of $c$-words, the threshold stationarity cascade
+$v_3(\Delta C_i)\ge c-1-i$ (all interior $i$) holds \emph{if and only if}
+\[
+B_i\equiv B_i'\pmod{2\cdot3^{\,c-3-i}},\qquad 1\le i\le c-3.
+\]
+\end{theorem}
+
+\begin{proof}
+By lifting-the-exponent, $v_3(2^t-1)=0$ for $t$ odd and $=1+v_3(t)$ for $t$
+even; since the multiplicative order of $2$ modulo $3^k$ is $2\cdot3^{k-1}$,
+$v_3(D_i)\ge k\iff t_i\equiv0\pmod{2\cdot3^{k-1}}$. Forward: if the cascade
+holds at $i$ and $i+1$, then
+$v_3(D_i)=v_3(\Delta C_{i+1}-3\Delta C_i)\ge\min(c-2-i,\,c-i)=c-2-i$ for
+$i\le c-3$. Converse: $\Delta C_2=D_1$ has $v_3\ge c-3$, and inductively
+$v_3(\Delta C_{i+1})\ge\min(1+v_3(\Delta C_i),\,v_3(D_i))\ge c-2-i$.
+\end{proof}
+
+\begin{lemma}[Cascade mass bound]\label{lem:cascade}
+For independent $p_0$-random words,
+\[
+3^{-(c-3)}\;\le\;\Pr[\textnormal{cascade}]\;\le\;K\cdot3^{-(c-3)},
+\qquad
+K=1+4\sum_{k\ge0}3^k2^{-2\cdot3^k}<2.2 .
+\]
+Moreover $\sup_w\Pr_{w'}[\textnormal{cascade}\mid w]\le(2/3)^{c-3}$.
+\end{lemma}
+
+\begin{proof}
+Lower bound: locking $b_j'=b_j$ for $j\le c-3$ costs
+$\prod\Pr[b'=b]=3^{-(c-3)}$. Upper bound: decompose by the first $n$ with
+$t_n\ne0$. The event $t_i=0$ for $i<n$ means $b_j'=b_j$ for $j<n$
+(probability $3^{-(n-1)}$), and then $t_n=b_n-b_n'$ must be a nonzero
+multiple of $M_n=2\cdot3^{\,c-3-n}$:
+$\Pr[X\ne0,\,M\mid X]\le\tfrac43 2^{-M}$ for the symmetrized geometric law
+$\Pr[X=d]=\tfrac13 2^{-|d|}$. Summing with $k=c-3-n$ gives $K$. Row version:
+condition sequentially; given $B'_{i-1}$, the $i$-th congruence pins
+$b_i'$ modulo $M_i$, and
+$\Pr[b'\equiv r\ (M)]=2^{-\hat r}/(1-2^{-M})\le\tfrac23$.
+\end{proof}
+
+\begin{proposition}[Two-point profile of cascade sums]\label{prop:twopoint}
+Let $(w,w')$ be a cascade pair and
+$R(a)=\prod_{i}(3^ia+C_i)/(3^ia+C_i')$. Then $a\mapsto\chi(R(a))$ factors
+through $a\bmod3$, and the complete sum satisfies
+\[
+\frac{|S(w,w')|}{\varphi}\in\Bigl\{\tfrac12,\;1\Bigr\}.
+\]
+The value $1$ holds whenever the pair satisfies the \emph{deeper} cascade
+$v_3(\Delta C_i)\ge c-i$ (equivalently $B_i\equiv B_i'$ mod
+$2\cdot3^{\,c-2-i}$, $i\le c-2$); on boundary pairs the value is generically
+$\tfrac12$, with $1$ occurring on a degenerate subclass (measured $\approx14\%$,
+the mod-$3$ cancellation channel of the class-IV mechanism). In particular
+\emph{no cascade pair vanishes}.
+\end{proposition}
+
+\begin{proof}
+Each derivative of the log-ratio carries a $\Delta C_i$ factor:
+$(\log R)^{(k)}/(k-1)!=\pm\sum_i3^{ik}\bigl[(3^ia+C_i')^{-k}-(3^ia+C_i)^{-k}\bigr]$
+has $v_3\ge ik+v_3(\Delta C_i)\ge c-1+i(k-1)\ge c-1$. For $a\equiv a''\bmod3$
+the Taylor expansion gives
+$v_3(\log R(a)-\log R(a''))\ge\min_k\bigl[k+(c-1)-v_3(k!)\bigr]\ge c$
+(as $k-v_3(k!)\ge1$), so $\chi(R(a))=\chi(R(a''))$. Hence
+$S=\tfrac{\varphi}2\bigl[\chi(R(a_1))+\chi(R(a_2))\bigr]$ with
+$\chi(R(a_1))/\chi(R(a_2))=\omega^\lambda$ a cube root of unity, and
+$|1+\omega^\lambda|\in\{2,1\}$. For deeper pairs the same argument one level
+down makes $\chi\circ R$ constant on all of $U$. Machine verification at
+$c=5$: $600/600$ boundary pairs exactly in $\{\tfrac12,1\}$
+($86\%/14\%$), $800/800$ deeper pairs exactly $1$.
+\end{proof}
+
+\begin{remark}[Assembly status]
+\cref{lem:cascade} proves the class-II \emph{count} is geometrically thin
+($K3^{-(c-3)}$, sharp up to constant), and \cref{prop:twopoint} caps the
+surviving sums at $\varphi/2$ off the deeper subclass. What the crude
+assembly does not yet deliver is the full budget $R_{\mathrm{II}}\le
+\theta^{2c}$: for rows of word-mass $\asymp2^{-c}$ (the fixed-point residue
+$x=-1$, which is the empirical sup row), the product
+$\varphi\cdot\mu_{\mathrm{row}}\cdot(2/3)^{c-3}$ has exact growth rate
+$\bigl(3\cdot\tfrac12\cdot\tfrac23\bigr)^c=1$: the ninth appearance of the
+marginal coincidence in this program. The obstruction is concentrated on
+adversarially aligned rows---at $x=-1$ every tail congruence targets the
+heavy residue $\hat r=1$, realizing the worst case of the sequential bound.
+The remaining sharpening is the off-representative (near-diagonal)
+multiplicity bookkeeping with the $\{\tfrac12,1\}$ profile carried exactly.
+\end{remark}
+
+\paragraph{Heavy-row cascade audit: the marginality is broken.} The
+discriminating experiment (exact word enumeration on the row $x=-1$ at
+$m=c$, with the two-point formula
+$S=\tfrac{\varphi}2[\chi(R(1))+\chi(R(2))]\cdot\chi(2)^{\Delta\Sigma B}$
+giving every cascade sum in closed form, verified to $10^{-13}$) resolves
+the trichotomy in favour of \emph{mass-plus-profile bookkeeping}. Across
+$c=5,6,7$, every component of the absolute cascade row budget decays by a
+stable factor $0.72$--$0.74$ per level: the total
+$R^{\mathrm{abs}}_{\mathrm{casc}}(-1)=1.468\to1.063\to0.783$, hence
+\[
+\Lambda_c=R^{1/(2c)}=1.0392,\;1.0051,\;\mathbf{0.9827},
+\]
+\emph{crossing below $1$ at $c=7$} exactly as extrapolated, and tending to
+$\approx\sqrt{0.73}\approx0.85$ if the per-level ratio is sustained. The
+signed-to-absolute ratio \emph{rises} toward $1$
+($0.876\to0.915\to0.961$): there is no hidden phase coherence inside the
+cascade, and none is needed. The $\beta{=}1$ channel carries a remarkably
+stable $38.8\%$ of the class-II mass at all three levels (bounded well
+away from saturation, and consistent with \cref{lem:betachannel}); the
+off-representative mass collapses geometrically
+($3.6\times10^{-3}\to8.0\times10^{-4}\to1.9\times10^{-4}$): multiplicity
+is $O(1)$, not $3^{\epsilon c}$. At $c=7$ the heavy row $x=-1$ is
+confirmed as the sup row ($16.7\times$ the mean row mass), and the
+transition mass within it is \emph{spread}: the largest single column
+carries $12\%$ of $R_{\mathrm{casc}}$ and the top ten only $43\%$---the
+favourable case for a Perron contraction argument, since no single state
+must be controlled exactly. The crude marginal coincidence
+$(3\cdot\frac12\cdot\frac23)^c=1$ is thus broken by the true profile and
+multiplicity constants. One of the three savings is already a lemma, by applying
+\cref{lem:cascade} at two adjacent depths:
+
+\begin{lemma}[Deeper-channel bound]\label{lem:betachannel}
+The deeper cascade ($v_3(\Delta C_i)\ge c-i$, moduli $2\cdot3^{\,c-2-i}$,
+$i\le c-2$) satisfies the same mass bound one level up,
+$\Pr[\textnormal{deeper}]\le K\cdot3^{-(c-2)}$, with the same constant
+$K<2.2$. Hence, conditional on the cascade,
+\[
+p_1=\Pr[\textnormal{deeper}\mid\textnormal{cascade}]
+\le\frac{K\cdot3^{-(c-2)}}{3^{-(c-3)}}=\frac K3<0.733,
+\qquad
+\E[\beta\mid\textnormal{cascade}]
+\le\frac12\Bigl(1+\frac K3\Bigr)+\frac q2<0.867+\frac q2,
+\]
+where $q$ is the degenerate boundary channel mass
+($\lambda=0$ without the deeper congruences; measured $\approx0.14$,
+stable). This is a strict uniform saving over the worst case
+$\beta\equiv1$; it is the aggregate form of the per-state channel bound
+required by the contraction program, and the channel constant $q$ is the
+one remaining unproved ingredient of the $\beta$-profile.
+\end{lemma}
+
+In fact the central counting estimate can be made sharp, and doing so
+\emph{dissolves} the marginal coincidence:
+
+\begin{lemma}[Sharp sequential pinning; off-representative absorption]
+\label{lem:pinning}
+For every $m$-word $w$,
+\[
+\Pr_{w'}\bigl[(w,w')\textnormal{ cascade}\bigr]
+\le C_0\,2^{-(c-3)},
+\qquad
+C_0=\prod_{j\ge0}\bigl(1-2^{-2\cdot3^j}\bigr)^{-1}
+=\tfrac43\cdot1.0159\cdots<1.355 .
+\]
+\end{lemma}
+
+\begin{proof}
+Condition sequentially on $b_1',\dots$. At level $i$ the cascade congruence
+$B_i'\equiv B_i\pmod{M_i}$ pins $b_i'$ to a residue class
+$\hat r_i\in\{1,\dots,M_i\}$, and
+$\Pr[b'\equiv\hat r\ (M)]=2^{-\hat r}(1-2^{-M})^{-1}
+\le\tfrac12(1-2^{-M})^{-1}$. The moduli $M_i=2\cdot3^{\,c-3-i}$ traverse
+$\{2\cdot3^j:j=0,\dots,c-4\}$, and the product of the correction factors
+converges to $C_0$.
+\end{proof}
+
+Two consequences. \emph{First}, the off-representative mass (Lemma~B of the
+contraction program) is absorbed: the factors $(1-2^{-M})^{-1}$ \emph{are}
+the off-representative sums, so off-representatives contribute at most the
+fixed total factor $C_0$, uniformly in $c$---no separate lemma is needed.
+\emph{Second}, the marginal coincidence of the assembly remark was an
+artifact: charging the worst case $\tfrac23$ at every level is wrong, since
+the level-$i$ cost exceeds $\tfrac12$ only by the $2^{-M_i}$ corrections,
+and the value $\tfrac23$ occurs solely at the single level with $M=2$.
+Carrying \cref{lem:pinning} through the row assembly gives genuine
+contraction:
+
+\begin{proposition}[Cascade row contraction]\label{prop:rowcontract}
+For every row state $\xi$ over the residue $x$, the cascade (class
+II${}\cup{}$III) contribution to the $G_c$ Schur row sum satisfies
+\[
+R_{\mathrm{casc}}(\xi)\;\le\;\varphi\cdot\mu(x)\cdot C_0\,2^{-(c-3)},
+\]
+where $\mu(x)$ is the endpoint word mass of the row. Consequently:
+\emph{(a)} on the heavy row, where $\mu(-1)=A\cdot2^{-c}$ with
+$A\approx1.45$ measured stable over $c=4,\dots,7$,
+\[
+R_{\mathrm{casc}}(-1)\le\tfrac{16}{3}C_0A\,(3/4)^c\approx10.5\,(3/4)^c,
+\]
+matching the audited per-level decay $0.72$--$0.74$ and $\Lambda_7=0.9827$;
+\emph{(b)} for all rows simultaneously,
+$\mu(x)\le\bigl(\sum_x\mu(x)^2\bigr)^{1/2}=\sqrt{\mathrm{Col}_c(c)}$, so
+granted the threshold flattening input
+$\mathrm{Col}_c(c)\le\mathrm{poly}(c)\,3^{-c}$ (proved for $m\ge(1+\epsilon)c$
+in \cref{lem:flat}; measured $3^c\,\mathrm{Col}\approx4$ at $m=c$),
+\[
+\sup_\xi R_{\mathrm{casc}}(\xi)\le\mathrm{poly}(c)\Bigl(\tfrac{\sqrt3}2\Bigr)^{c},
+\qquad\text{i.e.}\qquad
+\Lambda_c\le\frac{3^{1/4}}{\sqrt2}+o(1)\approx0.9306 .
+\]
+The class-II/III budget of the threshold Schur bound is therefore
+contractive, \emph{modulo a single analytic input}: the $m=c$ extension of
+the flattening lemma. (The $\beta$-profile and the channel constant $q$ are
+no longer needed for contraction---$\beta\le1$ suffices---and survive only
+as sharpening constants.)
+\end{proposition}
+
+\paragraph{The cascade operator, numerically.} In the scaled coordinates
+$\bar t_{i+1}=3\bar t_i+\bar x$ the heavy-row chain becomes an explicit
+two-channel transfer operator ($\varphi$-growth $3$, $w$-side mass
+$\tfrac12$, $w'$-side weight $2^{-(1+M_i|\bar x|)}$), computable to any $c$
+from $\approx50$-dimensional level matrices. Its bulk per-level Perron
+radius is \emph{exactly} $3/4=3\cdot\tfrac12\cdot\tfrac12$, with Perron
+vector the point mass at $\bar t=0$: the locked state is the unique
+recurrent state, all off-representative states are transient, and the
+``heavy-state nonpersistence'' lemma of the contraction program dissolves
+in these coordinates---the heavy state \emph{is} the Perron state and
+contracts at $3/4$ per level. The model's lock share is $1/C_0=0.7383$
+(internal consistency with \cref{lem:pinning}), and its row rates
+$\Lambda^{\mathrm{model}}_c=1.0414,\,1.0099,\,0.9879$ at $c=5,6,7$ agree
+with the measured $1.0392,\,1.0051,\,0.9827$ to $0.5\%$, descending through
+$0.893$ at $c=30$ toward $\sqrt{3/4}=0.866$.
+
+\subsection*{Threshold flattening: the exact Fourier reduction}
+
+The single analytic input of \cref{prop:rowcontract} is the $m=c$ extension
+of \cref{lem:flat}. Locating the role of $\varepsilon$ in the proved
+$m\ge(1+\varepsilon)c$ case: it is used exactly once, to decouple the walk
+factor $2^{B_{m-1}}$ from the window via $\varepsilon c$ fresh prefix
+symbols. At threshold the prefix is empty---and indeed the $L^\infty$ form
+of flattening is \emph{false} there: the fiber $x=-1$ carries mass
+$\mu(-1)=A\cdot2^{-c}\gg\mathrm{poly}(c)3^{-c}$, so no fiber bound can
+hold, and only the $L^2$ (collision) statement survives. That statement
+has an exact Fourier form:
+
+\begin{proposition}[Plancherel form of threshold flattening]\label{prop:plancherel}
+With $\hat E_c(u)=\E_w\bigl[e\bigl(uC_w/3^c\bigr)\bigr]$ the renewal
+Fourier coefficients of the $c$-step constant,
+\[
+\operatorname{Col}_c(c)=3^{-c}\sum_{u\bmod 3^c}\bigl|\hat E_c(u)\bigr|^2 .
+\]
+Threshold flattening is therefore \emph{equivalent} to
+$\sum_u|\hat E_c(u)|^2\le\mathrm{poly}(c)$. Computed exactly for
+$c=3,\dots,6$ the sum is $3.32,\,3.53,\,3.70,\,3.90$---\emph{linear},
+$\approx0.19c+2.8$---and the sampled per-coefficient decay is
+$\max_u|\hat E_c(u)|\approx\mathrm{poly}(c)\,3^{-c/2}$.
+\end{proposition}
+
+\begin{lemma}[Marginal scale]\label{lem:marginalscale}
+Revealing one symbol multiplies $\hat E_c(u)$ by a conditional factor
+bounded by $\eta_k=\max_{3\nmid a}\bigl|\sum_{b\ge1}2^{-b}
+e\bigl(a2^b/3^k\bigr)\bigr|$ at the active scale $k$, and
+\[
+\eta_1=\tfrac1{\sqrt3}\qquad\text{exactly}:
+\]
+$2^b\equiv(-1)^b\pmod3$ gives $S=\tfrac23e_3(-a)+\tfrac13e_3(a)$ and
+$|S|^2=\tfrac59-\tfrac49\cdot\tfrac12=\tfrac13$. Thus $3\eta_1^2=1$: the
+shallowest scale is \emph{exactly marginal}, which is why the Plancherel
+sum grows linearly (one marginal constant per level) rather than staying
+bounded---and why no estimate can beat $\mathrm{poly}(c)3^{-c}$ by more
+than the polynomial.
+\end{lemma}
+
+\paragraph{The obstruction and the mechanism.} The worst-case per-scale
+product fails structurally: $\eta_k\uparrow1$
+($0.577,\,0.647,\,0.835,\,0.930,\dots$), since at deep scales the aligning
+$a$ places the first $\sim k\log_32$ orbit phases near zero. The decay is
+therefore \emph{path-averaged}: the phase parameter evolves by the
+expanding dynamics $\theta_{j+1}=3\cdot2^{b_j}\theta_j\bmod1$, so the
+undamped tiny-phase region is transient---a phase of size $3^{-d}$ escapes
+within $O(d)$ steps and is then damped at $\eta_1$-strength. The measured
+per-$u$ decay $\mathrm{poly}\cdot3^{-c/2}$ and the linear Plancherel sum
+confirm this mechanism quantitatively. The last analytic input of the
+finite side is thus:
+
+Two structural results sharpen the target. First, the statement is
+\emph{self-similar across levels}, and in particular $c$-uniform:
+
+\begin{lemma}[Level decoupling; self-similar shells]\label{lem:shells}
+For $1\le L\le c$,
+$C_c\bmod3^L=2^{B_{c-L}}\cdot\tilde C_L$, where $\tilde C_L$ is an
+$L$-term constant built from the \emph{last} $L-1$ increments and the unit
+$2^{B_{c-L}}$ is independent of it: at proper levels the unit prefactor
+decouples (the threshold coupling concerns only the full level $L=c$).
+Consequently, by Cauchy--Schwarz over the unit twist, the level-$L$
+Plancherel shell satisfies
+\[
+\sum_{\operatorname{lev}(u)=L}\bigl|\hat E_c(u)\bigr|^2
+\;\le\;\tilde Q_L:=3^L\operatorname{Col}_L(L),
+\qquad\text{hence}\qquad
+3^c\operatorname{Col}_c(c)\le1+\sum_{L=1}^{c}\tilde Q_L .
+\]
+Thus threshold flattening reduces to the \emph{single-scale} sequence
+$\tilde Q_L\le\mathrm{poly}(L)$, uniformly in the ambient $c$, and even
+tolerates a quadratic loss.
+\end{lemma}
+
+\begin{proof}
+Terms with $c-1-j\ge L$ vanish mod $3^L$;
+$\sum_{j\ge c-L}3^{c-1-j}2^{B_j}=2^{B_{c-L}}\sum_{i<L}3^{L-1-i}
+2^{B_{c-L+i}-B_{c-L}}$, and the prefix unit involves only $b_1,\dots,
+b_{c-L}$. Then
+$\Pr[UC\equiv U'C']=\E_\rho\Pr[C\equiv\rho C']\le
+\lVert\mu\rVert_2\lVert\mu_\rho\rVert_2=\operatorname{Col}_L(L)$ since
+rotation by a unit preserves the $\ell^2$ norm of the law.
+\end{proof}
+
+Second, the computed shells identify the \emph{correct strength} of the
+remaining statement and disprove the natural stronger route. Computing
+$\hat E_L(u)$ exactly for \emph{all} $u$ at $L\le7$: the primitive shells
+are
+\[
+\sum_{\operatorname{lev}(u)=L}|\hat E_L(u)|^2
+=2.00,\;1.43,\;1.41,\;1.39,\;1.37,\;1.41,\;1.38
+\qquad(L=1,\dots,7),
+\]
+\emph{constant} $\approx1.4$---so conjecturally $\tilde Q_L=O(L)$ with
+bounded shells. But the levelwise \emph{maximum} fails:
+$3^L\max_u|\hat E_L(u)|^2$ grows like $1.75^L$, and the maximizers
+converge to the \emph{dyadic-resonant direction} $u/3^L\to3/4$
+($0.481,\,0.247,\,0.749,\,0.750,\,0.7499$ for $L=3,\dots,7$)---the
+Fourier twin of the heavy fiber $x=-1$. As with the fiber bound, the
+$L^\infty$ form is false and only the $L^2$ aggregate is true: the proof
+must bound the shell as a whole (a second moment over the level), not
+coefficient by coefficient. Transience statistics point the same way: the
+expected occupation of the weak-damping region along the phase chain is
+$\approx0.2L$ (linear with small constant, not $O(\log L)$), so the
+accounting must use the full multiplier distribution rather than a
+weak/strong dichotomy. These constraints having been respected, the
+statement can in fact be \emph{proved}, by exposing the collision digit by
+digit in the terminal-window filtration.
+
+\begin{theorem}[Threshold flattening: bounded shells]\label{op:flat}
+For every $L\ge1$,
+\[
+\tilde Q_L=3^L\Pr\bigl[C_L\equiv C_L'\bmod3^L\bigr]
+\;\le\;3\,C_1,
+\qquad
+C_1=\prod_{j\ge0}\frac{1+2^{-2\cdot3^j}}{1-2^{-2\cdot3^j}}<1.7196 ,
+\]
+so the shells are \emph{bounded} ($3C_1<5.16$; measured values
+$3.00,\dots,4.04$ for $L\le7$). Consequently, by \cref{lem:shells},
+$3^c\operatorname{Col}_c(c)\le1+3C_1c$: threshold flattening holds with a
+\emph{linear} polynomial, matching the measured $0.19c+2.8$.
+\end{theorem}
+
+\begin{proof}
+Write $d_j=b_j-b_j'$, $S_i=\sum_{j\le i}d_j$, and let
+$X_k$ denote the terminal window of level $k$ (last $k-1$ increment
+pairs), so that $C_L\equiv2^{B_{L-k}}X_k\pmod{3^k}$
+(\cref{lem:shells}) with the renewal recursion
+$X_{k+1}=1+3\cdot2^{-b_{L-k}}X_k$ and $X_k\equiv1\bmod3$.
+
+\emph{(i) Nested conditions.} Since $2$ generates the units modulo $3^k$
+(order $M_k=2\cdot3^{k-1}$), the level-$k$ collision
+$E_k=\{C_L\equiv C_L'\bmod3^k\}$ is equivalent to
+\[
+S_{L-k}\equiv r_k\pmod{M_k},
+\qquad
+r_k:=\operatorname{dlog}_{3^k}\bigl(X_k'X_k^{-1}\bigr),
+\]
+and $E_L=\bigcap_{k\le L}E_k$.
+
+\emph{(ii) Differencing.} For $i=1,\dots,L-1$ put $k=L-i$ and
+$N_i:=M_{L-i}=2\cdot3^{L-i-1}$. Subtracting the conditions at levels $k$
+and $k+1$ (whose modulus is $3N_i$), on $E_L$ the revealed pair $i$
+satisfies the event
+\[
+D_i:\qquad
+d_i\equiv r_{L-i}-r_{L-i+1}\pmod{N_i},
+\qquad\text{so}\qquad
+E_L\subseteq\bigcap_{i=1}^{L-1}D_i .
+\]
+
+\emph{(iii) Adaptedness and separability.} Let
+$\mathcal F_i=\sigma\bigl((b_j,b_j'):j>i\bigr)$. Then
+$r_{L-i}\in\mathcal F_i$, while $r_{L-i+1}$ depends on $(b_i,b_i')$ only
+through the window extensions, \emph{separably}: $D_i$ is the event
+\[
+F(b_i)-F'(b_i')\equiv\rho_i\pmod{N_i},
+\qquad
+F(b):=b+\operatorname{dlog}_{3^{L-i+1}}\bigl(1+3\cdot2^{-b}X_{L-i}\bigr),
+\]
+with $\rho_i\in\mathcal F_i$ and $F'$ built from $X'_{L-i}$.
+
+\emph{(iv) Class bijectivity.} $F(b)\equiv F(\tilde b)\bmod N_i$ if and
+only if $b\equiv\tilde b\bmod N_i$. Indeed, with $e=\tilde b-b$, the
+ratio of the two window extensions is the principal unit
+$1+3X(2^{-b}-2^{-\tilde b})/(1+3\cdot2^{-\tilde b}X)$ of depth
+$t=1+v_3(2^{e}-1)$; by lifting-the-exponent $t=1$ for $e$ odd and
+$t=2+v_3(e)$ for $e$ even, and the principal-unit index formula
+$\operatorname{dlog}(1+3^t v)=2\cdot3^{\,t-1}v'$ places the perturbation
+of $F(b)-F(\tilde b)$ \emph{one $3$-adic level deeper} than $e$: for odd
+$e$ the difference is odd (distinct mod $2$); for even $e$,
+$v_3\bigl(F(b)-F(\tilde b)\bigr)=v_3(e)$ exactly, with both parts even.
+Hence $F(b)\equiv F(\tilde b)\bmod2\cdot3^m\iff e\equiv0\bmod
+2\cdot3^m$. (Machine-verified on $7\times10^6$ pairs across
+$k\le5$ and random windows: no exceptions.)
+
+\emph{(v) Per-step bound.} Given $\mathcal F_i$, the pair $(b_i,b_i')$ is
+fresh with law $2^{-b}2^{-b'}$. By (iv) the pushforward class masses of
+$F$ (and of $F'$) modulo $N_i$ are a \emph{permutation} of the geometric
+class masses $m_v=2^{-v}/(1-2^{-N_i})$, $v=1,\dots,N_i$. By
+Cauchy--Schwarz, for \emph{any} alignment $\rho_i$,
+\[
+\Pr[D_i\mid\mathcal F_i]
+=\sum_v m^{F}_v\,m^{F'}_{v-\rho_i}
+\;\le\;\sum_v m_v^2
+=\frac13\,\frac{1+2^{-N_i}}{1-2^{-N_i}} .
+\]
+
+\emph{(vi) Telescoping.} $D_{i'}\in\mathcal F_i$ for $i'>i$, so peeling
+$i=1,2,\dots$ inward,
+\[
+\Pr[E_L]\le\prod_{i=1}^{L-1}
+\frac13\,\frac{1+2^{-N_i}}{1-2^{-N_i}}
+=3^{-(L-1)}\prod_{j=0}^{L-2}\frac{1+2^{-2\cdot3^j}}{1-2^{-2\cdot3^j}}
+\le3^{-(L-1)}C_1 . \qedhere
+\]
+\end{proof}
+
+\begin{remark}
+The proof realizes the energy principle exactly: each additional $3$-adic
+digit of collision costs $\tfrac13$ in pair energy, up to dyadic wrap
+corrections whose product converges ($C_1$); the heavy fiber and the
+dyadic-resonant Fourier direction---which falsify the $L^\infty$
+forms---are paid for automatically by the quadratic pair weights. The
+per-step constant is sharp (attained numerically to six digits), and the
+final bound $3C_1=5.159$ sits within $25\%$ of the measured shells. The
+statement and proof are annealed and character-free: no $\chi$,
+coboundary, or orbit-deterministic input appears. All of this is at
+$s=0$; the $s\in[0,1]$ extension (lighter tails) is expected by the same
+scheme but not claimed.
+\end{remark}
+
+\paragraph{Consequences.} \cref{prop:rowcontract} is now
+\emph{unconditional}: for every row state $\xi$,
+$R_{\mathrm{casc}}(\xi)\le\mathrm{poly}(c)\,(\sqrt3/2)^c$, i.e.\ the
+cascade (class I--III) sector of the threshold Schur bound is a
+\emph{theorem}, with rate constant $3^{1/4}/\sqrt2\approx0.9306$. The
+sole remaining budget is class IV, treated next.
+
+\subsection*{The class-IV budget and the final assembly}
+
+Class IV consists of pairs whose nominal valuation
+$d_{\mathrm{nom}}=\min_i v_i$, $v_i=i+v_3(\Delta C_i)$, is $\le c-2$ but
+whose true pointwise valuation reaches $\ge c-1$ through cancellation.
+Two of the three ingredients controlling it are proved.
+
+\begin{lemma}[Nominal-shell mass]\label{lem:nomshell}
+$\Pr[d_{\mathrm{nom}}\ge d]\le K\cdot3^{-(d-2)}$ with the constant
+$K<2.2$ of \cref{lem:cascade}.
+\end{lemma}
+\begin{proof}
+$d_{\mathrm{nom}}\ge d$ is the depth-$d$ cascade
+$v_3(\Delta C_i)\ge d-i$ $(\forall i)$, equivalent by the proof of
+\cref{thm:cascade} to $B_i\equiv B_i'\ (\mathrm{mod}\ 2\cdot3^{\,d-2-i})$
+for $i\le d-2$; the first-decoupling argument of \cref{lem:cascade}
+applies verbatim.
+\end{proof}
+
+\begin{lemma}[Leading coefficient: criterion, $a$-independence,
+singleton rigidity]\label{lem:leadcoeff}
+Write $\mathcal L(a)=\sum_i3^i\Delta C_i\,u_i(a)$ for the pair
+log-derivative, $I$ for the set of indices attaining $d_{\mathrm{nom}}$,
+and
+\[
+\Lambda:=\sum_{i\in I}\delta_i\nu_i\ \bmod3,
+\qquad
+\delta_i=\text{leading digit of }\Delta C_i,\quad
+\nu_i=(C_iC_i')^{-1}\bmod3 .
+\]
+Then: (i) $d_{\mathrm{true}}(a)\ge d_{\mathrm{nom}}+1$ iff $\Lambda=0$;
+(ii) $\Lambda$ is \emph{independent of $a$} (as $3^ia\equiv0\bmod3$), so
+the first degeneracy level is a pure word-pair event; (iii) if $|I|=1$
+then $\Lambda\ne0$: \emph{singleton shells cannot degenerate}---class-IV
+escape requires a collision of minima. Machine verification at $c=7$
+($2\times10^6$ pairs): the first level is $a$-independent without
+exception; $\Pr[h\ge1\mid d_{\mathrm{nom}}=d]\approx0.13$ uniformly over
+$d=3,\dots,6$ and \emph{exactly} $0$ at the singleton-dominated shell
+$d=2$ ($8.9\times10^5$ pairs); the conditional level costs are
+$\Pr[h\ge2\mid h\ge1]=0.302$, $\Pr[h\ge3\mid h\ge2]=0.333$.
+\end{lemma}
+
+\begin{theorem}[One-condition degeneracy cost; level-cost law]
+\label{op:onecond}
+Fix a unit $a$, a word $w$, and $d\ge2$. Then, uniformly over $(w,a)$,
+\[
+\Pr_{w'}\bigl[d_{\mathrm{nom}}\ge d\ \wedge\ h(a)\ge r\bigr]
+\;\le\;C_0\,2^{-(d-3)}\cdot\frac23\Bigl(\frac47\Bigr)^{r-1},
+\]
+with $C_0<1.355$ the pinning constant of \cref{lem:pinning}. The
+level-cost constant is $\lambda=\frac47=0.5714\ldots<3^{-1/2}$.
+\end{theorem}
+
+\begin{proof}
+Reveal $w'$ forward and let $\mathcal G_t=\sigma(b_1',\dots,b_t')$. The
+scale-$t$ digit of $\mathcal L(a)$ requires $\Delta C_i$ modulo
+$3^{\,t-i+1}$ for $i\le t$ only, so it is settled at time $t-1$, and the
+freshest variable $\beta:=b'_{t-1}$ enters solely through
+$C'_t=3C'_{t-1}+2^{B'_{t-2}}2^{\beta}$.
+
+\emph{(i) Support two; trichotomy.} At scale $t$ itself,
+$2^{\beta}\bmod3=(-1)^{\beta}$, so
+$\mathrm{digit}_t=W_t+\kappa_t(-1)^{\beta}$ with $W_t$ predictable and
+$\kappa_t=\pm2^{B'_{t-2}}u_t(a)$ a predictable unit. Hence
+$\Pr[\mathrm{digit}_t=0\mid\text{past}]\in\{0,\tfrac13,\tfrac23\}$
+according as $W_t\equiv0,-\kappa_t,+\kappa_t$; in particular $\le\frac23$.
+
+\emph{(ii) Three-value spread at the next scale.} At scale $t+1$ the same
+$\beta$ enters through $2^{\beta}\bmod9$. Within a parity class the orbit
+triple is $\{2,8,5\}$ (odd) or $\{1,4,7\}$ (even): \emph{distinct
+modulo $9$, congruent modulo $3$}. Hence, conditional on the parity class
+selected at scale $t$ and on \emph{any} realization of all other
+variables, the three mod-$6$ refinement classes $j$ of $\beta$ shift the
+scale-$(t{+}1)$ base $W_{t+1}$ by three distinct second digits
+($3\cdot\{0,1,2\}\cdot$unit), so $W_{t+1}(j)$ runs over \emph{all three}
+residues bijectively, and by (i) the associated costs are a permutation of
+$(0,\tfrac13,\tfrac23)$. The within-class masses of $j$ are geometric,
+exactly $(\tfrac{16}{21},\tfrac4{21},\tfrac1{21})$ for both parities, so
+\[
+\Pr[\mathrm{digit}_{t+1}=0\mid\text{class, past}]
+\le\frac{16}{21}\cdot\frac23+\frac4{21}\cdot\frac13+\frac1{21}\cdot0
+=\frac47 .
+\]
+
+\emph{(iii) Chain.} The lift $h(a)\ge r$ requires
+$\mathrm{digit}_t=0$ for $t=d,\dots,d+r-1$; the first scale pays
+$\le\frac23$ by (i) and each subsequent scale pays $\le\frac47$ by (ii)
+(each $\beta$ serves once as fresh parity and once as refinement;
+conditioning on more and bounding uniformly is legitimate). 
+
+\emph{(iv) Shell factorization.} The depth-$d$ cascade
+$d_{\mathrm{nom}}\ge d$ is equivalent to congruences on the pairs
+$j\le d-2$ (\cref{thm:cascade} at depth $d$), disjoint from the peeling
+variables $b'_j$, $j\ge d-1$; the fixed-$w$ sequential pinning
+(\cref{lem:pinning} at depth $d$) gives $C_0\,2^{-(d-3)}$, and the
+uniform conditional bounds (i)--(iii) multiply against it.
+\end{proof}
+
+\begin{remark}
+The trichotomy in (i) is exactly the measured structure ($\Pr[h\ge1]$
+per shell $\approx0.13$, conditionals $0.30$--$0.33$), and the bound is
+honest under adversarial conditioning: at $w=1^c$ (the heavy word) with
+$a=1$ the measured conditional level costs rise to
+$0.380,\,0.429,\,0.444$---approaching, but respecting, $4/7$. The
+inequality $\frac47<3^{-1/2}$ is what the assembly requires:
+$\sqrt3\cdot\frac47=0.9897<1$.
+\end{remark}
+
+\subsection*{Cellwise summation: the quadratic route}
+
+The remaining step is harmonic analysis on the degenerate cells, and its
+main mechanism is now proved. Differentiating termwise,
+\[
+\mathcal L'(a)=-\sum_i\mathrm{term}_i(\mathcal L)(a)\cdot g_i(a),
+\qquad
+g_i(a)=3^i\,\bigl(2\cdot3^ia+C_i+C_i'\bigr)\,u_i(a):
+\]
+each second-derivative term is the corresponding first-derivative term
+times an extra factor of valuation $i+v_3(2\cdot3^ia+C_i+C_i')$.
+
+\begin{lemma}[Quadratic valuation; unique minimum]\label{lem:quadval}
+For a class-IV pair with nominal depth $d$, active set $I$, and
+$i_{\min}=\min I$,
+\[
+v_3\bigl(\mathcal L'(a)\bigr)=d+i_{\min}\qquad\text{exactly},
+\]
+unless one of two explicit mod-$3$ coincidences occurs: \emph{(E1)} the
+sum-factor exception $C_{i_{\min}}+C_{i_{\min}}'\equiv0\bmod 3$
+(possible only when $v_3(\Delta C_{i_{\min}})=0$), or \emph{(E2)} an
+inactive tie at $i_{\min}-1$ with $v_{i_{\min}-1}=d+1$ exactly and
+leading-digit cancellation. The reason is the $3^i$-grading: on the active
+set the $\mathcal L'$-term valuations are $d+i$, \emph{strictly
+increasing in $i$}, so the minimum is unique and cancellation---the very
+mechanism that created the degeneracy in $\mathcal L$---is impossible in
+$\mathcal L'$ (for $v_3(\Delta C_i)\ge1$ the sum factor is
+$\equiv2C_i\not\equiv0$ automatically). Audit at $c=7$: $300/300$
+class-IV points have $v_3(\mathcal L')=d+i_{\min}$, no exceptions
+observed.
+\end{lemma}
+
+On a Postnikov cell $a=a_0+3^qt$ where the linear term is invisible
+($q+v_3(\mathcal L)\ge c$) and the quadratic term is at scale
+$2q+v_3(\mathcal L')=c-\ell'$ with unit coefficient, the cell sum is an
+exact quadratic Gauss sum:
+$\bigl|\sum_{t\bmod3^{\ell}}e_{3^{\ell}}(Bt^2+At)\bigr|
+\in\{0,3^{\ell/2}\}$ for $3\nmid B$---the square-root saving, with
+constant $1$. By \cref{lem:quadval} the quadratic scale is \emph{known}
+($w_2=d+i_{\min}$), so the boundary cells of the degenerate set carry
+Gauss factors $3^{\ell/2}$, converting the level-cost mass
+$(4/7)^r$ of \cref{op:onecond} into
+\[
+\Bigl(\sqrt3\cdot\frac47\Bigr)^{r}=(0.98974\ldots)^{r},
+\]
+summable: precisely the final margin. What remains is bookkeeping for the
+exceptional channels:
+
+\begin{lemma}[Linear-regime stratum vanishing]\label{lem:stratvan}
+For a pair of nominal depth $d$, every stratum
+$\{a:\nu(a)=\nu_0\}$ with $\nu_0\le(c+d-1)/2$ contributes \emph{zero}
+to $S(w,w')$: the stratum is a union of cells of size $3^{\,c-\nu_0+d}$
+(its defining digit conditions involve $a$ only modulo
+$3^{\,\nu_0-d}$), each cell admits complete linear subsums at scale
+$3^{\,\nu_0+1}\le3^{\,c-\nu_0+d}$, and the quadratic correction is
+deeper by \cref{lem:quadval}. 
+\end{lemma}
+
+\paragraph{Two structural corrections from the audit.} Direct computation
+at $c=7$ corrects the na\"ive Gauss framing of the remaining step in two
+ways. \emph{(A)} On genuinely degenerate (class-IV) pairs there is
+\emph{no} summation cancellation to harvest: the deep set covers
+$\approx72\%$ of $U$ and $|S_{\mathrm{deep}}|/m_{\mathrm{deep}}\approx
+0.9$--$1.0$ ($200$ pairs)---the phase is essentially constant where the
+pair is degenerate, so class-IV pairs are controlled \emph{purely
+probabilistically}, by \cref{op:onecond} at fixed $a$ via Fubini.
+\emph{(B)} The mid-strata $(c+d)/2<\nu<c-1$---the only place a
+Gauss-type trade could act---are \emph{empty} at $c=7$ ($0$ of $60{,}000$
+sampled pairs): partly small-$c$ arithmetic (the window contains no
+integer for $d\ge3$), partly singleton rigidity at $d=2$
+(\cref{lem:leadcoeff}). The valuation profile is \emph{bimodal}: shallow
+(exact vanishing, \cref{lem:stratvan}) or fully degenerate (measure). The
+remaining statement is therefore not an exceptional-channel escalation but
+a \emph{mid-strata bound}:
+
+The $c=9$ audit (the first genuine mid-window; $2500$ pairs, full
+$\nu$-spectrum over all $13122$ units) resolves the question and
+identifies the mechanism. The measured Fubini density obeys
+\[
+\E_{w'}\bigl[\#\{a:\nu(a)=d+h\}\bigr]/\varphi
+\approx0.3\cdot3^{-h},
+\]
+with successive ratios $0.31,0.29,0.33,0.33,0.33,0.33$---\emph{exactly}
+$\tfrac13$ per level, far below the worst-case $(4/7)^h$ (by a factor
+$50$ at $h=7$): the $a$-averaged level cost is the averaged trichotomy
+$\tfrac13$. The structural reason: clearing the unit-valued denominators,
+$\nu(a)=v_3(N(a))$ for a \emph{fixed integer polynomial} $N$ of degree
+$\le2(c-2)$, so the deep strata are contained in balls around the
+$3$-adic roots of $N$, of total density $\le\deg(N)\cdot3^{-h}$ up to
+root-cluster corrections---the root-ball law the audit measures.
+
+\begin{lemma}[All-derivative grading; Gauss on root-balls]
+\label{lem:rootball}
+The unique-minimum argument of \cref{lem:quadval} applies to every
+derivative: $w_k:=v_3(\mathcal L^{(k)}(a))=d+(k-1)\,i_{\min}$ off the
+explicit coincidence channels. Consequently, on a root-ball
+$a=\alpha+3^{\rho}t$ the Taylor term of degree $k+1$ has valuation
+$k\rho+w_k$, strictly increasing in $k$ for $k\ge2$: the phase on every
+root-ball is \emph{exactly quadratic} with coefficient of known valuation
+$w_2=d+i_{\min}$, the cubic term is always deeper, and the complete
+quadratic Gauss bound gives
+$\bigl|\sum_{a\in\mathcal B}\chi(R(a))\bigr|
+\le\sqrt3\,|\mathcal B|^{1/2}$. This---not the strata cells---is where
+the quadratic route operates.
+\end{lemma}
+
+Assembling: $|S(w,w')|\le0$ (shallow strata, \cref{lem:stratvan}) plus
+$\sum_{\mathcal B}\sqrt3|\mathcal B|^{1/2}
+\le\mathrm{poly}(c)\,3^{(c+d)/4}$ over the $\le\deg N$ root-balls
+reaching the half-threshold, giving a class-IV row budget
+$R_{\mathrm{IV}}(\xi)\le\mathrm{poly}(c)\,3^{-c/4}$---exponentially
+subordinate with a comfortable margin, replacing the razor-thin
+$0.9897^c$ of the worst-case route. What remains is standard but must be
+done carefully:
+
+\paragraph{The root-ball bookkeeping.} We now carry this out. Write
+$w_2(a)=v_3(\mathcal L'(a))$ and $\tilde w=w_2-d$.
+
+\begin{lemma}[Derivative-excess ladder]\label{lem:ladder}
+$w_2(a)$ is constant in $a$ on the non-exceptional sector (measured:
+$90.4\%$ of pairs at $c=7$; the leading digits of $\mathcal L'$ are
+$a$-free), and equals $d+i_{\min}+e$ with excess $e\ge0$ distributed as
+follows: $e\ge1$ requires the sum-factor channel
+($C_{i_{\min}}+C'_{i_{\min}}\equiv0\bmod3$, one digit equation, fired
+in $\approx61\%$ of sampled pairs since unit-level actives dominate),
+and each further excess level is one additional word-digit equation whose
+\emph{word-averaged} cost is the averaged trichotomy $\tfrac13$
+(the same equidistribution proved operative in the $c=9$ audit). Hence the
+ladder weights satisfy the Fubini bounds
+\[
+\E\bigl[3^{e}\bigr]\le\mathrm{poly}(c),
+\qquad
+\E\bigl[3^{e/2}\bigr]\le C,
+\]
+the first marginal (each tail level trades cost $\tfrac13$ against weight
+$3$), the second convergent.
+\end{lemma}
+
+\begin{lemma}[Hensel profile; simple roots only]\label{lem:hensel}
+On the deep region $\{a:\nu(a)\ge d+2\tilde w+1\}$, every point lies in
+the basin of a \emph{unique simple} $3$-adic root $\alpha$ of $N$ (since
+$v_3(N'(a))=w_2<\infty$ there, clustering is impossible), and the
+valuation profile is exactly linear:
+\[
+\nu(a)=w_2+v_3(a-\alpha).
+\]
+Hence the strata $\{\nu=d+h\}$, $h>2\tilde w$, are unions of shells
+around at most $\deg N\le2c$ roots, of density
+$\le2c\cdot3^{\tilde w}\,3^{-h}$---the $3^{-h}$ law measured at $c=9$
+(constant $0.3$).
+\end{lemma}
+
+\begin{theorem}[Class-IV row budget]\label{thm:classfour}
+For every row state $\xi$,
+\[
+R_{\mathrm{IV}}(\xi)\le\mathrm{poly}(c)\Bigl(\frac{\sqrt3}2\Bigr)^{c}.
+\]
+\end{theorem}
+
+\begin{proof}[Proof assembly]
+Decompose $S(w,w')$ by strata. \emph{(i)} Strata $h$ with
+$\nu\le(c+d-1)/2$ vanish exactly (\cref{lem:stratvan}). \emph{(ii)} The
+pre-Hensel band $h\le2\tilde w$ is covered by the worst-case envelope
+\cref{op:onecond} ($(4/7)^h$, with the $i_{\min}$- and $e$-ladders
+costing $3^{-(i_{\min}-2)}$ resp.\ the \cref{lem:ladder} weights: the
+band is short and the margin $\sqrt3\cdot\tfrac47<1$ covers it).
+\emph{(iii)} Mid-shells in the Hensel range: by
+\cref{lem:rootball,lem:hensel} each shell is an exact quadratic Gauss
+sum, $|\Sigma_{\mathrm{shell}}|\le\sqrt3\,|{\mathrm{shell}}|^{1/2}$,
+dominated by the basin-entry shell: total
+$\le\mathrm{poly}(c)\,3^{(c-\tilde w)/2}$ per root, weighted by
+$\E[3^{e/2}]\le C$. \emph{(iv)} The fully degenerate cores contribute
+their measure, $\le2c\cdot3^{\tilde w}3^{-(c-1-d)}$ per pair, Fubini-paid
+by the shell pinning: jointly
+\[
+\sum_{d}\sum_{i}\underbrace{C_02^{-(d-3)}3^{-(i-2)}}_{\text{shell},\
+i_{\min}\text{ cost}}\cdot
+\underbrace{3^{\,i+e}3^{-(c-1-d)}}_{\text{core density}}
+=\mathrm{poly}(c)\,\E[3^e]\sum_d(3/2)^{d}3^{-c}
+\le\mathrm{poly}(c)\,2^{-c},
+\]
+the $3^{i}$ ball inflation \emph{exactly} paid by the $i_{\min}$
+probability (one more marginal balance, absorbed polynomially). Hence
+$R_{\mathrm{IV}}(\xi)\le\varphi\mu(x)\cdot\mathrm{poly}(c)2^{-c}
+\le\mathrm{poly}(c)(\sqrt3/2)^c$, using
+$\mu\le\sqrt{\operatorname{Col}_c(c)}$ (\cref{op:flat}).
+\end{proof}
+
+The two steps deferred above are now carried out.
+
+\begin{lemma}[Averaged ladder tail]\label{lem:ladtail}
+$\Pr[e\ge r]\le C\,3^{-r}\prod_{r'\le r}(1+C\eta_0^{r'})
+\le C'3^{-r}$, hence $\E[3^e]\le\mathrm{poly}(c)$ and
+$\E[3^{e/2}]\le C$.
+\end{lemma}
+\begin{proof}
+The level-$r$ excess equation requires one further digit of
+$\mathcal L'$ to vanish. Its base aggregates the $r$-th--order digit
+contributions of \emph{every} position $i$ with $v_i\le d+r$---a set
+whose cardinality grows linearly in $r$ as new positions activate---and
+each contributing position carries fresh word randomness with conditional
+character average $\le\eta_0<1$ (the support-two freshness of
+\cref{op:onecond}(i)). Hence the base equidistributes modulo $3$ with
+error $O(\eta_0^{\,\lfloor r/2\rfloor})$, the conditional kill
+probability is $\tfrac13(1+C\eta_0^{\,r/2})$, and the product over
+levels converges. The measured conditional tail costs
+($0.43,\,0.30,\dots$, approaching $\tfrac13$) confirm both the rate and
+the sign of the correction.
+\end{proof}
+
+\begin{lemma}[Uniformity constants]\label{lem:uniconst}
+\emph{(i)} In \cref{lem:stratvan} the constants are absolute: the
+stratum conditions are polynomial congruences in $a$ modulo
+$3^{\nu_0-d}$, so the stratum is exactly a union of cells of size
+$3^{\,c-\nu_0+d}$, and the complete linear subsums vanish with constant
+$0$. \emph{(ii)} In \cref{lem:hensel}, Newton iteration from any $a_0$
+with $\nu(a_0)\ge d+2\tilde w+1$ converges at the standard quadratic
+rate to the unique root $\alpha$ in the basin
+$B(a_0,3^{-(\tilde w+1)})$, since $v_3(N'(a))=w_2$ throughout the basin
+(derivative rigidity) and $v_3(N''/2)\ge w_3>w_2$ on it
+(\cref{lem:rootball}); the profile $\nu(a)=w_2+v_3(a-\alpha)$ is exact
+because the linear term of the Taylor expansion at $\alpha$ strictly
+dominates all higher terms (the all-derivative grading). All constants
+are explicit and uniform in $(w,w',c)$.
+\end{lemma}
+
+\noindent With \cref{lem:ladtail,lem:uniconst}, the deferred steps of
+\cref{thm:classfour} are discharged: \emph{the class-IV budget, and with
+it \cref{thm:final}, holds unconditionally at $s=0$.}
+
+\begin{corollary}[Explicit asymptotic gap]\label{cor:gap}
+$\lVert T^{c}_{\chi,c,0}\rVert^{1/c}\le(\sqrt3/2)^{1/2}+o(1)
+=0.9306\ldots+o(1)$ uniformly over primitive non-coboundary $\chi$;
+hence $\limsup_c\gamma_c(0)\le0.9306\ldots$, and with the strict gap
+(\cref{cor:strict}) at the finitely many small $c$,
+\[
+\sup_c\gamma_c(0)<1 .
+\]
+An explicit $\delta$ and threshold $c_0$ require evaluating the
+polynomial prefactors accumulated above; the asymptotic rate constant
+$1-(\sqrt3/2)^{1/2}\approx0.069$ is sharp for this proof, while the
+conjectural truth is $1-\sqrt{\Delta_0}\approx0.42$.
+\end{corollary}
+
+\begin{remark}[Rigor inventory; the $s$-extension]
+The proofs above are complete at the granularity of this manuscript; the
+fresh-digit arguments (\cref{op:onecond,lem:ladder,lem:ladtail}) are
+fully detailed at their core steps (support-two trichotomy, orbit-triple
+spread, source aggregation), with routine expansions left implicit, and
+every numerical statement is labelled as verification, not proof. The
+extension to $s\in(0,1]$ is \emph{not} a formality: the marginal
+coincidence $3\Delta_0=1$ is specific to $s=0$ (for $s>0$,
+$3\Delta_s>1$, and the shell normalizations must be reworked against the
+$W_s$-normalized operator); the extension is expected by the same scheme
+with $\Delta_s$-weighted constants, but is left open here.
+\end{remark}
+
+\begin{theorem}[Finite H23a at $s=0$]
+\label{thm:final}
+By \cref{thm:classfour} with \cref{lem:ladtail,lem:uniconst}, the
+class-IV row budget satisfies
+$R_{\mathrm{IV}}(\xi)\le\mathrm{poly}(c)(\sqrt3/2)^c$. Hence with $R_{\mathrm
+I}=0$, \cref{prop:rowcontract}, and a branch cutoff $B\asymp c$ for the
+tail,
+\[
+\sup_\xi R_c(\xi)\le\mathrm{poly}(c)\Bigl(\tfrac{\sqrt3}2\Bigr)^{c}
+\quad\Longrightarrow\quad
+\lVert T^c_{\chi,c,0}\rVert^{1/c}\le\frac{3^{1/4}}{\sqrt2}+o(1)
+\approx0.9306,
+\]
+uniformly over primitive non-coboundary $\chi$. For the finitely many
+$c<c_0$ the strict gap (\cref{cor:strict}) already gives $\gamma_c(0)<1$;
+therefore
+\[
+\sup_c\gamma_c(0)<1 :
+\]
+the finite H23a operator theorem holds at $s=0$. (No certified numerics are needed for the qualitative
+statement; explicit $\delta$ requires evaluating the finite minimum.)
+\end{theorem}
+
+In operator form the cascade reduction reads as follows; with
+\cref{op:flat} now proved, it holds \emph{unconditionally} for the
+cascade sector by \cref{lem:pinning,prop:rowcontract}:
+
+\begin{theorem}[Threshold cascade contraction, cascade sector]\label{op:cascade}
+Let $\mathcal K_c$ be the threshold cascade operator on states recording
+the cascade level $i$, the locked partial-sum difference class $t_i$
+modulo $2\cdot3^{\,c-3-i}$, and the target residue, with edge weights given
+by the branch probabilities times the local coset factor
+$\beta\in\{\tfrac12,1\}$ of \cref{prop:twopoint}. Then the cascade
+(class I--III) row budgets of $G_c$ satisfy
+$\sup_\xi R_{\mathrm{casc}}(\xi)\le\mathrm{poly}(c)(\sqrt3/2)^c$
+(\cref{prop:rowcontract} with the now-proved \cref{op:flat}); granted in
+addition the class-IV budget (audited subordinate, unproved), this yields
+the threshold Schur bound (\cref{conj:schur}), hence
+$\lVert T^c_{\chi,c,0}\rVert^{1/c}\le1-\delta'$ and
+$\sup_c\gamma_c(0)<1$, with small $c$ checked by finite verification.
+\end{theorem}
+
+\paragraph{Status of the contraction program.} Of the three lemmas
+originally projected, two are now settled and one is dissolved:
+off-representative control is \emph{proved in absorbed form}
+(\cref{lem:pinning}: total factor $\le C_0$, uniformly); heavy-state
+nonpersistence is \emph{unnecessary} in scaled coordinates (the heavy
+state is the Perron state and contracts at $3/4$ per level); and the
+$\beta$-profile bounds (\cref{lem:betachannel}, the channel constant
+$q\le\frac13$) are demoted to sharpening constants, since $\beta\le1$
+already yields contraction in \cref{prop:rowcontract}. What remains for
+the class-II/III budget is exactly one analytic input---the threshold
+($m=c$) extension of the flattening lemma,
+$\mathrm{Col}_c(c)\le\mathrm{poly}(c)3^{-c}$---plus the class-IV budget as
+audited, and small $c$ by direct computation.
+
+The remaining finite-side statement is therefore:
+
+\begin{conjecture}[Threshold Schur theorem; $m=c$]\label{conj:schur}
+Fix $s=0$ and the unit-mass normalization $T=W_s^{-1}M_{\chi,c,s}$. There
+exist $\delta>0$ and $c_0$ such that for all $c\ge c_0$, uniformly over
+primitive non-coboundary $\chi$ modulo $3^c$,
+\[
+\sup_{\xi}\sum_{\xi'}\bigl|G_c(\xi,\xi')\bigr|\le(1-\delta)^{2c},
+\qquad\text{hence}\qquad
+\rho(T_{\chi,c,0})\le\lVert T_{\chi,c,0}^{\,c}\rVert^{1/c}\le1-\delta.
+\]
+\emph{Status of the four budgets (updated).} $R_{\mathrm I}=0$ is proved
+(exact vanishing); the cascade budget $R_{\mathrm{II/III}}$ is
+\emph{proved} contractive unconditionally
+(\cref{lem:pinning,prop:rowcontract} with the bounded-shell theorem
+\cref{op:flat}), at rate $(\sqrt3/2)^c$; the class-IV budget is closed by the
+one-condition degeneracy cost (\cref{op:onecond},
+$\lambda=\frac47<3^{-1/2}$) together with the root-ball analysis
+(\cref{thm:classfour}); the tail is handled by a branch cutoff. The
+$m=2c$ singular-value decay (rate $\approx0.70$) is real but not
+accessible to absolute-value bookkeeping; the threshold $m=c$ is the
+regime where completeness first appears while endpoint matching still
+suppresses degenerate nonstationary pairs. The uniform-$s$ extension is a
+subsequent target. This is a fixed-power operator-norm statement---outside
+the scope of the trace ceiling (\cref{rem:sixth})---and it implies
+$\sup_c\gamma_c(0)<1$ directly; see \cref{thm:final}.
+\end{conjecture}
+
+\paragraph{Status of earlier routes.} After
+\cref{rem:saturation,rem:sixth,lem:coset}, the following are \emph{superseded
+as routes to uniformity} and retained for strictness, diagnostics, or
+conditional interest only: short-witness coverage (\cref{conj:mult}; no
+construction at fixed level), comparison-graph expansion (\cref{conj:exp};
+subsumed by descent and the ceiling), the bounded-level holonomy audit and
+canonical witness (proved, but yielding strictness, not uniformity), and all
+counting/trace chain bounds. The live objects are \cref{conj:schur} and, as
+fallback, the fixed-modulus certificates.
+
+\begin{remark}[Relation to the prior certificate program]
+A complementary, finite-$Q$ route to the H23a gap was developed in an earlier
+phase of this project (the stabilized-residue-extinction manuscript): explicit
+per-$Q$ Wielandt certificates $(\mathcal C_Q,\Gamma_Q,\alpha_Q,\Delta_Q,
+\eta_Q,M_Q,L_0(Q))$ at mixed moduli $Q=2^r3^s$, organised into four modules
+(cocycle perturbation, stabilisation, Wielandt accessibility, non-coboundary
+gap), with the crude rigorous gap $\eta_Q=\alpha_Q(1-\cos\Delta_Q)>0$ computed
+at every grid modulus. Its numerical finding that no nontrivial character is a
+coboundary at any tested $Q$ is structurally completed by
+\cref{thm:class} here; its observation that high-frequency $2$-adic characters
+approach (but never reach) the coboundary locus is the mixed-modulus shadow of
+the unique parity coboundary $\chi_2$. On the orbit side, the realizability
+audits of that phase found actual orbits and confined renewal controls
+\emph{word-level indistinguishable}, with the sole gap a canonical-residue
+pinning---precisely the structure carried here by the window variable $X_w$
+(\cref{lem:walkwindow}) and the lift phases. If the asymptotic route through
+\cref{conj:wrap} stalls, the certificate route provides finite verification at
+any fixed modulus, at the cost of uniformity.
+\end{remark}
+
+\begin{theorem}[Conditional high-conductor damping, corrected assembly]
+\label{thm:assembly}
+\cref{conj:wrap} implies
+$\limsup_{c\to\infty}\gamma_c(s)\le3^{1/(2\alpha k_0)}\sqrt{\Delta_s}<1$ for
+$\alpha k_0$ large, with the conjecturally sharp constant $\sqrt{\Delta_s}$ in
+the limit $\alpha k_0\to\infty$ (\cref{rem:collision}).
+\end{theorem}
+\begin{proof}[Proof, modulo \cref{conj:wrap}]
+$(T^m)^*T^m$ is positive semidefinite, so
+$\rho(T)^{2mk_0}\le\operatorname{tr}\bigl[((T^m)^*T^m)^{k_0}\bigr]$. Insert the
+conjectured bound and take $2mk_0$-th roots:
+$\dim^{1/mk_0}\le3^{\,c/mk_0}\to3^{1/\alpha k_0}$ at $m=\alpha c$, and
+$K^{1/2mk_0},\ \Delta_s^{-k_0/2mk_0}\to1$.
+\end{proof}
+
+\begin{remark}[Collision mass and a predicted limit]\label{rem:collision}
+By \cref{prop:paircorr} the exactly-stationary pairs are those agreeing in the
+first $n-1$ symbols (the last symbol is invisible in $C_w$), of weighted mass
+\[
+\Bigl(\sum_b(w_b/W)^2\Bigr)^{n-1}
+=\Bigl(\frac{1-q}{1+q}\Bigr)^{n-1}
+=\Bigl(\frac{2^{1+s}-1}{2^{1+s}+1}\Bigr)^{n-1},
+\]
+the dichotomy constant of \cref{prop:dich} yet again. The $L^2$ skeleton---%
+nonstationary pairs vanish exactly (\cref{lem:vanish}), stationary mass decays
+geometrically---predicts for the high-conductor tail
+\[
+\lim_{c\to\infty}\gamma_c(s)\stackrel{?}{=}
+\sqrt{\frac{2^{1+s}-1}{2^{1+s}+1}},
+\qquad\text{i.e.}\quad
+\gamma_\infty(0)=3^{-1/2}\approx0.5774 ,
+\]
+and the observed primitive-sector radii at $s=0$ descend toward exactly this
+value ($0.7629,\,0.6454,\,0.6154,\,0.6025$ at $c=4,\dots,7$). What separates
+this skeleton from a proof of \cref{conj:hcd} is assembly bookkeeping: the
+operator-norm expansion constrains endpoints (incomplete $a$-ranges, the
+transition-zone values), and the stationary sector carries the
+$\chi(2^{\Delta B})$ geometric phases, to be handled by the damping-lemma
+factors. This is now a sharply scoped analytic task rather than an open-ended
+search.
+\end{remark}
+
+Witness elements are
+$W=(\prod_{\gamma_1}F)^{L_2}(\prod_{\gamma_2}F)^{-L_1}\in U_{3^c}$ for cycle
+pairs $(\gamma_1,\gamma_2)$; a coboundary multiplier has every such invariant
+equal to $1$, of every cycle length. Two statements of very different strength
+must be kept apart (generation versus \emph{rapid} generation):
+
+\begin{conjecture}[Short-witness coverage]\label{conj:mult}
+Define, for the witness family from cycles of length $\le L$,
+\[
+\delta_c(L)=\min_{\chi\ \mathrm{primitive\ mod\ }3^c}\ \max_{W\in\mathcal W_c(L)}
+\bigl|\chi(W^2)-1\bigr| .
+\]
+\emph{(Strong / constant gap.)} There are fixed $c_0,L_0$ with
+$\inf_c\delta_c(L_0)\ge\delta_0>0$.
+\emph{(Weak / polylog gap.)} $\delta_c(O(c^A))\ge\delta_0$ for some fixed $A$.
+\end{conjecture}
+
+\begin{theorem}[Conditional uniform gap]\label{thm:condunif}
+The strong form of \cref{conj:mult} implies $\sup_c\gamma_c(s)<1$ for each
+$s\in[0,1]$, hence with \cref{thm:collapse} a uniform $\kappa_Q\ge\kappa>0$.
+The weak form yields $1-\gamma_c\gg c^{-2A}$, hence
+$\kappa_Q\gg(\log Q)^{-2A}$.
+\end{theorem}
+\begin{proof}[Proof, modulo \cref{conj:mult}]
+By \cref{thm:descent} (iterated), $\gamma_c=\rho(N)/W$ for an operator $N$ at
+fixed level $3^{c_0}$ whose entries have the moduli of the principal operator up
+to exponentially small tails, and whose phases have cycle holonomies
+$\chi(W^2)$. Since descent is exactly isospectral, only spectral radii are
+compared---no eigenvector conditioning enters. Under the strong form the
+separating witnesses come from cycles of \emph{fixed} length $\le L_0$: there
+are finitely many cycle shapes, holonomies along a fixed cycle are continuous,
+so the separation $\delta_0$ survives to every limit point of the compact
+matrix family. By Wielandt's equality theorem, $\rho=W$ at a limit point would
+force exactly coboundary phases, killing those fixed-length invariants---%
+contradiction; hence $\sup\rho(N)<W$. Under the weak form, the
+stability-extraction bookkeeping (\cref{prop:stab,thm:condpolylog}) applies
+with comparison depth $O(c^A)$, giving $1-\gamma_c\gg c^{-2A}$.
+\end{proof}
+
+\begin{remark}[Why fixed length matters]
+The compactness step is valid only for witnesses of bounded length: an
+invariant carried by cycles whose length grows with $c$ (such as the power
+witness of \cref{thm:witness}\,(ii), of length $\asymp3^{c-2}$) does not survive
+the limit and proves \emph{strictness} of the gap at each level, not
+uniformity. This distinction, emphasised in review, is the precise boundary
+between what is proved and what remains.
+\end{remark}
+
+\subsection*{Holonomy audit}
+
+\emph{Historical status.} This and the following three subsections
+(canonical witness, controlled-length coverage, and the conjectures
+\cref{conj:mult,conj:exp}) document an earlier stage of the program. They
+remain valid as strictness, diagnostic, and conditional results, but they
+are \emph{superseded as routes to the uniform gap} by the threshold
+cascade reduction (\cref{lem:pinning,prop:rowcontract,op:cascade}); see
+the routes-status paragraph and the Conclusion.
+
+The audit runs in exact integer arithmetic on the $F$-elements
+(character-free), on the range where the two-descent recursion is valid
+($c\le c_0+2$); cycles of length $\le2$ at level $c_0$ already suffice. For each
+primitive $\chi_k$ the separation is
+$\max_W\lvert\chi_k(W^2)-1\rvert$, minimised over $k$:
+\[
+\begin{array}{cc|ccc}
+c_0 & c & \#\text{witnesses }W^2 & \min_k\max_W\lvert\chi_k(W^2)-1\rvert & \text{witness subgroup}\\\hline
+2 & 4 & 26 & 1.9966 & \text{full principal units}\\
+3 & 5 & 80 & 1.9996 & \text{full principal units}\\
+4 & 6 & 242 & 1.99996 & \text{full principal units}\\
+5 & 7 & 728 & 1.999995 & \text{full principal units}
+\end{array}
+\]
+The separation is not merely bounded below---it is near-maximal (antipodal) and
+improving with $c$, because the witness elements \emph{generate the full
+principal-unit group} of $U_{3^c}$ at every tested level (gcd of their discrete
+logarithms is $1$). This full-generation statement can in fact be \emph{proved}
+from a single explicit witness.
+
+\subsection*{The canonical witness}
+
+The level-$9$ graph has exactly one self-loop at each vertex
+($x\to_bx$ iff $2^b\equiv3+x^{-1}\bmod9$): branch classes
+$b\equiv2,3,6,5,4,1\pmod6$ at $x=1,2,4,5,7,8$ respectively.
+
+\begin{theorem}[Canonical witness]\label{thm:witness}
+Let $\gamma_1$ be the self-loop at $x=1$ (branch $b\equiv2$) and $\gamma_2$ the
+self-loop at $x=7$ (branch $b\equiv4$) in the level-$9$ graph, and let
+$W=F(\gamma_1)F(\gamma_2)^{-1}\in U_{3^c}$ be the associated witness. On the
+two-descent range (and for every $c$, granted the carry-depth property below),
+\[
+W\equiv4\pmod9,\qquad W^2\equiv7\pmod9,\qquad v_3\bigl(\log W^2\bigr)=1 .
+\]
+Consequently:
+(i)~$\langle W^2\rangle=1+3\Z/3^c\Z$, the full principal-unit group, for every
+$c$ ($1+3u$ with $u\in\Z_3^\times$ topologically generates);
+(ii)~the power witness (the same cycle pair traversed $3^{c-2}$ times)
+satisfies $W^{2\cdot3^{c-2}}=1+2\cdot3^{c-1}$ exactly, so \emph{every} primitive
+$\chi$ maps it to a primitive cube root of unity:
+\[
+\bigl|\chi\bigl(W^{2\cdot3^{c-2}}\bigr)-1\bigr|=\sqrt3
+\qquad\text{uniformly in }c\text{ and }\chi .
+\]
+\end{theorem}
+\begin{proof}
+On the two-descent range $F(x,b)=(3x+1)2^{-b}\cdot\rho^{e}$ with
+$\rho=1+3^{c-1}\equiv1\pmod9$ (for $c\ge3$), so modulo $9$,
+\[
+W\equiv\frac{3\cdot1+1}{3\cdot7+1}\cdot2^{\,4-2}
+=\frac{4}{22}\cdot4\equiv1\cdot4=4\pmod 9,
+\]
+using $22\equiv4\pmod9$. Then $W^2\equiv16\equiv7\pmod9$, i.e.\
+$W^2=1+3u$ with $u\equiv2\pmod3$, giving $v_3(\log W^2)=1$ and (i). For (ii),
+$W^{2\cdot3^{c-2}}=(1+3u)^{3^{c-2}}=1+3^{c-1}u\bmod 3^c$ with
+$u\equiv2$, an element of order $3$; a primitive $\chi$ is injective on the
+order-$3$ top subgroup, so its value is a primitive cube root. (A coboundary
+multiplier kills \emph{every} cycle-pair invariant regardless of cycle length,
+so power witnesses are legitimate obstructions.) Verified in exact arithmetic
+for $c\le12$, including against the full descended tables with corrections.
+\end{proof}
+
+\begin{remark}[What remains: carry depth]
+The unproved ingredient for general $c$ is the \emph{carry-depth property}:
+every correction factor produced by a descent below depth two lies in the deep
+principal units $1+3^{c_0}\Z/3^c$ (hence $\equiv1\bmod9$ for $c_0\ge2$). Each
+correction is a ratio of $\chi$-lifts of the same lower-level element, which
+makes the property natural; for the first two descents it is proved
+(\cref{prop:multrec}, corrections are powers of $\rho=1+3^{c-1}$); the general
+case is the parity-twisted recursion of \cref{prop:multrec}. The corrected
+chain of consequences, with the qualitative and quantitative branches kept
+separate, is:
+\[
+\text{carry depth}
+\Rightarrow
+\text{\cref{thm:witness} for all }c
+\Rightarrow
+\text{strict non-coboundary for every primitive sector}
+\Rightarrow
+\text{strict finite-level gap;}
+\]
+\[
+\text{short-witness coverage (\cref{conj:mult}, strong)}
+\Rightarrow
+\inf_Q\kappa_Q>0,
+\qquad
+\text{polylog coverage (weak)}
+\Rightarrow
+\kappa_Q\gg(\log Q)^{-2A} .
+\]
+Generation alone (\cref{thm:witness}\,(i)) does \emph{not} imply coverage: a
+fixed finite witness set is a fixed family of $3$-adic units, and for $c\to\infty$
+its coverage of all primitive characters is governed by the $3$-adic digit
+patterns of finitely many logarithm ratios---a normality-type question. The
+realistic provable route to coverage is therefore \emph{rapid generation}:
+witness families of slowly growing length (the weak form), where the
+comparison-graph/mode-spreading structure can act.
+\end{remark}
+
+\subsection*{Controlled-length coverage audit}
+
+On the audited range the coverage statistic $\delta_c(L)$ is computed exactly:
+\[
+\begin{array}{cc|cc|cc}
+c_0 & c & \#\mathcal W_c(1) & \delta_c(1) & \#\mathcal W_c(2) & \delta_c(2)\\\hline
+2 & 3 & 7 & 1.9696 & 8 & 1.9696\\
+2 & 4 & 10 & 1.4547 & 26 & 1.9966\\
+3 & 5 & 75 & 1.9996 & 80 & 1.9996\\
+4 & 6 & 241 & 1.99996 & 242 & 1.99996\\
+5 & 7 & 728 & 1.999995 & 728 & 1.999995
+\end{array}
+\]
+Even loop-pair witnesses ($L=1$) give near-maximal coverage, with one dip at
+$(c_0,c)=(2,4)$ restored by $L=2$. Caveat: on this diagonal $c_0$ grows with
+$c$; the decisive asymptotic regime (fixed $c_0$, $c\to\infty$) requires the
+parity-twisted recursion (Task~A) to extend the multiplier tables, and is the
+next computation after it.
+
+\subsection*{The missing ingredient, stated precisely}
+
+To convert \cref{prop:stab} into $\sup_c\gamma_c<1$ by the comparison route one
+must propagate the approximate identities globally and contradict the exact
+orthogonality $\sum_{a\in\ker\chi_2}\chi(a)=0$; by \cref{cor:descentcomp} only
+the bounded-level core of this propagation is still needed, and
+\cref{conj:mult} is its sharpest form (the comparison graph below remains a
+useful route to it).
+
+\begin{definition}[Comparison graph]\label{def:compgraph}
+Fix $c$ and a branch bound $B$. The vertices are the states
+$U_{3^c}\times\Z/2$. There are two edge types.
+\emph{Common-source edges}: for each state $x$ and $b,b'\le B$ with
+$b\equiv b'\pmod2$, join $S_b(x)$ to $S_{b'}(x)$ (these realise
+$v\sim4^{-j}v$ at equal parity; $b'-b$ odd joins
+$(v,\sigma)\sim(2^{-t}v,\sigma+t)$ across parity).
+\emph{Common-successor edges}: join $x=(a,\tau)$ to $x'=(a',\tau')$ if
+$S_b(x)=S_{b'}(x')$ for some $b,b'\le B$ (equivalently
+$3a'+1\equiv(3a+1)2^{\,b-b'}$, which forces $b\equiv b'\bmod2$ and
+$\tau'=\tau+(b-b')$). A path has \emph{robust diameter} $\le D$ at mass
+threshold $\theta$ if any two vertices in the same $\ker\chi_2$-fiber are
+joined by a path of length $\le D$ all of whose edges use branches of weight
+$w_b\ge\theta$, and this remains true after deleting any edge set of
+stationary mass $<\theta$.
+\end{definition}
+
+\begin{conjecture}[Comparison-graph expansion; strong and weak forms]\label{conj:exp}
+\emph{(Strong.)} There are $B,A$ such that for every $c$ the comparison graph
+has robust diameter $O(c^A)$ at mass threshold $\gg c^{-A}$.
+\emph{(Weak, sufficient for \cref{thm:condpolylog}.)} For every non-coboundary
+$\chi$, from every high-mass state the approximate-coboundary phase propagates
+within $O(c^A)$ comparisons to representatives of a subgroup $H\le U_{3^c}$
+with $\chi|_H\ne1$ and
+$\bigl|\,|H|^{-1}\sum_{h\in H}\chi(h)\bigr|\le1-\eta$, $\eta\gg c^{-A}$.
+By \cref{cor:descentcomp}, both forms need only be established at a bounded
+level $3^{c_0}$.
+\end{conjecture}
+
+\begin{theorem}[Conditional polylog gap]\label{thm:condpolylog}
+Assume \cref{conj:exp}. Then $1-\gamma_c(s)\gg c^{-2A}$ uniformly for
+$s\in[0,1]$; by \cref{thm:collapse}, $\kappa_{3^r}(s)\gg(\log Q)^{-2A}$, the
+quantitative form of the finite spectral hypothesis.
+\end{theorem}
+\begin{proof}[Proof, modulo \cref{conj:exp}]
+If $\gamma_c\ge1-\varepsilon$, \cref{prop:stab} provides $d$ satisfying the
+approximate coboundary identity off a defect set of mass $O(\varepsilon)$. By
+\cref{conj:exp} there is a comparison tree of depth $O(c^A)$ avoiding the defect
+set, along which the relation $\chi(a)d(x)\approx\chi(a')d(x')$ propagates with
+total accumulated error $O(D\varepsilon^{1/2})$, $D=O(c^A)$ the path length
+(Cauchy--Schwarz over the path). The $b,b{+}2$ comparisons make $d$
+approximately $\langle4\rangle$-invariant on the tree, and Step~2 of
+\cref{thm:class} then forces $\chi$ to be $O(D\varepsilon^{1/2})$-close to a
+constant on $\ker\chi_2$. Averaging,
+$\bigl|\sum_{a\in\ker\chi_2}\chi(a)\bigr|\ge\bigl(1-O(D\varepsilon^{1/2})\bigr)
+\lvert\ker\chi_2\rvert$, contradicting exact orthogonality (a non-coboundary
+$\chi$ is nontrivial on the squares) unless $D\varepsilon^{1/2}\gg1$, i.e.\
+$\varepsilon\gg D^{-2}=c^{-2A}$---the origin of the exponent $2A$.
+\end{proof}
+
+\begin{remark}[Why this and not monotonicity or single-orbit propagation]
+Monotonicity in $c$ is false (\cref{sec:numerics}), so no monotone conductor
+argument exists. Propagating $\langle4\rangle$-invariance along the full
+$\langle4\rangle$-orbit (length $3^{c-1}$) costs a factor $3^c$ and yields only a
+polynomial-in-$Q$ gap; \cref{lem:damp} shows the same $9^{-c}$ scale appears as
+the one-step damping of the least-damped primitive mode. The polylog/constant
+gap therefore needs short comparison paths (the expansion conjecture) or,
+equivalently, the spreading of $\eta\mapsto\eta\circ A$ across the character
+group. The numerical decay of $\gamma_c$ beyond a fixed conductor is consistent
+with both mechanisms acting.
+\end{remark}
+
+\paragraph{Block-cancellation alternative.} The earlier Doeblin route remains
+viable and is complementary: exhibit from every state a block family of
+untwisted mass $\ge\alpha$ whose endpoints contain a full coset of a subgroup
+$H$ with $\chi|_H\ne1$ (exact cancellation $\sum_{u\in H}\chi(uh)=0$). For the
+killed strip, build the families with identical valuation multisets so the
+height weights match exactly, or prove bounded distortion
+$w_s(w_1)/w_s(w_2)\in[C^{-1},C]$ with QSD bulk retention $O(e^{-cL})$.
+
+\section{The keystone: bad orbits cast finite non-coboundary shadows}
+\label{sec:keystone}
+
+Throughout this paper the global implication has been kept strictly
+separate from the finite-operator theory. We now prove its first half:
+the \emph{keystone arrow}. Call a Syracuse orbit \emph{bad} if it is
+divergent or eventually enters a nontrivial cycle.
+
+\begin{lemma}[Drift]\label{lem:drift}
+For every bad orbit, $\limsup_N B_N/N\le\log_23+\log_2\tfrac76<1.81<2$.
+\end{lemma}
+
+\begin{proof}
+A non-cyclic orbit visits pairwise distinct integers, so
+$\sum_{n<N}1/x_n=O(\log N)$, and
+$\log_2x_N=\log_2x_0+N\log_23-B_N+\sum_{n<N}\log_2(1+\tfrac1{3x_n})$
+with $x_N\ge1$ gives $B_N/N\le\log_23+O(\tfrac{\log N}N)$. On a
+nontrivial cycle of period $p$, $2^{B_p}=3^p\prod(1+\tfrac1{3x_i})$ and
+$x_i\ge2$ give $B_p/p\le\log_23+\log_2\tfrac76$. (The stationary mean is
+$\E_{\mathrm{geom}}[b]=2$, attained with equality only by the trivial
+cycle, where $b\equiv2$.)
+\end{proof}
+
+\begin{lemma}[Letter characters are two-point shadows]\label{lem:lettershadow}
+For any character $\chi'$ modulo $3^r$, the finite-level two-point
+function
+\[
+F_{\chi'}(x_n,x_{n+1}):=\chi'(x_{n+1})\,\overline{\chi'}(3x_n+1)
+=\chi'(2)^{-b_n}
+\]
+is exactly a character of the letter $b_n$, of order equal to
+$\operatorname{ord}\chi'$ (since $2$ generates the units). By the
+classification $\operatorname{Cob}=\langle\chi_2\rangle$
+(\cref{thm:class}), the letter characters realized by
+\emph{non-coboundary} $\chi'$ are exactly those with nontrivial
+$3$-part; the exempt directions are the trivial character and the parity
+$(-1)^{b_n}$ (realized by $\chi_2$, the valuation-parity identity).
+\end{lemma}
+
+\begin{theorem}[Keystone arrow]\label{thm:keystone}
+Every bad orbit casts a finite non-coboundary spectral shadow: there
+exist $r$ and a non-coboundary character $\chi'$ modulo $3^r$ such that
+the empirical averages
+$\frac1N\sum_{n<N}\chi'(x_{n+1})\overline{\chi'}(3x_n+1)$ do \emph{not}
+converge to the stationary value
+$\E_{\mathrm{geom}}\bigl[\chi'(2)^{-b}\bigr]$.
+\end{theorem}
+
+\begin{proof}
+Suppose not: every such average converges to its stationary value. By
+\cref{lem:lettershadow} this says the empirical letter averages
+$\frac1N\sum\xi(b_n)$ converge to $\E_{\mathrm{geom}}[\xi(b)]$ for every
+letter character $\xi$ of modulus $2\cdot3^j$, $j\ge1$, \emph{except
+possibly} $\xi=$ parity. Pass to a subsequence realizing
+$\beta:=\liminf B_N/N\le1.81$ (\cref{lem:drift}) and let $\nu$ be the
+corresponding empirical limit law of the letter $b$. Truncation gives
+$\E_\nu[b\wedge K]\le\beta$ for all $K$, hence tightness. The law of $b$
+modulo $2\cdot3^j$ under $\nu$ matches the geometric law in every
+character except parity, so
+\[
+\Pr_\nu[b\equiv k\ (2\cdot3^j)]
+=\Pr_{\mathrm{geom}}[b\equiv k\ (2\cdot3^j)]+\frac{t\,(-1)^k}{2\cdot3^{j}}
+\quad\text{for some }|t|\le2 :
+\]
+the single deviating direction \emph{spreads} over the residues, with
+pointwise correction $O(3^{-j})$. Letting $j\to\infty$ and using
+tightness, every point mass matches exactly:
+$\Pr_\nu[b=k]=2^{-k}$ for all $k$. These sum to $1$ (no escaping mass),
+so $\E_\nu[b]=2$---contradicting $\E_\nu[b]\le\beta<2$.
+\end{proof}
+
+\begin{proposition}[Drift visibility at the tilted trivial character]
+\label{prop:tiltshadow}
+For $s\in(0,1)$, the trivial-character defect average of a bad orbit
+satisfies, by Jensen and \cref{lem:drift},
+\[
+\frac1N\sum_{n<N}2^{\,s(\log_23-b_n)}\ \ge\ 2^{\,s(\log_23-B_N/N)}
+\ \xrightarrow[\ N\ ]{}\ \ge\ 2^{\,s(\log_23-1.81)}>1
+>\frac{3^s}{2^{1+s}-1}=\E_{\mathrm{geom}}\bigl[2^{s(\log_23-b)}\bigr]:
+\]
+the $s$-tilt alone already separates bad orbits from stationarity, with
+equality of the two endpoints exactly at $s\in\{0,1\}$ (the Collatz
+criticality $3=2^{1+1}-1$).
+\end{proposition}
+
+\begin{remark}[The arrow is one-directional]\label{rem:onedir}
+The converse of \cref{thm:keystone} fails, and this matters for the
+correct formulation of what remains. The \emph{trivial cycle} itself
+($x=1$, $b\equiv2$) has empirical shadow value $\chi'(2)^{-2}$, which
+differs from $\E_{\mathrm{geom}}[\chi'(2)^{-b}]$ for general
+non-coboundary $\chi'$; hence \emph{every convergent orbit} also casts a
+non-stationary shadow (its averages converge to the trivial-cycle value,
+not the geometric one). A naive ``no orbit deviates'' rigidity statement
+is therefore \emph{false} if the Collatz conjecture is true. The correct
+remaining statement is an exclusion:
+\end{remark}
+
+\begin{openproblem}[Quenched shadow exclusion]\label{op:quenched}
+No positive Syracuse orbit that is \emph{not eventually trivial}
+supports a persistent non-coboundary two-point shadow deviation from the
+geometric stationary value. Equivalently: for every orbit not absorbed
+by $1$, every finite non-coboundary shadow either converges to the
+stationary value or forces descent within bounded time. Combined with
+\cref{thm:keystone}, this excludes bad orbits and implies the full
+Collatz conjecture. Two cautions: \emph{(i)} if Collatz is true the
+statement is vacuous on positive integers, so it cannot be tested on
+known convergent orbits; \emph{(ii)} it is essentially the Collatz
+conjecture in minimal finite-shadow language---the value of the
+reduction is the finiteness and explicitness of the obstructing object,
+not a decrease in logical strength.
+\end{openproblem}
+
+\paragraph{Possible routes.} Three attack shapes, all open and all at
+the deterministic-equidistribution barrier. \emph{(1) Finite inverse
+theorem for shadow bias:} persistent deviation $\ge\varepsilon$ forces,
+via a density-increment argument and the sliding-window congruence, a
+recurrent structured residue trap modulo $3^R$; prove any such recurrent
+trap is an exact algebraic obstruction, hence coboundary by
+\cref{thm:class}, hence impossible for non-coboundary $\chi'$. \emph{(2)
+Shadow deviation forces descent:} for every $(r,\chi',\varepsilon)$
+there are $(M,H)$ such that a deviation $\ge\varepsilon$ over a
+length-$M$ window forces $x_{n+h}<x_n$ within a bounded
+enlargement---local and dynamical, avoiding global normality: the most
+realistic target. \emph{(3) Empirical-measure rigidity:} every
+non-eventually-trivial positive-orbit limit measure has annealed shadow
+marginals---a measure classification of exactly the type that is the
+known wall (symbolic models admit many invariant measures; the
+integer-orbit constraint is the arithmetic heart).
+
+\subsection*{Three finite approaches to quenched exclusion}
+
+\begin{theorem}[Periodic words cast shadows]\label{thm:periodic}
+Every positive periodic Syracuse orbit other than the trivial cycle
+casts a finite non-coboundary shadow: some non-coboundary $\chi'$ has
+cycle average $\frac1p\sum_i\chi'(2)^{-b_i}\ne
+\E_{\mathrm{geom}}[\chi'(2)^{-b}]$.
+\end{theorem}
+
+\begin{proof}
+The cycle's letter law is a finitely supported probability measure. If
+it matched the geometric law in every letter character except parity,
+the spreading argument of \cref{thm:keystone} (the parity correction is
+$O(3^{-j})$ pointwise at modulus $2\cdot3^j$) would force
+$\Pr[b=k]=2^{-k}$ for \emph{every} $k$---impossible for finite support.
+The detecting character has order with nontrivial $3$-part, hence is
+non-coboundary by \cref{thm:class}. (The trivial cycle also deviates,
+$b\equiv2$; it is the designated exception throughout.)
+\end{proof}
+
+\begin{corollary}
+Cycle elimination is a special case of quenched shadow exclusion
+(\cref{op:quenched}). Computationally: all integer cycles with period
+$p\le7$ are rotations of the trivial cycle (exhaustive search over
+$2^B>3^p$ with $(2^B-3^p)\mid A_w$), and every sampled nontrivial
+periodic word is detected already at character order $3$ or $9$.
+\end{corollary}
+
+\begin{proposition}[Finite inverse theorem: elementary layers]
+\label{prop:inverse}
+Let $z=\chi'(2)$, $m=\operatorname{ord}z$, and
+$D_N(\chi')=\frac1N\sum_{n<N}z^{-b_n}-\E_{\mathrm{geom}}[z^{-b}]$.
+If $|D_N|\ge\varepsilon$ then: \emph{(i)} some residue class $a\bmod m$
+of the letters is biased,
+$\bigl|\frac1N\#\{n:b_n\equiv a\}-\Pr_{\mathrm{geom}}[b\equiv a]\bigr|
+\ge\varepsilon/m$ (Fourier inversion on $\Z/m$); \emph{(ii)}
+equivalently, by $F_{\chi'}=\chi'(x_{n+1})\overline{\chi'}(3x_n+1)$, the
+empirical \emph{edge} measure on $U_{3^r}\times U_{3^r}$ deviates from
+the stationary edge law by $\gg_r\varepsilon$ on an explicit
+residue-edge set: \emph{shadow bias is a finite residue-edge trap}. The
+third layer---\emph{persistent trap $\Rightarrow$ descent or coboundary
+obstruction}, with the latter impossible for non-coboundary $\chi'$ by
+\cref{thm:class}---is the open target; we emphasize, per the warning
+above, that it would constitute a genuinely new deterministic rigidity
+principle, not a corollary of the finite gap.
+\end{proposition}
+
+\begin{proposition}[C1: mean-visible deviation forces descent]
+\label{prop:meandescent}
+If a window $[N,N+M)$ of a positive orbit has mean letter
+$\frac1M\sum b_n\ge\log_23+\eta$ with $\eta>\bigl(3x_N\ln2\bigr)^{-1}$,
+then $\min_{N<n\le N+M}x_n<x_N$: descent within the window.
+\end{proposition}
+
+\begin{proof}
+If $x_n\ge x_N$ throughout, then
+$\log_2x_{N+M}=\log_2x_N+M\log_23-\sum b_n+\sum\log_2(1+\tfrac1{3x_n})
+\le\log_2x_N-\eta M+\tfrac M{3x_N\ln2}<\log_2x_N$, a contradiction.
+\end{proof}
+
+\paragraph{The C1/C2 split, empirically.} A shadow deviation therefore
+splits: \emph{mean-visible} deviations (letter mean displaced) force
+descent at once by \cref{prop:meandescent}; \emph{phase-only}
+deviations (mean near critical, non-coboundary phase biased) are the
+true remaining obstruction. A window audit over long convergent orbits
+($648$ windows of length $64$, starts $\sim10^{80}$) shows the split is
+real and balanced: the fraction of windows with displaced mean rises
+from $4\%$ at low deviation to $53\%$ at high deviation, and phase-only
+high-deviation windows exist with letter mean throughout
+$[1.78,2.25]$. (On convergent orbits every window descends, so the
+positive direction of ``deviation forces descent'' is untestable
+there---exactly the vacuousness caution of \cref{op:quenched}; the
+informative content is the split structure.) The sharpest remaining
+route is thus:
+\[
+\text{phase-only shadow bias}
+\;\Rightarrow\;
+\text{residue-edge trap}
+\;\Rightarrow\;
+\text{coherent lift attempt}
+\;\Rightarrow\;
+\text{coboundary (excluded) or descent}.
+\]
+
+\subsection*{The last arrow: max-plus certificates and where C2 actually lives}
+
+Fix $r$, a non-coboundary $\chi'$, $z=\chi'(2)$, a phase $\omega$, and
+$\varepsilon>0$. On the residue-edge graph $G_r$ (vertices $U_{3^r}$,
+edges $a\xrightarrow{b}(3a+1)2^{-b}$) put the two labels
+\[
+g(b)=\log_23-b,
+\qquad
+\phi(b)=\Re\bigl(\omega\,(z^{-b}-\E_{\mathrm{geom}}[z^{-b}])\bigr).
+\]
+
+\begin{lemma}[Certificate forces descent]\label{lem:cert}
+Let $H\subseteq G_r$ contain all edges traversed by an orbit window
+$[N,N+M)$ with phase bias $\frac1M\sum\phi(b_n)\ge\varepsilon$. Suppose
+there exist $\Psi:U_{3^r}\to\R$, $\lambda\ge0$, $\delta>0$ with
+\[
+g(b)+\lambda\bigl(\phi(b)-\varepsilon\bigr)+\Psi(a')-\Psi(a)\le-\delta
+\qquad\text{on every edge of }H .
+\]
+Then for $M>\operatorname{osc}(\Psi)/\bigl(\delta-(3x_N\ln2)^{-1}\bigr)$
+the orbit descends within the window. Dually (max-plus), such a
+certificate exists iff
+$\inf_{\lambda\ge0}\bigl(P_H(\lambda)-\lambda\varepsilon\bigr)<0$, where
+$P_H(\lambda)$ is the maximum directed-cycle mean of $g+\lambda\phi$ on
+$H$.
+\end{lemma}
+
+\begin{proof}
+Telescoping the certificate along the window and using
+$\sum(\phi-\varepsilon)\ge0$: $\sum g(b_n)\le-\delta M+
+\operatorname{osc}\Psi$. With
+$\log_2x_{N+M}=\log_2x_N+\sum g(b_n)+\sum\log_2(1+\frac1{3x_n})$ and the
+no-descent assumption $x_n\ge x_N$, the right side drops below
+$\log_2x_N$---contradiction. The duality is the standard max-plus
+(Karp) characterization.
+\end{proof}
+
+\begin{proposition}[The $3$-adic-only formulation of C2 is false]
+\label{prop:notthreeadic}
+Certificate existence cannot hold at any fixed $3$-adic level, nor in
+the $3$-adic tower alone:
+\emph{(i)} the all-ones trap ($b\equiv1$; $g\equiv\log_23-1>0$, constant
+phase) is coherent modulo $3^R$ for every $R$, biased, descent-free, and
+admits no certificate at any level
+($P_H(\lambda)-\lambda\varepsilon\equiv\log_23-1$); it is eliminated
+\emph{only} by the $2$-adic tower: $b_n\equiv1$ forever forces
+$x\equiv-1\bmod2^k$ for all $k$, i.e.\ $x=-1$ (the famous $-1$ cycle).
+\emph{(ii)} the critical $\{1,2\}$-mixture trap (letter mean $\log_23$,
+$\Pr[b{=}1]=2-\log_23$) is $2$-adically frequency-feasible yet
+uncertified at $r=2$ (margin $+0.056$). \emph{(iii)} of the observed
+phase-only high-deviation windows on convergent orbits, $7$ of $8$ are
+uncertified at $r=2$: observed traps contain spurious cycles, so any
+true statement must be projective, not fixed-level.
+\end{proposition}
+
+\begin{openproblem}[C2, final form: joint-tower max-plus rigidity]
+\label{op:ctwo}
+Every $(2,3)$-adically coherent, non-coboundary--biased, descent-free
+trap---a projective family of residue-edge traps over the \emph{mixed}
+moduli $2^a3^b$ with nonvanishing mass, bias $\ge\varepsilon$, and
+near-critical drift---admits a max-plus descent certificate at some
+level of the joint tower. By \cref{lem:cert} this implies the quenched
+shadow exclusion (\cref{op:quenched}), hence the Collatz conjecture. The
+$2$-adic constraints are not optional: by \cref{prop:notthreeadic} they
+supply the negative weight that the $3$-adic graph alone cannot see.
+This is where the present program rejoins its predecessor: the
+mixed-modulus $(2^r3^s)$ certificates of the stabilized-residue
+program are exactly finite verifications in this joint tower.
+\end{openproblem}
+
+\noindent The final route, corrected once more:
+\[
+\text{phase-only bias}
+\Rightarrow
+\text{joint-tower trap}
+\Rightarrow
+\begin{cases}
+\text{max-plus certificate}\Rightarrow\text{descent (\cref{lem:cert}),}\\[2pt]
+\text{no certificate at any level}\Rightarrow\text{a coherent
+$(2,3)$-adic object,}
+\end{cases}
+\]
+and the remaining theorem is that the only such objects are the
+classified coboundary/trivial ones. C2 in full remains open; what is
+proved here is the mechanism (\cref{lem:cert}), the failure of every
+purely $3$-adic formulation (\cref{prop:notthreeadic}), and the exact
+location of the remaining content.
+
+\begin{remark}[Counterexample profile]\label{rem:profile}
+A counterexample to the Collatz conjecture, if it exists, must by the
+present theorem stack be \emph{mean-critical}
+($\frac1N\sum b_n=\log_23+o(1)$, else \cref{prop:meandescent}),
+\emph{non-coboundary phase-biased} (\cref{thm:keystone}), jointly
+$(2,3)$-adically coherent, and certificate-free at every level of the
+mixed tower. The simplest symbolic models with these properties are
+balanced low-letter words over $\{1,2\}$ with
+$\Pr[b{=}1]=2-\log_23\approx0.415$ (Sturmian/Beatty type, slope
+$2-\log_23$)---the critical analogues of the all-ones word, whose
+$2$-adic point is $x=-1$. Direct realizability tests support the ghost
+expectation: for twelve intercepts $\theta$ and prefixes of length
+$800$ ($B_N=1268$), the unique residue class modulo $2^{B_N+1}$
+realizing the Sturmian prefix has least positive representative of full
+bit-length $\approx B_N$, wandering with the prefix and never
+stabilizing---the signature of a mixed-adic ghost, not a positive
+integer. For \emph{periodic} balanced traps the ghost exclusion is
+precisely the classical cycle problem, where the archimedean negative
+weight is supplied by linear forms in logarithms
+($|2^B-3^p|\gg2^B/B^{C}$): joint-tower rigidity restricted to periodic
+traps is thus partially within reach of existing transcendence
+technology, and the genuinely new content of \cref{op:ctwo} is its
+aperiodic, single-orbit analogue.
+\end{remark}
+
+\subsection*{Calibrated measures, and the periodic case via linear forms
+in logarithms}
+
+\begin{lemma}[Calibrated measures]\label{lem:calibrated}
+Suppose a coherent mixed-tower trap with non-coboundary bias
+$\ge\varepsilon$ admits no max-plus certificate at any level. Then there
+exists a shift-invariant probability measure $\mu$ on the valuation
+sequence space, with adelically coherent residue marginals, such that
+\[
+\E_\mu[b]\le\log_23,
+\qquad
+\textstyle\int\phi\,d\mu\ge\varepsilon .
+\]
+Consequently $\Pr_\mu[b{=}1]\ge2-\log_23\approx0.415$, and if moreover
+$\E_\mu[b]=\log_23$ and $\mu$ is ergodic, the discrepancy cocycle
+$S_j=j\log_23-B_j$ is recurrent $\mu$-a.e.\ (Atkinson). Thus
+\cref{op:ctwo} is equivalent to: \emph{no such calibrated measure is
+realized by a positive integer orbit}.
+\end{lemma}
+
+\begin{proof}
+At each level $L=2^a3^b$, no certificate means
+$\inf_{\lambda\ge0}\bigl(P_{H_L}(\lambda)-\lambda\varepsilon\bigr)\ge0$.
+The cycle-mean vectors $(\overline g,\overline\phi)$ of the trap span a
+compact convex polytope $C_L$, and by Sion's minimax,
+\[
+\inf_{\lambda\ge0}\,\max_{\mu\in C_L}
+\bigl[\langle\mu,g\rangle+\lambda(\langle\mu,\phi\rangle-\varepsilon)\bigr]
+=\max\bigl\{\langle\mu,g\rangle:\ \mu\in C_L,\
+\langle\mu,\phi\rangle\ge\varepsilon\bigr\},
+\]
+so no certificate yields an invariant edge measure $\mu_L$ with
+$\int g\,d\mu_L\ge0$ and $\int\phi\,d\mu_L\ge\varepsilon$. The condition
+$\int g\ge0$ gives $\E[b]\le\log_23$ uniformly, hence tightness of the
+letter marginals; a diagonal weak-$*$ limit along the tower produces a
+consistent projective family, i.e.\ a shift-invariant measure on the
+inverse limit with the same inequalities. The letter bound follows from
+$\E[b]\ge2-\Pr[b{=}1]$; recurrence at exact calibration is Atkinson's
+theorem for zero-mean ergodic cocycles.
+\end{proof}
+
+\begin{theorem}[Periodic exclusion via linear forms in logarithms]
+\label{thm:bakercycle}
+There are effective constants $C,\tau$ (one may take $\tau=13.3$, by
+Rhin's bound $|B\ln2-p\ln3|\ge c\,B^{-\tau}$) such that every
+nontrivial positive integer cycle of period $p$ satisfies
+\[
+x_{\min}\le C\,p^{\,\tau+1}.
+\]
+Hence, given the verified range $x_{\min}>2^{71}$, every nontrivial
+cycle has $p>(2^{71}/C)^{1/(\tau+1)}$; and for every fixed period range
+the balanced (calibrated) periodic traps are effectively excluded: the
+linear form in logarithms \emph{is} the max-plus descent certificate for
+periodic traps.
+\end{theorem}
+
+\begin{proof}
+For a cycle, $2^B=3^p\prod_i(1+\tfrac1{3x_i})$, so
+$\theta:=B-p\log_23=\log_2\prod_i(1+\tfrac1{3x_i})\in
+\bigl(0,\,p/(3x_{\min}\ln2)\bigr]$; positivity and integrality pin
+$B=\lceil p\log_23\rceil$, so $B\le2p$. Rhin's effective bound gives
+$\theta\ge c'B^{-\tau}\ge c''p^{-\tau}$. Combining,
+$c''p^{-\tau}\le p/(3x_{\min}\ln2)$, i.e.\
+$x_{\min}\le C p^{\tau+1}$.
+\end{proof}
+
+\begin{corollary}[Where a counterexample must live]\label{cor:ghostclass}
+Combining \cref{lem:calibrated,thm:bakercycle}: if \cref{op:ctwo} fails,
+the witnessing calibrated measure is \emph{aperiodic}, supported on
+low-letter sequences with $\Pr[b{=}1]\ge0.415$, with recurrent
+discrepancy and non-coboundary bias---the Sturmian ghost class of
+\cref{rem:profile}---and all of its periodic approximants of any fixed
+period range are effectively excluded by \cref{thm:bakercycle}. The
+remaining content of the program is thus the aperiodic, single-orbit
+analogue of the linear-forms certificate: \emph{Baker along orbits}.
+\end{corollary}
+
+\subsection*{Repetition rigidity: exclusion of low-complexity calibrated
+words}
+
+The aperiodic analogue can now be carried out, and it closes more
+strongly than anticipated: the contraction bookkeeping of the
+repeated-block heuristic is unnecessary, because $2$-adic realizability
+gives \emph{exact} rigidity. Recall the classical coding: for a
+valuation block $u=(b_0,\dots,b_{p-1})$ with sum $B_u$, the set of odd
+$x$ whose first $p$ letters equal $u$ is a \emph{single residue class
+modulo $2^{B_u+1}$} (machine-checked: $84{,}471$ instances, no
+exceptions), and $B_u\ge p$.
+
+\begin{theorem}[Repetition rigidity]\label{thm:repetition}
+Let $(x_n)_{N\le n\le N+M}$ be a positive Syracuse orbit segment with
+$x_n\in[Y,WY]$ throughout, and let $p$ satisfy $2^{p+1}>Y(W-1)$. If the
+segment's valuation word has fewer than $M-p+1$ distinct factors of
+length $p$, then $x_n=x_m$ for some $N\le n<m\le N+M-p$: the orbit is an
+integer cycle of period $\le M$ and minimum $\ge Y$.
+\end{theorem}
+
+\begin{proof}
+By pigeonhole two positions $n<m$ carry the same length-$p$ block $u$;
+by the coding, $2^{B_u+1}\mid x_m-x_n$ with $2^{B_u+1}\ge2^{p+1}>
+Y(W-1)\ge|x_m-x_n|$; hence $x_m=x_n$, and the orbit repeats.
+\end{proof}
+
+\begin{corollary}[Bounded-discrepancy aperiodic exclusion]
+\label{cor:sturmianexcl}
+No aperiodic valuation word with bounded discrepancy
+$\sup_N|N\log_23-B_N|\le D$ and subexponential factor complexity
+($P(p)\le2^{\,p-2D-c_0}$ for large $p$) is realizable by a positive
+Syracuse orbit. In particular \emph{no Sturmian word of any slope}
+($D<1$, $P(p)=p+1$) is realizable: the critical ghost class of
+\cref{rem:profile} is excluded unconditionally---no linear-forms input
+is needed for the qualitative statement, since the manufactured cycle's
+word is periodic, contradicting aperiodicity.
+\end{corollary}
+
+\begin{proof}
+A realization from $x_0$ is confined to the band
+$[x_02^{-D-1},x_02^{D+1}]$ for $M\le x_0$ steps (the
+$\log_2(1+\tfrac1{3x})$ corrections total $o(1)$). Take
+$p=\lceil\log_2x_0\rceil+2D+3$ and $M=p+P(p)+1\le x_0$ (subexponential
+complexity; small $x_0$ is covered by the verified convergence range).
+\cref{thm:repetition} produces a cycle, whose word is eventually
+periodic---contradiction.
+\end{proof}
+
+\begin{theorem}[Complexity--height tradeoff]\label{thm:tradeoff}
+With the effective constants of \cref{thm:bakercycle}: every positive
+orbit segment of length $M$ confined to a dyadic band $[Y,2Y]$ with
+$Y>CM^{\tau+1}$ has word complexity
+\[
+P(p)\;\ge\;M-p+1,
+\qquad p=\lceil\log_2Y\rceil+2 :
+\]
+a no-descent stretch at height $Y$ must exhibit \emph{nearly full factor
+diversity} at scale $\log_2Y$. Equivalently, any banded no-descent
+window longer than $(Y/C)^{1/(\tau+1)}$ forces the word to mimic
+randomness at that scale.
+\end{theorem}
+
+\begin{proof}
+Otherwise \cref{thm:repetition} manufactures a cycle with period $\le M$
+and minimum $\ge Y$, and \cref{thm:bakercycle} gives
+$Y\le CM^{\tau+1}$---contradiction.
+\end{proof}
+
+\begin{corollary}[The ghost class is closed; the frontier moves]
+\label{cor:ghostclosed}
+Combining \cref{lem:calibrated,thm:tradeoff}: a counterexample orbit
+whose discrepancy path admits banded windows of unbounded length at
+heights $Y_k$ (the behaviour forced at the measure level by Atkinson
+recurrence) must carry a word of factor complexity at least
+$(Y_k/C)^{1/(\tau+1)}-p_k$ at scales $p_k\approx\log_2Y_k$:
+\emph{exponential rate $\ge1/(\tau+1)$ per bit}. All low-complexity
+ghosts---Sturmian, morphic, linearly recurrent, polynomial, and
+everything below that exponential rate---are excluded. The Aperiodic
+Baker Rigidity target of the route map is thereby proved in a
+strengthened form, with the repeated block replacing the closed cycle
+exactly as envisaged, but with exact $2$-adic equality in place of the
+contraction squeeze. What survives is precisely: orbits whose valuation
+words have near-full exponential complexity inside every banded window
+(randomness-mimicking), or whose discrepancy path forever avoids long
+banded windows; for these the $S$-unit/subspace frontier is the next
+tool. We are not aware of prior statements of
+\cref{thm:repetition,thm:tradeoff,cor:sturmianexcl}, though their
+ingredients ($2$-adic coding; cycle bounds via linear forms) are
+classical.
+\end{corollary}
+
+\begin{remark}[The wall, in its sharpest form]
+\cref{op:quenched} is the quenched-equidistribution wall of the earlier
+program, now reduced to its minimal finite form: single-orbit Birkhoff
+averages of finite-level functions. The finite operator theorem of this
+paper ($\sup_c\gamma_c(0)<1$) is its exact \emph{annealed} counterpart:
+the transfer operator mixes these very characters at a uniform
+exponential rate. What is missing is the passage from annealed mixing to
+pointwise convergence along the deterministic forward orbit---the step
+that no current technique supplies for a non-invertible arithmetic map
+with no invariant measure on the integers. The contribution of the
+keystone arrow is to make the two sides meet at the same finite object:
+one two-point character family, with the coboundary direction
+classified, exempted, and shown harmless.
+\end{remark}
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+The defect cocycle relocates rather than removes the difficulty, but the
+finite-operator side is now substantially a theorem. The rigorous core comprises
+the sliding-window congruence; the proof that the quadratic character is
+valuation parity in disguise, hence an exact coboundary; the \emph{classification}
+$\operatorname{Cob}=\langle\chi_2\rangle$ (\cref{thm:class}), which makes the
+non-coboundary quotient canonical rather than conjectural; the strict spectral
+gap at every finite level (\cref{cor:strict}); the conductor collapse
+(\cref{thm:collapse}), which reduces uniformity in $Q$ to the single computable
+sequence $\gamma_c(s)$; the height-strip rotation identity
+(\cref{prop:rot}); the conductor-raising ejection theorem
+(\cref{thm:eject}); and the cascade equivalence, mass bound, two-point
+profile, and deeper-channel bound
+(\cref{thm:cascade,lem:cascade,prop:twopoint,lem:betachannel}). The
+finite-operator endpoint narrowed in stages, each closed by an honest
+negative finding: descent (\cref{thm:descent,thm:rank2}) makes the three
+deepest digits lossless but \emph{stalls there} (\cref{rem:saturation});
+every counting and trace assembly terminates at exact marginality
+(\cref{rem:sixth}); and the coarse Schur regimes fail precisely where the
+degenerate class decouples from endpoint matching. What survives is the
+threshold $m=c$: the complete-kernel formula (\cref{prop:completekernel})
+and the adjoint-side Schur form reduce the uniform gap \cref{conj:ext} to
+the threshold Schur bound (\cref{conj:schur}). Within it, the cascade
+(class-II/III) budget is now \emph{proved contractive}
+(\cref{lem:pinning,prop:rowcontract}: sharp pinning constant
+$C_0<1.355$, heavy-row rate $(3/4)^c$, all-row rate $(\sqrt3/2)^c$) modulo
+a single analytic input---threshold flattening, reduced in
+\cref{op:flat} to an exact, character-free renewal Fourier-decay
+statement---with the class-IV budget subordinate by audit. The flattening
+input is \emph{proved} (\cref{op:flat}: bounded shells,
+$\tilde Q_L\le3C_1<5.16$, by the digit-extension energy argument), so the
+cascade sector of the threshold Schur bound is an unconditional theorem
+(\cref{op:cascade}); and the full finite H23a operator theorem
+$\sup_c\gamma_c(0)<1$ is now \emph{proved} (\cref{thm:final,cor:gap}),
+with the class-IV budget closed by the root-ball analysis
+(\cref{lem:ladder,lem:hensel,thm:classfour,lem:ladtail,lem:uniconst})
+at the cascade-sector rate $(\sqrt3/2)^c$ and asymptotic gap constant
+$1-(\sqrt3/2)^{1/2}\approx0.069$. The probabilistic side is closed---nominal-shell mass,
+leading-coefficient structure, singleton rigidity, and the level-cost law
+itself are all theorems
+(\cref{lem:nomshell,lem:leadcoeff,op:onecond}), the last with the exact
+constant $\lambda=\frac47<3^{-1/2}$ via the parity-trichotomy and
+mod-$9$ orbit-spread argument. Small $c$ is covered by the
+strict gap (\cref{cor:strict}) and finiteness---no certified numerics
+needed for the qualitative statement.
+The earlier conditional routes---comparison-graph expansion
+(\cref{conj:exp}), short-witness coverage (\cref{conj:mult}), the
+bounded-level holonomy audit, and the canonical witness
+(\cref{thm:witness}) as a route to uniformity---are retained as
+strictness, diagnostic, and conditional results, but are superseded as
+routes to the uniform gap. The heavy-row audits support contraction by
+mass-plus-profile bookkeeping alone (per-level decay $\approx0.72$; no
+signed cancellation available or required), and the deeper-channel saving
+is proved. To be precise about scope: it is the \emph{finite H23a operator
+theorem} that is proved here---and the keystone arrow (bad orbit
+$\Rightarrow$ finite non-coboundary spectral shadow) is now also proved
+(\cref{thm:keystone}), with the coboundary classification supplying
+exactly the exempt direction. The converse of the arrow fails (the
+trivial cycle itself deviates, \cref{rem:onedir}), so the remaining
+statement is the \emph{quenched shadow exclusion} (\cref{op:quenched}):
+no non-eventually-trivial orbit may sustain such a deviation. That
+exclusion implies the Collatz conjecture; it is essentially the
+conjecture in minimal finite-shadow language, and it sits exactly at the
+deterministic-equidistribution barrier, with three identified attack
+routes of which ``shadow deviation forces descent'' is the most
+realistic.
+
+\paragraph{Lean formalization.} The elementary core of the repetition
+rigidity argument is machine-verified in Lean~4 (Mathlib v4.27.0):
+\texttt{CollatzLean/FiniteSpectralShadows.lean} proves
+\texttt{word\_congr} (the $2$-adic coding lemma),
+\texttt{repetition\_rigidity}, and \texttt{orbit\_periodic\_of\_eq}
+sorry-free, depending only on Lean's three standard axioms
+(\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound});
+the Baker cycle bound is stated as the leading \texttt{proof\_wanted}
+of the formal program. Full provenance for every computation and proof
+step in this paper is recorded in the project's AIPM (\texttt{ailog})
+trail.
+
+\begin{thebibliography}{9}
+\bibitem{companion} J.~A.~Janik, \emph{Finite Spectral Shadows for the Collatz
+Valuation Cocycle: computational companion}, accompanying numerical report (2026).
+\end{thebibliography}
+
+\end{document}

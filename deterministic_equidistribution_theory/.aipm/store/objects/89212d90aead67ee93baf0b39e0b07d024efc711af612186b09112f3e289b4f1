@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/deterministic_equidistribution_theory/c_suite\nmake clean >/dev/null 2>&1; make DEBUG=1 2>&1 | grep -iE \"error|warning\" | head -20; echo \"build done\"\nls -la collatz_tests >/dev/null 2>&1 && echo OK"}

@@ -1,0 +1,356 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{microtype}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{problem}{Problem}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{principle}{Principle}
+
+\title{Collatz, Bounded Deficit, and the Deterministic Equidistribution Barrier\\
+\large A Consolidated Research Note}
+\author{Working notes compiled from the research discussion}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note records the consolidated endpoint of a research program around the accelerated Collatz map.  The program does not claim a proof of the Collatz conjecture.  Rather, it isolates the recurring obstruction that remained after finite-state, local-arithmetic, transfer-operator, symbolic, rank-function, annealed Borel--Cantelli, and fractal-target approaches were tested and found insufficient.  Modulo named reduction inputs and separate elimination of nontrivial cycles, the obstruction is a bounded-deficit statement: along every odd orbit, the cumulative $2$-adic valuation should track the equilibrium slope $\log_2 3$ with bounded error.  Equivalently, one needs a quenched, single-orbit equidistribution or deterministic-normality theorem for the accelerated map's valuation cocycle.  The annealed/Haar law is elementary; the remaining gap is proving that one deterministic integer orbit realizes it strongly enough to rule out the rare large-deviation events that are negligible in measure.  The note also records the categorical shape of the obstruction: a missing descent or inverse theorem from annealed cocycle laws to global deterministic sections of a noninvertible affine cocycle fibration.
+\end{abstract}
+
+\tableofcontents
+
+\section{Status and Scope}
+
+The purpose of this document is to preserve the current mathematical diagnosis, not to assert a proof of Collatz.  The strongest honest statement is conditional.
+
+\begin{principle}[Conditional endpoint]
+Modulo nontrivial cycle elimination and the named reduction inputs, the program reduces the Collatz problem to a bounded-deficit theorem for the accelerated odd map.
+\end{principle}
+
+The words ``modulo'' and ``named inputs'' are essential.  Several pieces have been clarified, some finite certificates have been hardened, and several false routes have been ruled out.  But the remaining pointwise equidistribution theorem is not available from current standard methods.
+
+\section{Accelerated Map, Valuation Cocycle, and Bounded Deficit}
+
+Let
+\[
+S(x)=\frac{3x+1}{2^{v_2(3x+1)}}
+\]
+be the accelerated odd Collatz map, acting on odd positive integers.  For an orbit
+\[
+x_0=x,\qquad x_{i+1}=S(x_i),
+\]
+define
+\[
+b_i=v_2(3x_i+1),\qquad D_m=\sum_{i<m}b_i.
+\]
+The equilibrium slope is
+\[
+\log_2 3.
+\]
+The deficit, or valuation excess relative to the equilibrium line, is
+\[
+E_m=D_m-m\log_2 3.
+\]
+
+The bounded-deficit statement is
+\[
+D_m=m\log_2 3+O(1),
+\qquad\text{equivalently}\qquad
+E_m=O(1),
+\]
+along every positive odd orbit, with constants depending on the orbit.
+
+\begin{conjecture}[Bounded deficit]
+For every positive odd integer $x$, the accelerated orbit satisfies
+\[
+\sup_m |D_m-m\log_2 3|<\infty,
+\]
+up to the usual qualification that nontrivial cycles must be excluded separately.
+\end{conjecture}
+
+The program's diagnosis is that this is a quenched equidistribution statement: the actual deterministic sequence
+\[
+(b_0,b_1,b_2,\ldots)
+\]
+should realize the statistics predicted by the Haar or annealed model.
+
+\section{The Annealed Law and the Height Cocycle}
+
+Under the Haar/annealed model, one has
+\[
+\Pr(b=k)=2^{-k},\qquad k\ge 1,
+\]
+so
+\[
+\mathbb E[b]=2>\log_2 3.
+\]
+For the forward height increment
+\[
+\Delta_b=\log_2 3-b,
+\]
+the base-$2$ moment transform is
+\[
+M(s)=\mathbb E\bigl(2^{s\Delta_b}\bigr)
+=\sum_{b\ge1}2^{-b}2^{s(\log_2 3-b)}
+=\frac{3^s}{2^{1+s}-1}.
+\]
+The Cramer root is
+\[
+M(1)=1.
+\]
+Thus high ascents have the annealed tail
+\[
+\Pr(h\ge H)\asymp 2^{-H}.
+\]
+If
+\[
+C_A=\{V: h(V)\ge \log_2 V-A\},
+\]
+then in the dyadic octave $V\in[2^N,2^{N+1})$ one expects
+\[
+\#(C_A\cap[2^N,2^{N+1}))
+\approx 2^N\cdot 2^{-(N-A)}=O_A(1).
+\]
+This explains the observed $O(1)$-per-octave sparsity of critical launch floors without invoking a low-dimensional $2$-adic Cantor set.
+
+At the Cramer tilt $s=1$, the tilted valuation law is
+\[
+\widetilde p_b
+=2^{-b}2^{\log_2 3-b}
+=3\cdot 4^{-b}
+=\frac34\left(\frac14\right)^{b-1}.
+\]
+Thus
+\[
+\widetilde p_1=\frac34.
+\]
+The associated entropy-per-consumed-binary-digit is
+\[
+H_2\!\left(\frac34\right)
+=-\frac34\log_2\frac34-\frac14\log_2\frac14
+\approx 0.811278,
+\]
+with codimension
+\[
+1-H_2\!\left(\frac34\right)\approx 0.188722.
+\]
+
+\begin{remark}[The $0.58$ red herring]
+Earlier low-modulus and strict-threshold measurements suggested an entropy dimension near $0.58$.  Deeper measurements indicate that this was a transient, caused by an excursion-start over-tilt on the first bits.  The bulk Cramer-tilted law is governed instead by $\widetilde p_1=3/4$ and entropy dimension $H_2(3/4)\approx0.811$.
+\end{remark}
+
+\section{Exit, Post-Exit Sampling, and the Taboo Interpretation}
+
+The critical launch set is better understood as
+\[
+C_6=\{V:h(V)\ge \log_2 V-6\}.
+\]
+It is not primarily a bounded-modulus $2$-adic target, not a finite word grammar, and not a fixed low-dimensional Cantor set.  It is a large-deviation level set for the same height cocycle that appears in the valuation/deficit analysis.
+
+The important experimental distinction is between the annealed sparsity law and the deterministic post-exit transition.  The sparse target law predicts that $C_6$ is rare.  The stronger post-exit observation is that after a completed $6$-critical excursion, the next launch floor appears to be in a taboo region for another $6$-critical excursion.
+
+Let $E(V)$ denote the post-exit floor after a completed critical excursion.  The sharp structural target is then
+\[
+E(C_6)\cap C_6=\varnothing,
+\]
+or a spectral weakening
+\[
+\rho(\mathcal K_6\mathcal E\mathcal K_6)<1,
+\]
+where $\mathcal K_6$ denotes the critical-excursion operator and $\mathcal E$ the exact post-exit operator.
+
+Thus the Exit problem is no longer best phrased as generic sparse-target equidistribution.  The refined target is a post-exit taboo theorem for the Cramer-tilted height cocycle.
+
+\section{What Was Ruled Out}
+
+The program repeatedly reduced apparent obstructions to the same pointwise issue.  The following routes were tested or conceptually eliminated as complete solutions:
+
+\begin{itemize}[leftmargin=2em]
+\item finite-state residue automata;
+\item local valuation shortcuts;
+\item bounded word enumeration;
+\item symbolic grammars for critical excursions;
+\item transfer-graph rank functions;
+\item annealed Borel--Cantelli;
+\item ordinary QSD pinning alone;
+\item bounded-modulus character obstructions;
+\item finite-character Perron--Frobenius gaps alone;
+\item low-dimensional $2$-adic fractal geometry of $C_6$;
+\item homogeneous nondivergence without an $S$-arithmetic encoding;
+\item higher-rank $\times2,\times3$ rigidity, because the $\times3$ direction is rank-one/deterministic rather than independent positive-entropy.
+\end{itemize}
+
+These failures are not merely negative.  They locate the obstruction:
+\[
+\boxed{\text{quenched deterministic equidistribution / normality of the valuation cocycle}.}
+\]
+
+\section{Relation to Existing Theories}
+
+The obstruction has the form of several existing theories but satisfies the hypotheses of none.
+
+\subsection{Dynamical Borel--Cantelli}
+Dynamical Borel--Cantelli theorems prove that shrinking or sparse targets are hit with predicted frequency under mixing, decay of correlations, Gibbs structure, or hyperbolicity.  The Collatz valuation cocycle has an annealed law, but the needed statement is for each deterministic integer orbit.
+
+\subsection{Measure rigidity}
+Furstenberg--Rudolph--Johnson--Lindenstrauss type rigidity for $\times2,\times3$ actions requires two independent commuting directions and positive entropy.  The Collatz cocycle is $\times2$-rich but rank-one in the $\times3$ direction: there is one factor of $3$ per accelerated step, not an independent $\times3$ action with entropy.
+
+\subsection{Homogeneous nondivergence}
+Kleinbock--Margulis style nondivergence controls excursions near cusps or rational substructures for homogeneous flows.  The analogy is useful: high ascents look like cusp excursions.  But no known homogeneous-space encoding of the Collatz affine cocycle realizes the target.
+
+\subsection{Normality of explicit sequences}
+The closest philosophical analogue is the normality barrier for explicit numbers.  Almost every real number is normal in base $b$, but proving normality of a particular natural number such as $\sqrt2$ or $\pi$ is far beyond current general methods.  Here the analogous statement is that one deterministic integer orbit realizes the Haar valuation statistics strongly enough to rule out rare large-deviation excursions.
+
+\section{A Categorical Reframing}
+
+Category theory does not supply the missing theorem directly, but it clarifies the shape of the missing passage.
+
+\subsection{Annealed and quenched categories}
+One may regard the annealed analysis as living in a category $\mathsf{Ann}$ whose objects include Haar valuation laws, pressure transforms, killed random walks, QSD profiles, transfer operators, and large-deviation rate functions.  In this category, the estimates are accessible.
+
+The actual Collatz problem lives in a category $\mathsf{Quen}$ of deterministic integer orbits and their valuation sequences.  The missing theorem is a realization or descent principle
+\[
+\mathsf{Ann}\longrightarrow\mathsf{Quen},
+\]
+turning annealed cocycle laws into pointwise orbit control.  Existing theories provide such a passage only under extra hypotheses such as mixing, Gibbs structure, randomness, higher-rank entropy, or homogeneous dynamics.
+
+\subsection{Finite quotients are not conservative}
+Finite residue quotients give functors
+\[
+\operatorname{Orbit}(x)\longrightarrow \operatorname{Orbit}_Q(x).
+\]
+They are useful but not conservative for bounded deficit: they do not reflect archimedean height and infinite-time accumulation.  This is why bounded-$Q$ character certificates can eliminate finite local-system obstructions but cannot by themselves prove the global deficit theorem.
+
+\subsection{H23a as holonomy obstruction}
+For each fixed modulus $Q$, the finite residue graph $\mathcal C_Q$ supports rank-one local systems given by characters $\chi$.  The H23a certificates show that nontrivial characters have nontrivial holonomy around certificate cycles.  Equivalently, no nontrivial finite-character coboundary survives locally.  This is a genuine local categorical success.
+
+The global problem survives because bounded deficit is not detected by finite-rank local systems alone.
+
+\subsection{Fibration over valuation words}
+Let $\mathcal W$ be the category of finite valuation words, ordered by extension.  Over a word $w$, let $\mathcal F_w$ be the residue class of integers realizing $w$.  The Collatz dynamics form a fibration
+\[
+\mathcal F\to\mathcal W.
+\]
+Height and deficit are cocycles valued in the ordered monoidal category $(\mathbb R,+,\le)$.
+
+Bad trajectories are global sections of a bad subfibration: sections whose height or deficit remains in a forbidden cone.  The desired inverse theorem has the categorical form
+\[
+\text{bad global section}\quad\Longrightarrow\quad\text{finite holonomy/coboundary obstruction}.
+\]
+H23a would then rule out the finite obstruction.
+
+\subsection{Shape of a categorical solution}
+The categorical architecture of a possible solution is:
+\begin{enumerate}[leftmargin=2em]
+\item build the affine-cocycle fibration over valuation words;
+\item attach the height/deficit cocycle as a functor to an ordered monoidal category;
+\item define the bad subfibration of infinite paths violating bounded deficit;
+\item prove a descent/inverse theorem: any infinite bad section induces a finite holonomy obstruction;
+\item use finite H23a certificates to rule out such obstructions.
+\end{enumerate}
+This is architecture, not yet the analytic engine.  The engine would still be a new deterministic equidistribution or inverse theorem.
+
+\section{The Missing Theorem}
+
+The recurring missing theorem can be stated in several equivalent languages.
+
+\begin{problem}[Deterministic sparse large-deviation theorem]
+Prove that for the accelerated Collatz valuation cocycle, every positive integer orbit realizes the Cramer/Haar large-deviation law strongly enough that rare target sets with summable annealed density are not hit in infinite coherent clusters.
+\end{problem}
+
+\begin{problem}[Affine-cocycle inverse theorem]
+Prove that persistent violation of the valuation/height sparse-target law forces a finite affine obstruction: a residue trap, finite character coboundary, rational phase, or other low-complexity structure visible on a finite quotient.
+\end{problem}
+
+\begin{problem}[Categorical descent formulation]
+Prove that any infinite global section of the bad height/deficit subfibration descends to a finite holonomy obstruction on some residue quotient.
+\end{problem}
+
+These formulations express the same desired bridge:
+\[
+\text{quenched failure of the annealed law}
+\quad\Longrightarrow\quad
+\text{finite structured obstruction}.
+\]
+
+\section{Reading Directions}
+
+The following literature points toward parts of the missing theory, though none appears to contain it outright.
+
+\subsection{Collatz and $2$-adic conjugacy}
+\begin{itemize}[leftmargin=2em]
+\item T. Tao, \emph{Almost all orbits of the Collatz map attain almost bounded values}.  This is the modern annealed/almost-all frontier.
+\item D. Bernstein and J. Lagarias, \emph{The $3x+1$ conjugacy map}.  Foundational for the $2$-adic parity-vector viewpoint.
+\item J. Lagarias, survey material on the $3x+1$ problem.  Useful for classical parity-vector and density-one context.
+\end{itemize}
+
+\subsection{Normality and deterministic pseudorandomness}
+\begin{itemize}[leftmargin=2em]
+\item Y. Bugeaud, work on expansions of algebraic numbers and normality barriers.
+\item B. Adamczewski and Y. Bugeaud, results on complexity of algebraic number expansions.  These are prototypes of inverse statements: too much digit structure implies arithmetic obstruction.
+\end{itemize}
+
+\subsection{Dynamical Borel--Cantelli and shrinking targets}
+\begin{itemize}[leftmargin=2em]
+\item N. Chernov and D. Kleinbock, dynamical Borel--Cantelli lemmas for Gibbs measures.
+\item J. Athreya, logarithm laws and shrinking target surveys.
+\item D. Dolgopyat, B. Fayad, and S. Liu, multiple Borel--Cantelli and recurrence laws.
+\end{itemize}
+
+\subsection{Measure rigidity and entropy}
+\begin{itemize}[leftmargin=2em]
+\item Furstenberg's $\times2,\times3$ program and the Rudolph--Johnson positive-entropy theorem.
+\item E. Lindenstrauss and Einsiedler--Katok--Lindenstrauss measure rigidity work.
+\item M. Hochman and P. Shmerkin, local entropy averages and fractal projections.
+\end{itemize}
+
+\subsection{Inverse theorems and structure from non-equidistribution}
+\begin{itemize}[leftmargin=2em]
+\item B. Green and T. Tao, \emph{The quantitative behaviour of polynomial orbits on nilmanifolds}.  Closest model for ``failure of equidistribution implies structured obstruction.''
+\item Green--Tao--Ziegler inverse theory for Gowers norms.
+\item Bourgain-style entropy, sum-product, and flattening methods.
+\end{itemize}
+
+\subsection{Pressure, large deviations, and killed walks}
+\begin{itemize}[leftmargin=2em]
+\item Dembo--Zeitouni, \emph{Large Deviations Techniques and Applications}.
+\item Parry--Pollicott and related thermodynamic formalism texts.
+\item Literature on killed random walks, branching random walks with absorption, and derivative martingales.
+\end{itemize}
+
+\section{Conclusion}
+
+The consolidated diagnosis is:
+\[
+\boxed{
+\text{the Collatz obstruction is quenched equidistribution of the accelerated valuation cocycle.}
+}
+\]
+The annealed pressure law is simple and repeatedly confirmed:
+\[
+M(s)=\frac{3^s}{2^{1+s}-1},
+\qquad M(1)=1,
+\qquad \Pr(h\ge H)\asymp2^{-H}.
+\]
+The pointwise theorem is the missing bridge.  Existing theories prove analogous statements only under hypotheses Collatz lacks.  Category theory clarifies the shape of the missing passage: a descent/inverse theorem from bad global sections of the affine valuation fibration to finite holonomy obstructions.  Such a theorem would be new mathematics of deterministic equidistribution for a noninvertible arithmetic cocycle.
+
+
+
+\end{document}

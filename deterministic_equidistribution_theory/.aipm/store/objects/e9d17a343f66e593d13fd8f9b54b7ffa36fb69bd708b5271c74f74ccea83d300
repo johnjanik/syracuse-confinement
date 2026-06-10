@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"","stdout":"class-IV points: n=300; v3(L2)-(d+i_min): P[=0]=1.000 P[=1]=0.000 P[=2]=0.000 P[>=3]=0.000\nexact cell sums |S_C|/3^(l/2): n=60, values: min=27.000 median=27.000 max=27.000\nhistogram: [27. 27. 27. 27. 27.]"}
