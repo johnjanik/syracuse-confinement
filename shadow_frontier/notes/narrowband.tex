@@ -181,4 +181,37 @@ $0.53$ at small $D$ --- which the exact computation removes entirely;
 only the corners at $2D\in\mathbb Z$ are arithmetic.
 \end{remark}
 
+\begin{remark}[The binary bias ceiling $\varepsilon_{\rm bin}=0.449$]
+The diagram contains a second arithmetic line, horizontal and dual to
+the vertical counting threshold $D^*$. Confinement pins the Birkhoff
+mean of any $D$-confined word at $\log_23$, so a word over the binary
+alphabet $\{1,2\}$ is forced to the letter frequencies
+$(2-\log_23,\,\log_23-1)$; its shadow average is then a single point on
+the chord joining $\zeta_3^{-1}$ and $\zeta_3$, and the largest bias it
+can carry is
+\[
+\varepsilon_{\rm bin}
+=\bigl|(2-\log_23)\,\zeta_3^{-1}+(\log_23-1)\,\zeta_3-G\bigr|
+=\sqrt{\tfrac{9}{196}+3\bigl(\log_23-\tfrac{19}{14}\bigr)^2}
+=0.44903\ldots,
+\]
+with $G=-\tfrac27-\tfrac{\sqrt3}{7}i$ the geometric mean. Since this
+depends only on calibration, not on $D$, the line
+$\varepsilon=\varepsilon_{\rm bin}$ is exactly horizontal: below it the
+extremal biased words are binary and $\theta(D,\varepsilon)$ varies
+smoothly; crossing it forces a positive density of letters $b\ge3$,
+each costing drift $b-\log_23$ repayable only by $b{=}1$ excursions
+inside the strip, so for narrow strips the rate collapses almost
+discontinuously (at $D=1.2$, $\theta$ falls from $0.75$ to $0.15$
+across the line; the steepest gradient sits at $\varepsilon=0.4489$ for
+every $D\in[1.0,2.0]$, fading by $D\approx2.5$ as deep excursions
+become affordable). Visually the line emanates rightward from $D^*$
+because to its left it is buried in the region already excluded by
+counting. Consequence for the program: in any narrow-band window a
+counterexample's local bias is capped at $\varepsilon_{\rm bin}$ unless
+it spends letters $b\ge3$ --- precisely the descent-heavy letters taxed
+by the run-budget clock --- so counting capacity exhausts at $D^*$ and
+alphabet capacity exhausts at $\varepsilon_{\rm bin}$.
+\end{remark}
+
 \end{document}
