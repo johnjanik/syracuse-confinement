@@ -1,0 +1,7 @@
+letter law {1: 0.5669972982738187, 2: 0.35702280222869387, 4: 0.07597989949748743} (achieved bias 0.214)
+{
+"ghost": 120,
+"cert": 0,
+"alive": 0
+}
+candidates tested=120, ghosts=120, certified=0, alive=0

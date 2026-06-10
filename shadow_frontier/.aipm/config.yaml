@@ -1,0 +1,21 @@
+capture:
+  env_allowlist:
+  - LANG
+  - LC_ALL
+  - TERM
+manuscript:
+  main_document: paper.tex
+privacy:
+  default_local_only: true
+  metadata_minimal: false
+  proxy_mode: hash-only
+  publish_raw_transcript: false
+project:
+  profile: software-project
+  stack:
+  - Python
+  title: shadow_frontier
+scan:
+- '**/*.py'
+- '**/*.md'
+schema_version: aipm.config.v1

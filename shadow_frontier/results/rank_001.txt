@@ -1,0 +1,3 @@
+p=8: expvec rank=2 (ambient 2)
+p=12: expvec rank=2 (ambient 2)
+p=16: expvec rank=2 (ambient 2)
