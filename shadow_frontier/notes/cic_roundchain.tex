@@ -235,6 +235,73 @@ $x_n\ge2^{c'n}$: violators must flee to infinity at a definite
 exponential rate, closing the CIC for all sub-exponential orbits.
 \end{conjecture}
 
+\section{The $3$-smooth cascade and the $2$-adic logarithm calculus}
+
+The Mersenne theorem extends to the full $3$-smooth neighborhoods
+$x=2^g3^a\mp1$ --- and the cascade goes \emph{deeper} than one round.
+All statements below are machine-verified
+(\texttt{search/smooth\_cascade.py}; grids $g<42$, $a<26$, and the
+one-parameter family to $n\le3000$).
+
+\begin{theorem}[Minus family]\label{thm:minus}
+For $x=2^g3^a-1$ ($g\ge2$) the entire round chain depends on $(g,a)$
+only through $n=g+a-1$ (the chain sees $m,\ell$ only through
+$3^\ell m=3^n$). The first reading is $v=\vt(3^n-1)$, given by LTE:
+$v=1$ for $n$ odd, $v=2+\vt(n)$ for $n$ even; survival iff $\vt(n)$
+is even $\ge2$, of density $\tfrac16$ over $n$ --- the family is
+ghost-aligned and dies at $2\times$ the Haar rate in round one. The
+round-$2$ reading is the $4$-term $S$-unit valuation
+\[
+v'=\vt\bigl(3^{\,n+r+\ell'}-3^{\,r+\ell'}+2^{v}3^{\ell'}-2^{\,v+\ell'}\bigr)
+-v-\ell' .
+\]
+\end{theorem}
+
+\begin{theorem}[Plus family]\label{thm:plus}
+For $x=2^g3^a+1$ ($g\ge3$) the $+1$ clock rides
+$\lfloor(g-1)/2\rfloor$ blocks ending $3$-smooth, with
+$a'=a+\lfloor(g-1)/2\rfloor$:
+\begin{itemize}
+\item[(i)] $g$ even: terminal $4\cdot3^{a'}+1$, death letter
+$b=2+\vt(3^{a'+1}+1)\in\{3,4\}$ by LTE --- closed-form CIC death.
+\item[(ii)] $g$ odd: lands at $2\cdot3^{a'}+1$, next depth $g'=2$
+($a'$ even) or $3$ ($a'$ odd). If $a'$ is even the round-$2$ reading
+is $v'=\vt(3^{a'+1}+1)-1=1$: closed-form death. If $a'$ is odd,
+\[
+v'=\vt\bigl(3^{a'+2}+5\bigr)-2
+=\vt\bigl(a'+2-\mathrm{Log}_3(-5)\bigr):
+\]
+\emph{the survival reading is the $2$-adic alignment of the exponent
+to the $2$-adic logarithm of the ghost $-5$}, where
+$N_0=\mathrm{Log}_3(-5)=2556611305511861515 \bmod 2^{64}$ and
+$\vt(3^N+5)=2+\vt(N-N_0)$ for $N\equiv N_0\bmod2$.
+\end{itemize}
+\end{theorem}
+
+\begin{proposition}[The $S$-unit horizon]\label{prop:horizon}
+Along any $3$-smooth-seeded chain, the round-$j$ reading is the
+$2$-adic valuation of a $2$--$3$ $S$-unit form whose term count grows
+with $j$; two-term forms are LTE (closed), and the collapsed cases
+reduce to alignments of integer exponents to $2$-adic logarithms of
+ghosts. The deterministic horizon of the cascade is exactly the
+$S$-unit term count the machinery can close --- the CIC on these
+families meets the banded $S$-unit frontier (Target 1) at the level of
+\emph{exponents}, where effective $p$-adic Baker theory (Yu) bounds
+every reading by $O(\log)$ of the exponent height.
+\end{proposition}
+
+\noindent\emph{Cascade statistics} (one-parameter family, $n\le3000$):
+survival $0.16633$ after round $1$ (LTE prediction $\tfrac16$), then
+conditional survivals $0.34,\ 0.31,\ 0.40,\ 0.19,\ 0.25$ --- the
+re-randomized fair-thirds coin of \cref{thm:iid}. The champion is
+$n=704$, surviving $6$ rounds with readings $[8,2,2,2,2,2,3]$;
+\emph{every} $n\le3000$ dies by round $7$: the CIC holds, with
+explicit finite certificates, for the entire $3$-smooth slice tested.
+The ghost hierarchy thus lifts one level: at the base, integers align
+to ghosts ($-1$, $+1$, $-5$, \dots); at the exponent level, exponents
+align to $2$-adic logarithms of ghosts; survival is a parity reading
+at each level, deterministic exactly where freshness fails.
+
 \section{Where the wall now stands}
 
 The CIC has been compressed to: \emph{a single scalar parity sequence
