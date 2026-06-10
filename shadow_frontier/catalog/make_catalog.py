@@ -122,6 +122,71 @@ for s in sturm[:4]:
     A(f"$\\theta={s['th']:.2f}$:\\\\")
     A(wordstr(s['w'][:120]) + r"\medskip\\")
 A(r"""\endgroup
+
+\section{The negative cycles, computed explicitly}
+
+The three known negative cycles anchor the ghost families: each periodic
+valuation word below has its unique $2$-adic realization at a
+\emph{negative} integer, so the least positive representatives of its
+realizability classes ride the ceiling $2^{B_N+1}-|x|$ --- the periodic
+ghost lines of the trajectory zoo. Throughout,
+$S(x)=(3x+1)/2^{v_2(3x+1)}$ and a period-$p$ word $w$ with sum $B$
+satisfies the affine cycle equation
+\[
+x=\frac{A_w}{2^{B}-3^{p}},\qquad
+A_w=\sum_{j=0}^{p-1}3^{\,p-1-j}\,2^{B_j},\quad B_j=b_1+\dots+b_j .
+\]
+Negative cycles are exactly those with $2^B<3^p$ (denominator negative).
+
+\subsection*{$x=-1$: word $(1)$, period $1$}
+\[
+3(-1)+1=-2=-2^{1}\cdot1,\qquad v_2=1,\qquad S(-1)=\tfrac{-2}{2}=-1 .
+\]
+Cycle formula: $p=1$, $B=1$, $A_w=3^{0}2^{0}=1$, and
+$x=1/(2^{1}-3^{1})=1/(-1)=-1$. This is the $2$-adic limit of the all-ones
+word: $b\equiv1$ forces $x\equiv-1 \pmod{2^k}$ for every $k$.
+
+\subsection*{$x=-5$: word $(1,2)$, period $2$}
+\begin{align*}
+3(-5)+1&=-14=-2^{1}\cdot7, & v_2&=1, & S(-5)&=-7,\\
+3(-7)+1&=-20=-2^{2}\cdot5, & v_2&=2, & S(-7)&=-5 .
+\end{align*}
+Cycle formula: $p=2$, $B=1+2=3$, partial sums $B_0=0$, $B_1=1$:
+\[
+A_w=3^{1}2^{0}+3^{0}2^{1}=3+2=5,\qquad
+x=\frac{5}{2^{3}-3^{2}}=\frac{5}{8-9}=-5 .
+\]
+Letter mean $\tfrac32<\log_23$: in the positive world this word ascends,
+the gentle green dotted line of the trajectory zoo.
+
+\subsection*{$x=-17$: word $(1,1,1,2,1,1,4)$, period $7$}
+\begin{align*}
+3(-17)+1&=-50=-2^{1}\cdot25, & S&\colon -17\mapsto-25,\\
+3(-25)+1&=-74=-2^{1}\cdot37, & &\phantom{\colon} -25\mapsto-37,\\
+3(-37)+1&=-110=-2^{1}\cdot55, & &\phantom{\colon} -37\mapsto-55,\\
+3(-55)+1&=-164=-2^{2}\cdot41, & &\phantom{\colon} -55\mapsto-41,\\
+3(-41)+1&=-122=-2^{1}\cdot61, & &\phantom{\colon} -41\mapsto-61,\\
+3(-61)+1&=-182=-2^{1}\cdot91, & &\phantom{\colon} -61\mapsto-91,\\
+3(-91)+1&=-272=-2^{4}\cdot17, & &\phantom{\colon} -91\mapsto-17 .
+\end{align*}
+Cycle formula: $p=7$, $B=1{+}1{+}1{+}2{+}1{+}1{+}4=11$, so
+$2^{B}=2048<2187=3^{p}$; partial sums
+$(B_0,\dots,B_6)=(0,1,2,3,5,6,7)$:
+\[
+A_w=3^6\!\cdot\!1+3^5\!\cdot\!2+3^4\!\cdot\!4+3^3\!\cdot\!8
++3^2\!\cdot\!32+3\!\cdot\!64+128
+=729+486+324+216+288+192+128=2363,
+\]
+\[
+x=\frac{2363}{2^{11}-3^{7}}=\frac{2363}{2048-2187}
+=\frac{2363}{-139}=-17\qquad(139\cdot17=2363) .
+\]
+Letter mean $\tfrac{11}{7}\approx1.571<\log_23\approx1.585$: again
+sub-critical, again a positive-world ascender. Note how close
+$11/7$ is to $\log_23$ --- the $-17$ cycle is a near-balanced word, the
+best rational approximant realizable at small height, and exactly the
+shape that the Baker cycle bound ($x_{\min}\le Cp^{\tau+1}$) governs.
+
 \appendix
 \section{The 120 candidate words}
 Alphabet $\{1,2,4\}$, length 240, row-wrapped at 60 letters.
