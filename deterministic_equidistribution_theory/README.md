@@ -41,7 +41,6 @@ frontier named as the next tool.
 | `c_suite/collatz_tests/` | The nine-experiment C suite (Experiments A–I), FAST128/GMP builds, validation report. |
 | `c_suite/analysis/` | The 14 audit scripts of the analytic campaign (threshold Schur, cascade operator, bounded shells, level-cost, root-ball, ghost tests, max-plus certificates, Sturmian realizability). Generated data (`out/`, `out_large/`) is gitignored and regenerable. |
 | `critiques/` | The driving critique series dc_1–dc_33. |
-| `references/` | Canonical literature on linear forms in logarithms (Baker, Matveev, LMN, Bugeaud, Simons–de Weger, Evertse–Schlickewei–Schmidt, Adamczewski–Bugeaud, …). |
 | `.aipm/` | AI provenance store (`ailog validate` passes). |
 
 ## Machine verification
