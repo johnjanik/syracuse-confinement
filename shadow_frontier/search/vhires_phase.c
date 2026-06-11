@@ -21,15 +21,33 @@
 #include <math.h>
 #include <omp.h>
 
-#define ND   2000          /* D grid points in [0.6, 6.0] */
+#ifndef ND
+#define ND   2000          /* D grid points */
+#endif
+#ifndef NW
 #define NW   24            /* directions omega = e^{2 pi i k / NW} */
+#endif
+#ifndef NT
 #define NT   400           /* tilts: t_0 = 0, then geomspace(0.2, 20, NT-1) */
+#endif
+#ifndef P
 #define P    2800          /* rotation-orbit length (steps) */
+#endif
+#ifndef BURN
 #define BURN 400           /* burn-in steps excluded from the average */
+#endif
+#ifndef OUTBASE
+#define OUTBASE "results/vhires_lnlam"
+#endif
 #define BCAP 24            /* letter cap (max possible b is ~ 2D + 2 <= 15) */
 #define MMAX 16            /* max window size: floor(2*6)+1 = 13 */
 
-static const double DLO = 0.6, DHI = 6.0;
+#ifndef DLO
+#define DLO 0.6
+#endif
+#ifndef DHI
+#define DHI 6.0
+#endif
 
 int main(void)
 {
@@ -129,19 +147,19 @@ int main(void)
         free(lo); free(mm);
     }
 
-    FILE *f = fopen("results/vhires_lnlam.bin", "wb");
+    FILE *f = fopen(OUTBASE ".bin", "wb");
     if (!f) { fprintf(stderr, "cannot open output\n"); return 1; }
     fwrite(out, sizeof(double), (size_t)ND * NW * NT, f);
     fclose(f);
 
     /* meta sidecar */
-    f = fopen("results/vhires_lnlam.meta", "w");
+    f = fopen(OUTBASE ".meta", "w");
     fprintf(f, "ND %d\nNW %d\nNT %d\nP %d\nBURN %d\nDLO %g\nDHI %g\n"
                "tilts t0=0 then geomspace(0.2,20,%d)\n",
             ND, NW, NT, P, BURN, DLO, DHI, NT - 1);
     fclose(f);
 
-    fprintf(stderr, "wrote results/vhires_lnlam.bin (%zu MB)\n",
+    fprintf(stderr, "wrote " OUTBASE ".bin (%zu MB)\n",
             (size_t)ND * NW * NT * 8 / (1024 * 1024));
     free(out);
     return 0;
