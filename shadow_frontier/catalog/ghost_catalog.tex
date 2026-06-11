@@ -534,6 +534,36 @@ has a Syracuse orbit whose first $40$ valuations spell
 \textsc{ghost} in ASCII ($b{=}1\mapsto0$, $b{=}2\mapsto1$), at
 $1.475$ seed-bits per scripted letter.
 
+\subsection*{The Kraft refinement: why 56 bits for a 40-bit message}
+The cost of a letter is not one bit but $b$ bits: the constraint
+$v_2(3x+1)=b$ pins $b$ binary digits of the seed (plus one overall).
+In the naive scheme a message-bit $0$ costs $1$ seed-bit and a
+message-bit $1$ costs $2$; \textsc{ghost}'s $40$ bits hold $18$ ones
+and $22$ zeros, so $B+1=22+2\cdot18+1=59$, and the printed integer is
+the least member of a $2^{59}$-modulus class that happened to start
+with three zero bits (a $\sim\!1/8$ accident): $40$ message bits,
+$59$ bits of congruence conditions, $56$-bit smallest solution.
+
+The cost structure --- one letter per cost class $b$, cost $b$ ---
+satisfies Kraft with \emph{equality}, $\sum_b 2^{-b}=1$: \emph{the
+Syracuse alphabet is a complete binary prefix code}, which is the
+lossless-coding conjugacy of the faithfulness note in
+information-theoretic clothes. The optimal encoder therefore maps the
+letter $b$ to the bit-block $1^{\,b-1}0$ (pad the message with a final
+$0$): each letter then carries exactly as many message bits as it
+costs, and the rate is $1$ seed-bit per message-bit. For
+\textsc{ghost} this gives $23$ letters (largest letter $5$),
+$B+1=42$, and the performing integer drops to the $42$-bit
+\[
+\texttt{3925048663003},
+\]
+$1.050$ seed-bits per message-bit --- essentially capacity (the excess
+is the padding zero and the $+1$ in the modulus). Read backwards, the
+same identity is why nothing beyond the seed can ever be communicated:
+the letter stream is a rate-$1$ recoding of the seed's binary digits
+through the carry transducer; the channel runs at capacity before you
+have said anything.
+
 \subsection*{The information paradox}
 To survive, the stream must \emph{look like} a random source of about
 $1.4$ bits per letter (the calibrated entropy ceiling, less the
@@ -578,22 +608,31 @@ python3 - <<'EOF'
 import sys; sys.path.insert(0,'search')
 from frontier import realize
 
-def spell(msg):                       # message -> performing integer
+def spell(msg):                       # naive: 0->b=1, 1->b=2
     bits = ''.join(f"{ord(c):08b}" for c in msg)
     word = [1 if c == '0' else 2 for c in bits]
     return realize(word)[0]
 
-def read(x, nchars):                  # integer -> message
+def spell_kraft(msg):                 # optimal: letter b <-> 1^(b-1) 0
+    bits = ''.join(f"{ord(c):08b}" for c in msg) + '0'
+    word, run = [], 0
+    for c in bits:
+        if c == '1': run += 1
+        else: word.append(run + 1); run = 0
+    return realize(word)[0]
+
+def read_kraft(x, nchars):            # integer -> message
     out = []
-    for _ in range(8 * nchars):
+    while len(''.join(out)) < 8 * nchars:
         t = 3*x + 1; b = (t & -t).bit_length() - 1
-        out.append('0' if b == 1 else '1'); x = t >> b
-    s = ''.join(out)
+        out.append('1' * (b - 1) + '0'); x = t >> b
+    s = ''.join(out)[:8 * nchars]
     return ''.join(chr(int(s[i:i+8], 2)) for i in range(0, len(s), 8))
 
-r = spell("GHOST")
-print(r)                  # 60822829639107739
-print(read(r, 5))         # GHOST
+print(spell("GHOST"))            # 60822829639107739  (56 bits)
+r = spell_kraft("GHOST")
+print(r)                         # 3925048663003      (42 bits)
+print(read_kraft(r, 5))          # GHOST
 EOF
 
 # render the four-panel candidate image of your message-orbit:
