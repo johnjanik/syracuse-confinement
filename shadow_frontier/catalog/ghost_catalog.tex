@@ -652,6 +652,21 @@ a handful of steps of being left to itself; try to compose a message
 whose forced continuation survives long --- that is exactly the
 champion-hunting problem, and the house always wins.
 
+We played the game (\texttt{search/message\_champions.py}). Over the
+$44{,}000$-word English dictionary the champion is \texttt{bopped}:
+$48$ scripted letters, then the cascade composes \emph{$36$ more} on
+its own (integer $1769681963780500439019$); runner-up
+\texttt{Bancroft} ($+36$ after $64$). The best two-character message
+is \texttt{a`}: a $7$-digit seed ($4063723$) whose $16$-letter script
+the automaton extends by $+34$ --- total $50$ letters from $22$ bits,
+ratio $2.3$, i.e.\ a survival champion wearing a two-character name.
+And the law is exact: best-of-$N$ search should win
+$\log_{4/3}N$ forced letters --- prediction $37$ for the dictionary
+($N{=}44\mathrm k$), $32$ for two characters ($N{=}9025$); measured
+$36$ and $34$. The dictionary behaves like $44{,}000$ random seeds:
+there are no magic words, only Borel--Cantelli paying out at its
+stated rate.
+
 \section{Collatz Elevator Pitch}
 One-liner. "We can prove the average number loses this game. We can't prove that this particular number does — and every number is a particular
 number."\\
