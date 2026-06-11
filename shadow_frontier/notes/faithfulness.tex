@@ -206,6 +206,64 @@ of the unconditional theorems above rely on annealed models; the
 measured gaps are themselves expressed --- and were found ---
 \emph{inside} the language.
 
+\section{Does the blind spot itself constrain the profile?}
+
+Yes --- the residual is not inert. The structure of
+$\mathbb N\subset\Ztwo$ (terminating binary tails; finite description)
+adds three constraints beyond the four imported interfaces.
+
+\emph{(i) Finite-seed determinism.} Letters $b_0,\dots,b_n$ are
+determined by $x_0\bmod2^{B_n+1}$; once $B_n+1>\log_2x_0$ the class
+pins $x_0$ uniquely and \emph{every subsequent letter is forced} by
+the $\times3$ carry cascade, with zero remaining freedom. The free
+phase lasts only $n^*\approx\tfrac23\log_2x_0$ steps (for
+$\{1,2\}$-words, $B_n\approx\tfrac32n$). Hence the whole infinite word
+has Kolmogorov complexity $\le\log_2x_0+O(1)$, while repetition
+rigidity forces near-maximal \emph{factor} complexity in banded
+windows: the counterexample profile sharpens from ``high-complexity
+calibrated pseudorandom word'' to \emph{self-generated pseudorandomness
+of a fixed finite carry transducer run from a finite seed} ---
+logarithmic description length, maximal local diversity. In
+scheduler-adversary terms: the adversary's entire budget is
+$\log_2x_0$ bits, spent in the first two-thirds-of-$\log_2x_0$ steps;
+afterwards it makes no choices. Measured on the survival champions:
+\[
+\begin{array}{r|ccccc}
+n_0 & 27 & 4591 & 31911 & 517191 & 687871\\
+\hline
+\text{survival }D & 17 & 27 & 33 & 38 & 50\\
+\text{forced survival} & 13 & 16 & 22 & 24 & 33\\
+\text{forced fraction} & 76\% & 59\% & 67\% & 63\% & 66\%
+\end{array}
+\]
+Two-thirds of a champion's life is carry-generated, not chosen.
+
+\emph{(ii) Countability.} The language's calibrated, shadow-biased,
+high-complexity word class is a Cantor continuum; integer-realizable
+words form a \emph{countable, computable} subfamily --- one word per
+odd integer, all emitted by the same finite-state machine
+($\times3{+}1$ in base $2$, LSB-first, is a bounded-carry transducer).
+Concretely: of the $2^{30}$ words of depth $30$ over $\{1,2\}$, just
+$66$ are realized by an integer below $10^6$. Machine-style attacks
+(the LTE round chain, the $3$-smooth cascade) are therefore not
+special cases but the \emph{general} case: every integer is a finite
+seed of the same automaton.
+
+\emph{(iii) A fifth interface.} In the forced regime the letters read
+binary digit streams of $3$-power multiples of the seed, so effective
+digit-counting theorems (Stewart: the number of nonzero binary digits
+of $3^n$ grows effectively) become applicable imports against
+late-time ghost alignment --- a candidate fifth archimedean interface
+beyond clocks, counting, drift, and Baker.
+
+\emph{Caveat.} Constraints (i)--(ii) carry no measure-theoretic
+exclusion power --- one cannot Borel--Cantelli a single computable
+point --- which is consistent with the wall being pointwise. Their
+value is structural: they shrink the \emph{profile} (what a
+counterexample must be) from a continuum of conspiracies to the
+output set of one finite machine, and they certify that
+automaton-level methods address the general case.
+
 \section*{Verdict}
 
 Faithful compression $=$ lossless coding $+$ provable completeness on
