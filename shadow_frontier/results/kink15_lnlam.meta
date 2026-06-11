@@ -1,0 +1,8 @@
+ND 2000
+NW 24
+NT 400
+P 8000
+BURN 1000
+DLO 1.45
+DHI 1.55
+tilts t0=0 then geomspace(0.2,20,399)
