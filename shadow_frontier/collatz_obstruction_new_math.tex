@@ -1,0 +1,650 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{problem}{Open Problem}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\N}{\mathbb N}
+\newcommand{\E}{\mathbb E}
+\newcommand{\R}{\mathbb R}
+\newcommand{\U}{\mathcal U}
+\newcommand{\Cob}{\mathrm{Cob}}
+\newcommand{\Col}{\mathrm{Col}}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\vt}{v_2}
+\newcommand{\geom}{\mathrm{geom}}
+
+\title{The Complete Nature of the Collatz Obstruction\\
+\large From the Pointwise Valuation Problem to the Shadow Frontier:\\
+what was eliminated, what remains, and what new mathematics is required}
+\author{John A. Janik\\ \small\texttt{john.janik@gmail.com}}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document is the capstone synthesis of a multi-year Collatz program
+spanning three campaigns: the pointwise-valuation/SRCE program (the
+\texttt{collatz/} manuscripts), the finite-spectral-shadow program
+(\texttt{deterministic\_equidistribution\_theory/}), and the Shadow
+Frontier (\texttt{shadow\_frontier/}, the endpoint).  No proof of the
+conjecture is claimed.  The claim is sharper and, we believe, more
+useful: \emph{the obstruction has been located, compressed, priced, and
+shown to be invariant under change of framework}.  Three independent
+routes --- ours, Tao's almost-all theory, and a contemporaneous
+LLM-collaboration program audited herein --- terminate, under explicit
+dictionaries, at the same residual statement.  In its most compressed
+form the obstruction is one scalar parity sequence: the survival
+readings $\vt(3^\ell m-1)=\vt(m-3^{-\ell})$ of the two-clock round
+chain, provably i.i.d.\ fair-thirds on Haar fibers, provably
+deterministic (and lethal) on ghost-aligned fibers, with every
+structured deviation metered by exact clocks, without-replacement
+supply, entropy deficits, and an amortized census budget.  What is
+missing is exactly one species of theorem: a
+\emph{distributional-to-pointwise} (quenched) rigidity statement for a
+single self-referential zero-entropy stream.  We trace how each
+campaign eliminated its layer of candidate mechanisms, state the
+endpoint constraints with their constants
+($D^*=1.2463$, $\varepsilon_{\rm bin}=0.449$,
+$\varepsilon_{\rm nat}=0.1397$, $R=0.0882$,
+$\theta_{12}\le0.97907$), and close with the new mathematics required,
+keyed to canonical and contemporary references.
+\end{abstract}
+
+\tableofcontents
+
+\section{Accelerated Syracuse notation}
+
+We work with the odd accelerated Syracuse map
+\[
+  T(x)=\frac{3x+1}{2^{b(x)}},
+  \qquad b(x)=\vt(3x+1),
+\]
+$x$ odd and positive unless stated otherwise.  Along an orbit write
+$b_n=b(x_n)$, $B_N=\sum_{n<N}b_n$.  The critical slope is $\log_23$,
+and the logarithmic identity
+\begin{equation}\label{eq:log-identity}
+  \log_2 x_{N}
+  =
+  \log_2 x_0
+  +N\log_2 3-B_N
+  +\sum_{n<N}\log_2\Bigl(1+\frac{1}{3x_n}\Bigr)
+\end{equation}
+is exact.  Mean letter excess $\frac1NB_N>\log_23+\eta$ forces descent
+(the C1 mechanism).  For a finite character $\chi'$ the two-point
+shadow satisfies the exact keystone identity
+\begin{equation}\label{eq:shadow-letter}
+  F_{\chi'}(x_n,x_{n+1})=\chi'(x_{n+1})\overline{\chi'(3x_n+1)}
+  =\chi'(2)^{-b_n},
+\end{equation}
+with geometric stationary value
+$G(z)=\sum_{b\ge1}2^{-b}z^{-b}$ for $z=\chi'(2)$.
+Under Haar measure on $\Z_2$ the letters are i.i.d.\ geometric,
+$\Pr[b=k]=2^{-k}$, $\E[b]=2>\log_23$: a typical orbit descends.  The
+entire difficulty of the conjecture is the upgrade of this annealed
+statement to every single deterministic orbit.
+
+\section{Campaign I: the pointwise valuation problem and SRCE}
+
+The first program (\texttt{collatz/docs/}: the master dependency
+document, the pointwise-valuation paper, the stabilized-residue
+extinction paper, and the sparse-target pivot note) isolated the
+quenched upgrade as a standalone statement and then localized it.
+
+\subsection{The conditional reduction and the annealed theorem}
+The honest logical skeleton, recorded in the master dependency
+document, is one-directional:
+\[
+  \mathrm{SRCE}\ +\ \text{Exit Inequality}\ +\ \text{cycle elimination}
+  \ \Longrightarrow\ \text{Collatz}.
+\]
+The \emph{weak Pointwise Valuation Theorem} (PVT) --- the sole
+pointwise input --- was proved in its \emph{annealed} form with an
+explicit machine-checked Lyapunov function (a correction-weighted,
+floor-killed transfer operator of spectral radius
+$\le\sqrt3/(2\sqrt2-1)<1$).  The canonical-residue formula
+\[
+  r_m\equiv 3^{-m}\bigl(2^{D_m}-A_m\bigr)\pmod{2^{D_m+1}}
+\]
+showed the weak PVT \emph{equivalent} to a deterministic
+shrinking-target statement, the \emph{Stabilized Residue Cluster
+Extinction} problem (SRCE): no fixed odd $x_0$ admits an infinite
+valuation word whose canonical residues stabilize to $x_0$ while the
+deficit $D_m-m\log_23$ stays confined.
+
+\subsection{Why Borel--Cantelli fails, and the H23a localization}
+The targets have summable density $\asymp3^{-m}$ and the residue map
+is per-scale uniform --- yet ordinary Borel--Cantelli is powerless,
+for an identified structural reason: the lift digits are nonnegative,
+the residue sequence is \emph{monotone}, and hence the deterministic
+target hits are \emph{maximally clustered}.  The extremal set was
+represented as a peak-rooted inverse-Syracuse tree, modeled as a
+killed critical branching random walk in a strip, and SRCE was reduced
+to a fixed-modulus Perron--Frobenius gap for the exact deterministic
+congruence operator (H23a), with the annealed gap a theorem and the
+character-killing mechanisms partially machine-checked in Lean.
+
+\subsection{The lesson of Campaign I}
+Every natural mechanism was eliminated by proof or computation:
+finite-state and block Lyapunov functions, Baker/convergent
+near-cycle control, word-level entropy and complexity,
+$\times2\times3$ entropy rigidity, $p$-adic scenery overlap,
+restart-density arguments.  The postmortem
+(\texttt{why\_collatz\_fails.md}) identified the wall exactly: the
+confined counterexample word is \emph{symbolically generic} ---
+indistinguishable from a confined renewal word in every word
+statistic --- so no annealed or finite-state mechanism can see it.
+The sparse-target pivot note drew the correct conclusion: the
+remaining obstruction is a \emph{deterministic sparse-target avoidance
+problem for a non-invertible affine cocycle}, demanding an
+inverse-theorem framework (persistent over-hitting must force finite
+algebraic/coboundary structure) rather than another estimate.  This
+diagnosis fixed the agenda for everything that followed.
+
+\section{Campaign II: finite spectral shadows}
+
+The second program built the inverse-theorem infrastructure on the
+finite (annealed) side and proved the global reduction arrow.
+
+\subsection{Coboundary classification and the finite gap}
+The finite coboundary classification $\Cob=\langle\chi_2\rangle$
+(parity is the only coboundary direction; the proof uses the
+$b\mapsto b+2$ branch comparison and the primitivity of $2$ modulo
+powers of $3$) separates genuine shadows from the parity escape.  On
+that foundation:
+
+\begin{theorem}[Finite non-coboundary spectral gap, informal]
+At every finite conductor level, every primitive non-coboundary
+twisted synchronized transfer operator has spectral radius strictly
+below the untwisted operator, and the high-conductor sector has a
+uniform gap at $s=0$ (numerically
+$\sup_c\gamma_c(0)\le(\sqrt3/2)^{1/2}+o(1)\approx0.9306$).
+\end{theorem}
+
+The proof required the coboundary classification, conductor collapse,
+exact pair-correlation phase identities, a threshold cascade,
+bounded-shell flattening, and a root-ball/Hensel analysis of the
+degenerate cells.  It is an \emph{annealed} result: the operator mixes
+shadows; no single orbit is yet implicated.
+
+\subsection{The keystone arrow and quenched shadow exclusion}
+\begin{theorem}[Keystone arrow, informal]
+A bad positive orbit (divergent, or trapped in a nontrivial cycle)
+must, for some finite non-coboundary $\chi'$, have empirical two-point
+shadow averages failing to converge to $G(\chi'(2))$.
+\end{theorem}
+By \eqref{eq:shadow-letter} the shadows \emph{are} letter characters,
+so the statement is finite.  The arrow is one-directional (the trivial
+cycle itself deviates), and the corrected global endpoint is
+\emph{Quenched Shadow Exclusion}: no non-eventually-trivial positive
+orbit carries a persistent non-coboundary shadow --- which is Collatz
+in finite-shadow language.
+
+\subsection{Repetition rigidity and the exclusions}
+The genuinely new theorem of Campaign II, machine-verified in
+Lean~4:
+
+\begin{theorem}[$2$-adic repetition rigidity]
+Two positions of a positive orbit carrying the same length-$p$
+valuation block, lying within $2^{p+1}$ of each other, are
+\emph{equal}; the orbit is then an integer cycle.
+\end{theorem}
+
+Combined with the Baker/Rhin two-logarithm bound
+($x_{\min}\le Cp^{\tau+1}$, $\tau=13.3$) this kills all cycles in
+verified ranges and all low-complexity aperiodic ghosts: Sturmian,
+Beatty, morphic, linearly recurrent, polynomial-complexity, and
+bounded-discrepancy valuation words are not realizable by divergent
+positive orbits.  Mean-visible deviations die by
+\eqref{eq:log-identity}.  The $3$-adic-only rigidity hope is
+\emph{false} (the all-ones trap is coherent, biased, certificate-free
+modulo every $3^r$, and is the ghost $x=-1$); the $2$-adic
+realization tower carries the positivity obstruction and is not
+auxiliary.
+
+\section{Campaign III: the Shadow Frontier (the endpoint)}
+
+The third campaign (\texttt{shadow\_frontier/}) converted the
+surviving-profile description into exact, certified, machine-verified
+structure.  Every constant below is computed by exact integer
+arithmetic or verified at scale.
+
+\subsection{Exact counting and the phase diagram}
+$D$-confinement quantizes the partial sums $B_j$ into integer windows
+of size $\le\lfloor2D\rfloor+1$, so confined-word counts $N_D(p)$ are
+\emph{exactly} computable (no Perron estimates).  The narrow-band
+dichotomy follows: an acyclic orbit dwells at most $CY^{\theta(D)}$
+steps in a band $[Y,2^{2D}Y]$, with counting capacity exhausted at
+\[
+  D^*=1.2463\qquad(\text{band ratio }2^{2D^*}=5.63).
+\]
+At ratio $\le2$ the dwell bound is \emph{logarithmic} (the dyadic
+strip carries exactly one word per phase).  Tilting by the shadow
+observable yields the exact $(D,\varepsilon)$ phase diagram, whose
+structure is now mapped: the vertical counting wall at $D^*$; the
+horizontal \emph{binary bias ceiling}
+$\varepsilon_{\rm bin}=\bigl|(2-\log_23)\zeta_3^{-1}+(\log_23-1)\zeta_3-G\bigr|
+=0.44903$; the \emph{free-bias basin} below
+$\varepsilon_{\rm nat}(D)\to|\E_{\rm cal}-G|=0.1397$ (bias below the
+basin floor costs nothing; above it the Legendre tilt $t^*$ is the
+exact price, $\partial\theta/\partial\varepsilon=-t^*/\ln2$); genuine
+arithmetic kinks at $2D\in\Z$ and Diophantine resonance lines
+$D=|m-j\log_23|$; and a first-order \emph{direction-exchange corner}
+at $(D,\varepsilon)=(2.11,0.402)$ where the optimal conspiracy
+direction jumps from the binary $\{1,2\}$ channel to the
+phase-coherent $\{1,4\}$ channel.  A counterexample's banded windows
+are bracketed to $[1.2463,\,{\approx}4.08]\times(0,\varepsilon^*(D)]$,
+$\varepsilon^*\le0.54$.
+
+\subsection{The two clocks and the universal ghost clock}
+Every letter is a $2$-adic depth reading: $b=1$ iff $x\equiv3\ (4)$,
+and a maximal $1$-run has length \emph{exactly} $\vt(x+1)-1$ (the
+$-1$ clock); $b=2$ iff $x\equiv1\ (8)$, with run length
+$\lfloor(\vt(x-1)-1)/2\rfloor$, depth decrement exactly $2$, and a
+parity handoff (the $+1$ clock --- the trivial cycle is the $+1$
+ghost); $b\ge3$ iff $x\equiv5\ (8)$, reading $b=\vt(x+\tfrac13)$.
+This generalizes to \emph{every} signature $\sigma$ of depth $K$:
+the phantom root $\rho_\sigma=C_\sigma/(2^K-3^\ell)$ (the catalogued
+ghosts $-1,+1,-5,-19/11,-17$ are instances) carries an exact clock ---
+alignment drops exactly $K$ per ridden block, rides last exactly
+$\lfloor(a-1)/K\rfloor$ blocks, and alignment $a$ at height $x$ costs
+$2^a\le|2^K-3^\ell|x+C_\sigma$.  Consequences, all unconditional:
+without-replacement depth supply ($2^{k-g}$ pool points per band per
+ghost, consumed once by an acyclic orbit); at most $2^{k-3}$ upward
+crossings of level $2^k$, ever; a divergent orbit spends
+$O(X\log X)$ lifetime steps below $X$.  Amortized over \emph{all}
+ghost families of depth $\ge3$, the available drift gain is
+$R=0.0882$ bits per letter against the $0.415$-bit budget
+($4.7\times$ margin) --- independently recomputed in the audit of the
+contemporaneous program of Chang \cite{Chang}.
+
+\subsection{The round chain, the i.i.d.\ coin, and the LTE cascade}
+Parsed at $1$-run starts, survival against the letters-$\le2$ regime
+is the reading
+\[
+  v=\vt(3^\ell m-1)=\vt\bigl(m-3^{-\ell}\bigr),
+\]
+death iff $v$ odd: an alignment reading of fresh seed bits against a
+target rotating through $\langle3\rangle\subset\Z_2^\times$.  On Haar
+fibers the readings are \emph{exactly} i.i.d.\ (survival $\tfrac13$
+per round; the proof composes the orbit-parameterization slope
+$2\cdot3^{B}$ with an exact census lemma); apparent finite-modulus
+anti-correlations are truncation artifacts.  Surviving rounds drift
+\emph{upward} at $+0.6166$ bits per round: the $2$-adic Cantor set of
+survivors is measure zero and its positive members, if any, are forced
+ascenders.  On ghost-aligned fibers the coin is \emph{deterministic}:
+lifting-the-exponent decides Mersenne seeds ($2^g-1$ survives round
+one iff $g$ is odd with $\vt(g-1)$ even) and the $3$-smooth families
+$2^g3^a\mp1$ in closed form, with second-round readings such as
+$\vt\bigl(a'+2-\mathrm{Log}_3(-5)\bigr)$ --- the exponent reading the
+$2$-adic logarithm of a ghost --- and every tested seed dies with a
+finite certificate.  The binary world is closed unconditionally by the
+\emph{entropy deficit}: $\theta_{12}(D)\le H(2-\log_23)=0.97907<1$ at
+every band width, so an orbit with letters $\subset\{1,2\}$ has no
+phase-diagram refuge anywhere.  The weakest nontrivial case of the
+remaining conjecture is precisely Chang's Carry Independence
+Conjecture (every $n_0>1$ eventually takes a letter $b\ge3$), which is
+the parity-$\equiv1$ extreme of our calibration statement.
+
+\subsection{Faithfulness and the blind spot}
+Is this language adequate?  Provably, within its declared scope: the
+word coding is the Bernstein--Lagarias conjugacy
+\cite{Bernstein,BernsteinLagarias} --- lossless, a homeomorphism onto
+the full shift carrying Haar to Bernoulli($2^{-k}$); every
+finite-modulus observable of a bounded window factors exactly through
+(one residue, the letters); conditional on any word cylinder, residues
+at all odd places are exactly equidistributed (only the $2$-adic place
+feeds the word); and the empirical hidden-channel test is null
+(multiplicative invariants of deep survivors match controls;
+celebrated special numbers --- $e^{\pi\sqrt{163}}$'s integer,
+worst-case Miller--Rabin composites --- are Collatz-civilians).  The
+language's one blind spot is the subset $\N\subset\Z_2$ itself,
+imported through four exact interfaces (clocks, counting, the drift
+identity, Baker) --- and the blind spot \emph{bites}: a positive seed
+has $\log_2x_0$ bits, so after ${\approx}\tfrac23\log_2x_0$ steps
+every letter is forced by the $\times3$ carry transducer.  The whole
+infinite word has Kolmogorov complexity $\le\log_2x_0+O(1)$ while
+rigidity demands near-maximal factor complexity: integer-realizable
+words are a \emph{countable, computable} family (of the $2^{30}$
+binary words of depth $30$, sixty-six are realized below $10^6$), and
+survival champions spend $59$--$76\%$ of their lives in the forced
+regime, growing like $2^{D/2.2}$ in their survival depth $D$ and
+behaving exactly like best-of-$N$ random search.
+
+\subsection{Convergence of independent frameworks}
+Tao's almost-all theory \cite{Tao}, the Chang program \cite{Chang}
+(audited piece by piece: its burst--gap calculus \emph{is} the
+two-clock parse under an explicit dictionary; its census constant
+verifies; its shadow return-time theorem is refuted and replaced by
+supply bounds), and this program terminate at the same residual:
+almost-all versus all; distributional versus pointwise; annealed
+versus quenched.  Three languages, one wall, with explicit
+translations --- the language-invariance expected of a faithful
+compression of the dynamics.
+
+\section{The complete nature of the obstruction}
+
+The successive localizations compose into one chain:
+\[
+  \text{Collatz}
+  \;\longleftarrow\;
+  \text{PVT}
+  \;\longleftrightarrow\;
+  \text{SRCE}
+  \;\longleftarrow\;
+  \text{H23a}
+  \;\longleftarrow\;
+  \text{Quenched Shadow Exclusion}
+  \;\longleftarrow\;
+  \text{Two-Clock Calibration}
+  \;\longleftarrow\;
+  \cdots
+\]
+each arrow an unconditional reduction, terminating in:
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\textbf{The obstruction.}  Show that no positive integer can feed the
+round-chain coin even readings with the conspiratorial statistics
+required for survival, forever.  Equivalently: the empirical law of
+the readings $\vt(m_i-3^{-\ell_i})$ along a single orbit --- a
+zero-entropy, computable, self-referential stream, provably
+i.i.d.-fair on Haar fibers and provably lethal on every
+deterministically analyzable fiber --- cannot deviate from its
+distributional law forever.  Every structured deviation channel is
+metered: counting ($D^*=1.2463$), bias ceilings
+($0.449$, saturation $0.54$), free basin ($0.1397$), alphabet
+($\theta_{12}<0.9791$), ghost rides ($\lfloor(a-1)/K\rfloor$ with
+height cost $2^a$), supply ($2^{k-g}$, without replacement), census
+($R=0.0882$ of $0.415$), and the Kolmogorov budget
+($\log_2x_0$ bits, spent in the opening).  The missing theorem is of
+distributional-to-pointwise type for one coin.
+\end{minipage}}
+\end{center}
+
+Three features make this obstruction \emph{complete} as a description:
+(i) it is \emph{language-invariant} (three independent frameworks
+reach it under explicit dictionaries); (ii) it is \emph{exhaustive
+within declared categories} (the finite-shadow language is provably
+lossless and complete for congruence mechanisms, with the residual ---
+positivity --- explicitly isolated, not compressed away); (iii) it is
+of a \emph{known species}: the same distributional-to-pointwise gap
+that blocks normality of $\sqrt2$'s digits, effective
+Furstenberg $\times2\times3$ rigidity for individual points, and every
+``true for almost every $x$, unknown for each $x$'' statement in
+metric number theory.  The Collatz wall is not an isolated pathology;
+it is the generic wall of quenched arithmetic dynamics, here presented
+in its sharpest known finite form.
+
+\section{What new mathematics is required}
+
+The annealed theory is finished; the congruence category is provably
+complete; the archimedean imports are exact.  What follows is keyed to
+the surviving attack surfaces, with the literature a reader should
+enter through.
+
+\subsection{Quenched rigidity for self-referential streams (the coin)}
+The central need: an inverse theorem asserting that a computable
+zero-entropy stream which persistently deviates from its fiberwise
+i.i.d.\ law must exhibit finite algebraic structure (coboundary,
+ghost-alignment, or periodicity) --- structure the certificate
+machinery then kills.  The nearest existing mathematics:
+Furstenberg's $\times2\times3$ disjointness and its measure rigidity
+\cite{Furstenberg,Rudolph,Host}, made \emph{effective} in
+\cite{BLMV}; Sarnak's M\"obius-disjointness program and the
+Bourgain--Sarnak--Ziegler criterion \cite{Sarnak,BSZ} as the model
+for ``deterministic sequences cannot correlate with structured
+ones''; and the Green--Tao--Ziegler inverse theory \cite{GTZ} as the
+template for ``large correlation forces algebraic structure.''  None
+applies as stated: the Collatz cocycle is non-invertible, affine, and
+self-referential (the stream reads its own output).  The new theorem
+must be an \emph{effective, pointwise} rigidity statement for
+$2$-adic affine transducers --- a quenched local limit theorem for
+one orbit of one machine.
+
+\subsection{Digit rigidity and ``Baker along orbits''}
+In the forced regime the letters read binary digits of $3$-power
+multiples of the seed, and the deterministic cascades terminate in
+readings of $2$-adic linear forms in logarithms
+($\vt(N-\mathrm{Log}_3(-5))$ and its deeper analogues).  The entry
+points: Stewart's effective lower bounds for digit counts of $3^n$
+\cite{Stewart}, Senge--Straus \cite{SengeStraus}, the $p$-adic
+linear-forms theory of Yu \cite{Yu}, Bugeaud's monograph
+\cite{Bugeaud}, and --- as proof that digit streams \emph{can} be
+controlled along sparse deterministic sequences --- Mauduit--Rivat
+\cite{MauduitRivat}.  The needed extension is quantitative control of
+$\vt$-readings along \emph{orbit-indexed} moving targets: a hybrid of
+linear forms in logarithms with the renewal structure of the round
+chain (``Baker along orbits''), for which the periodic case
+\cite{Baker,Rhin,SimonsDeWeger,Hercher} is the solved boundary case.
+
+\subsection{Banded $S$-unit and subspace rigidity (Target 1)}
+High-complexity banded windows supply many relations
+$2^{B}x_{n+p}-3^px_n=A_{n,p}$ with $A_{n,p}$ a structured
+$\{2,3\}$-unit sum.  The conjecture --- too many coherent relations in
+a multiplicative band force the exponent vectors into finitely many
+linear patterns, hence repetition or a certificate --- is of
+subspace-theorem type: Evertse--Schlickewei--Schmidt \cite{ESS} for
+the count of solutions, Corvaja--Zannier methods \cite{CZ} for the
+applications template, Amoroso--Viada \cite{AV} for the quantitative
+state of the art.  The obstruction to direct application is that the
+classical theorems count solutions of \emph{fixed} equations, while
+the orbit generates a \emph{growing family} of equations with shared
+structure; what is needed is a rigidity theorem for coherent
+\emph{families} of $S$-unit relations.
+
+\subsection{Mixed-tower max-plus certificates (Targets 2--3)}
+The certificate layer --- Karp maximum cycle means of
+$g+\lambda(\phi-\varepsilon)$ over residue traps in $\Z/2^a3^b$, with
+the margin $\inf_{\lambda\ge0}(P_H(\lambda)-\lambda\varepsilon)$
+implemented and validated in the candidate tools --- needs its
+deterministic completion: \emph{every positive-realizable coherent
+trap eventually certifies, except the trivial cycle}.  The relevant
+mathematics is tropical/max-plus spectral theory \cite{Butkovic} and
+ergodic optimization \cite{Jenkinson}; the missing principle is a
+projective (lift-coherent) Perron theory for the joint
+$(2,3)$-tower, for which the H23a operator comparison of Campaign~I
+is the prototype.
+
+\subsection{The automaton route}
+The blind-spot theorems reframe the problem as machine behavior:
+every integer is a finite seed of one fixed carry transducer, and the
+conjecture asserts the machine always halts (reaches the $+1$ ghost).
+The relevant boundary results: Conway's undecidability for
+generalized Collatz functions \cite{Conway,KurtzSimon} (the family is
+Turing-complete; any proof must use the specific arithmetic of
+$3x+1$), Cobham-type rigidity and automatic-sequence theory
+\cite{Allouche,AdamczewskiBugeaud} (outputs of finite automata cannot
+be too structured \emph{and} too generic at once --- precisely the
+tension a counterexample must inhabit), and algorithmic randomness
+\cite{DowneyHirschfeldt} for the Kolmogorov-versus-factor-complexity
+gap.  A genuinely new ``transducer rigidity'' theorem --- the output
+stream of a bounded-carry $\times3$ transducer from a finite seed
+cannot be a calibrated biased pseudorandom word forever --- would
+close the conjecture and would be a fundamental statement about
+multiplication itself.
+
+\subsection{Supporting quantitative frame}
+Tao's almost-all theorem \cite{Tao} bounds how large the exceptional
+set can be; Krasikov--Lagarias density bounds \cite{KrasikovLagarias}
+constrain preimage trees; verification stands at $2^{68}$
+\cite{Barina} with cycle exclusions through $m\le91$ \cite{Hercher};
+Lagarias's surveys and sourcebook \cite{LagariasSurvey,LagariasBook}
+remain the canonical maps of the terrain; Wirsching's monograph
+\cite{Wirsching} treats the backward tree; Terras \cite{Terras}
+founded the density approach.  The contemporary parallel program of
+Chang \cite{Chang} is, after our audit, a relabeled fragment of the
+same structure with the same wall.
+
+\section{Endpoint}
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+There is no longer any reason to search for counterexamples: every
+describable candidate class is excluded by an exact meter, the
+surviving profile is the output set of one finite machine
+conditioned on beating a fair coin forever, and a divergent
+counterexample would in any case be computationally unverifiable.
+The remaining work is the construction of one theorem ---
+distributional-to-pointwise rigidity for the round-chain coin ---
+toward which the most promising roads are effective
+$\times2\times3$-type rigidity, $p$-adic Baker theory along orbits,
+$S$-unit family rigidity, projective max-plus Perron theory, and
+transducer rigidity.  The search for the counterexample and the
+construction of the proof were the same activity all along: every
+emptied hiding place above is now a theorem, and the proof, if it
+comes, will be the completed inventory.
+\end{minipage}}
+\end{center}
+
+\begin{thebibliography}{99}
+
+\bibitem{Baker} A.~Baker, Linear forms in the logarithms of algebraic
+numbers, \emph{Mathematika} 13 (1966), 204--216.
+
+\bibitem{Rhin} G.~Rhin, Approximants de Pad\'e et mesures effectives
+d'irrationalit\'e, in \emph{S\'eminaire de Th\'eorie des Nombres,
+Paris 1985--86}, Progr. Math. 71, Birkh\"auser, 1987, 155--164.
+
+\bibitem{Yu} K.~Yu, $p$-adic logarithmic forms and group varieties
+III, \emph{Forum Math.} 19 (2007), 187--280.
+
+\bibitem{Bugeaud} Y.~Bugeaud, \emph{Linear Forms in Logarithms and
+Applications}, IRMA Lect. Math. Theor. Phys. 28, EMS, 2018.
+
+\bibitem{ESS} J.-H.~Evertse, H.~P.~Schlickewei, W.~M.~Schmidt, Linear
+equations in variables which lie in a multiplicative group,
+\emph{Ann. of Math.} 155 (2002), 807--836.
+
+\bibitem{CZ} P.~Corvaja, U.~Zannier, \emph{Applications of Diophantine
+Approximation to Integral Points and Transcendence}, Cambridge Tracts
+in Math. 212, CUP, 2018.
+
+\bibitem{AV} F.~Amoroso, E.~Viada, Small points on subvarieties of a
+torus, \emph{Duke Math. J.} 150 (2009), 407--442.
+
+\bibitem{Furstenberg} H.~Furstenberg, Disjointness in ergodic theory,
+minimal sets, and a problem in Diophantine approximation,
+\emph{Math. Systems Theory} 1 (1967), 1--49.
+
+\bibitem{Rudolph} D.~Rudolph, $\times2$ and $\times3$ invariant
+measures and entropy, \emph{Ergodic Theory Dynam. Systems} 10 (1990),
+395--406.
+
+\bibitem{Host} B.~Host, Nombres normaux, entropie, translations,
+\emph{Israel J. Math.} 91 (1995), 419--428.
+
+\bibitem{BLMV} J.~Bourgain, E.~Lindenstrauss, P.~Michel,
+A.~Venkatesh, Some effective results for $\times a\times b$,
+\emph{Ergodic Theory Dynam. Systems} 29 (2009), 1705--1722.
+
+\bibitem{Sarnak} P.~Sarnak, Three lectures on the M\"obius function,
+randomness and dynamics, IAS lecture notes, 2011.
+
+\bibitem{BSZ} J.~Bourgain, P.~Sarnak, T.~Ziegler, Disjointness of
+M\"obius from horocycle flows, in \emph{From Fourier Analysis and
+Number Theory to Radon Transforms and Geometry}, Springer, 2013,
+67--83.
+
+\bibitem{GTZ} B.~Green, T.~Tao, T.~Ziegler, An inverse theorem for
+the Gowers $U^{s+1}[N]$-norm, \emph{Ann. of Math.} 176 (2012),
+1231--1372.
+
+\bibitem{Stewart} C.~L.~Stewart, On the representation of an integer
+in two different bases, \emph{J. Reine Angew. Math.} 319 (1980),
+63--72.
+
+\bibitem{SengeStraus} H.~G.~Senge, E.~G.~Straus, PV-numbers and sets
+of multiplicity, \emph{Period. Math. Hungar.} 3 (1973), 93--100.
+
+\bibitem{MauduitRivat} C.~Mauduit, J.~Rivat, Sur un probl\`eme de
+Gelfond: la somme des chiffres des nombres premiers, \emph{Ann. of
+Math.} 171 (2010), 1591--1646.
+
+\bibitem{AdamczewskiBugeaud} B.~Adamczewski, Y.~Bugeaud, On the
+complexity of algebraic numbers I. Expansions in integer bases,
+\emph{Ann. of Math.} 165 (2007), 547--565.
+
+\bibitem{Allouche} J.-P.~Allouche, J.~Shallit, \emph{Automatic
+Sequences: Theory, Applications, Generalizations}, CUP, 2003.
+
+\bibitem{Conway} J.~H.~Conway, Unpredictable iterations, in
+\emph{Proc. 1972 Number Theory Conf.}, Univ. Colorado, Boulder, 1972,
+49--52.
+
+\bibitem{KurtzSimon} S.~A.~Kurtz, J.~Simon, The undecidability of the
+generalized Collatz problem, in \emph{TAMC 2007}, LNCS 4484,
+Springer, 2007, 542--553.
+
+\bibitem{DowneyHirschfeldt} R.~Downey, D.~Hirschfeldt,
+\emph{Algorithmic Randomness and Complexity}, Springer, 2010.
+
+\bibitem{Jenkinson} O.~Jenkinson, Ergodic optimization in dynamical
+systems, \emph{Ergodic Theory Dynam. Systems} 39 (2019), 2593--2618.
+
+\bibitem{Butkovic} P.~Butkovi\v{c}, \emph{Max-linear Systems: Theory
+and Algorithms}, Springer, 2010.
+
+\bibitem{Tao} T.~Tao, Almost all orbits of the Collatz map attain
+almost bounded values, \emph{Forum Math. Pi} 10 (2022), e12.
+
+\bibitem{KrasikovLagarias} I.~Krasikov, J.~C.~Lagarias, Bounds for
+the $3x+1$ problem using difference inequalities, \emph{Acta Arith.}
+109 (2003), 237--258.
+
+\bibitem{SimonsDeWeger} J.~L.~Simons, B.~M.~M.~de~Weger, Theoretical
+and computational bounds for $m$-cycles of the $3n+1$ problem,
+\emph{Acta Arith.} 117 (2005), 51--70.
+
+\bibitem{Hercher} C.~Hercher, There are no Collatz $m$-cycles with
+$m\le91$, \emph{J. Integer Seq.} 26 (2023), Art. 23.3.5.
+
+\bibitem{Barina} D.~Barina, Convergence verification of the Collatz
+problem, \emph{J. Supercomputing} 77 (2021), 2681--2688.
+
+\bibitem{Terras} R.~Terras, A stopping time problem on the positive
+integers, \emph{Acta Arith.} 30 (1976), 241--252.
+
+\bibitem{LagariasSurvey} J.~C.~Lagarias, The $3x+1$ problem and its
+generalizations, \emph{Amer. Math. Monthly} 92 (1985), 3--23.
+
+\bibitem{LagariasBook} J.~C.~Lagarias (ed.), \emph{The Ultimate
+Challenge: The $3x+1$ Problem}, AMS, 2010.
+
+\bibitem{Wirsching} G.~J.~Wirsching, \emph{The Dynamical System
+Generated by the $3n+1$ Function}, Lecture Notes in Math. 1681,
+Springer, 1998.
+
+\bibitem{Bernstein} D.~J.~Bernstein, A non-iterative $2$-adic
+statement of the $3N+1$ conjecture, \emph{Proc. Amer. Math. Soc.} 121
+(1994), 405--408.
+
+\bibitem{BernsteinLagarias} D.~J.~Bernstein, J.~C.~Lagarias, The
+$3x+1$ conjugacy map, \emph{Canad. J. Math.} 48 (1996), 1154--1169.
+
+\bibitem{Chang} E.~Y.~Chang, Exploring Collatz dynamics with
+human-LLM collaboration, arXiv:2603.11066 (2026); audited in the
+ghost-clock companion note of this program.
+
+\end{thebibliography}
+
+\end{document}
