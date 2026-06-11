@@ -38,6 +38,96 @@ rides the diagonal $r_N\sim 2^{B_N}$. The bias is
 $|D_3|=\bigl|\frac1M\sum_n \zeta_3^{-b_n}-\mathbb{E}_{\mathrm{geom}}
 [\zeta_3^{-b}]\bigr|$, the order-3 non-coboundary two-point shadow.
 
+\section{Translating between a word and the integer it represents}
+
+\subsection*{Explanation}
+A word does not represent a single integer but a single \emph{residue
+class}: the set of odd $x$ whose first $M$ valuations equal
+$w=(b_0,\dots,b_{M-1})$ is exactly one arithmetic progression
+\[
+x\equiv r \pmod{2^{B_M+1}},\qquad B_M=\textstyle\sum_{n<M}b_n ,
+\]
+and ``the integer'' tabulated in this catalog is its least positive
+representative $r$. Every member $r+k\,2^{B_M+1}$ ($k\ge0$) produces the
+same first $M$ letters; the word sees only $x\bmod 2^{B_M+1}$. The
+converse direction is trivial: iterate
+$x\mapsto(3x+1)/2^{v_2(3x+1)}$ and read the exponents.
+
+\subsection*{Formula}
+Along the prefix the orbit point has the exact affine form
+\[
+x_n=\frac{3^{\,n}x_0+A_n}{2^{B_n}},\qquad
+A_n=\sum_{j<n}3^{\,n-1-j}\,2^{B_j},\qquad B_n=\sum_{j<n}b_j .
+\]
+The letter condition $v_2(3x_n+1)=b_n$ is the congruence
+\[
+3^{\,n+1}x_0+A_{n+1}\equiv 2^{B_{n+1}}\pmod{2^{B_{n+1}+1}}
+\quad\Longleftrightarrow\quad
+x_0\equiv 3^{-(n+1)}\bigl(2^{B_{n+1}}-A_{n+1}\bigr)
+\pmod{2^{B_{n+1}+1}},
+\]
+($3$ is a unit in $\mathbb Z_2$), so each letter appends $b_n$ new
+binary digits of $x_0$: a Hensel-style lift. After $M$ letters the class
+modulus is $2^{B_M+1}$ and $r$ is the lift's value reduced to
+$[1,2^{B_M+1})$.
+
+\subsection*{Python}
+The lift as implemented in \texttt{search/frontier.py}
+(\texttt{realize}); $r$ is built letter by letter:
+\begin{verbatim}
+def realize(bs):                       # word -> (r, B+1)
+    r, Mb = 1, 1                       # class rep and its bit-modulus
+    A = 0; B = 0; P3 = 1               # running A_n, B_n, 3^n
+    for b in bs:
+        need = B + b; mod = 1 << (need + 1)
+        c    = (3*A + (1 << B)) % mod          # A_{n+1} mod 2^{B+b+1}
+        x0   = (pow(3*P3, -1, mod)
+                * (((1 << need) - c) % mod)) % mod
+        if need + 1 > Mb:
+            r = x0; Mb = need + 1
+        A = 3*A + (1 << B); P3 *= 3; B += b
+    return r, Mb
+
+def word_of(x, M):                     # integer -> word
+    out = []
+    for _ in range(M):
+        t = 3*x + 1; b = (t & -t).bit_length() - 1
+        out.append(b); x = t >> b
+    return out
+\end{verbatim}
+
+\subsection*{Commands}
+\begin{verbatim}
+cd shadow_frontier
+# word -> integer (paste the letters as one string)
+python3 -c "import sys; sys.path.insert(0,'search'); \
+  from frontier import realize; \
+  w=[int(c) for c in '111411211121...']; \
+  r,Mb=realize(w); print(r, r.bit_length(), Mb)"
+# integer -> word, plus the four-panel candidate image
+python3 search/candidate_image.py --word 1,1,1,4,1,1,2,... --out viz/cand.png
+python3 search/candidate_image.py --seed 687871 --steps 55 --out viz/c687871.png
+\end{verbatim}
+
+\subsection*{Worked example: catalog word \#1}
+For the word \#1 above ($M=240$, mean $1.583$, $|D_3|=0.214$):
+$B_M=380$, modulus $2^{381}$, and the least positive representative is
+the $381$-bit integer
+\begin{center}\ttfamily\small
+45276335476484047115725251008950986904354815513999907611\\
+28044450220436219657540681487193488995285987515743750727311
+\end{center}
+whose first $240$ Syracuse letters reproduce the word exactly
+(machine-checked). Its fill ratio is $r$'s bit length over $B_M+1$:
+$381/381=1.000$ --- and the half-word prefix already needs $184$ bits of
+$185$: the representative \emph{grows with the prefix} ($184\to381$
+bits from $M=120$ to $240$) instead of stabilizing. That diagonal ride
+is the ghost signature of the Conventions section: the class contains
+no positive integer below $2^{380}$. Contrast a true integer
+realization: the survival champion $687871$ \emph{is} the least
+representative of its own $50$-letter class, and stays put as the
+prefix grows --- stabilization versus diagonal is the whole test.
+
 \section{The 120 pilot candidates: statistics}
 All 120 are ghosts: no representative stabilized; fill ratios
 $\approx 1$.\medskip
