@@ -505,6 +505,114 @@ wall itself, the single open core to which every known framework
 (ours, Tao's, the LLM-collaboration manuscript audited in the
 companion notes) independently reduces.
 
+\section{Interlude: could a counterexample carry a message?}
+
+A speculation, wild but within reason. The counterexample signature is
+near-critical drift $+$ persistent non-coboundary bias $+$ high local
+word complexity $+$ mixed $(2,3)$-adic coherence. Suppose someone
+wanted to \emph{hide a message} in such an object. Could word
+complexity communicate information?
+
+\subsection*{The channel, and its exact capacity}
+Any finite message can be written into an orbit's opening. Each
+scripted letter costs $\approx\log_23=1.585$ bits of seed (the
+cylinder modulus of \S2), so a seed of $n$ bits buys a free
+composition of $\approx0.63\,n$ letters --- and then the blind spot
+takes over: the class pins the seed, and \emph{every subsequent letter
+is forced by the $\times3$ carry cascade}. The total information
+content of an entire infinite Collatz word is
+$K(\text{word})\le\log_2x_0+O(1)$: a counterexample can only ever say
+one thing --- its own name. The survival champions live this: $59$--$76\%$
+of their lives are in the forced regime, improvisation on a theme they
+no longer control.
+
+Worked example: the $56$-bit integer
+\[
+\texttt{60822829639107739}
+\]
+has a Syracuse orbit whose first $40$ valuations spell
+\textsc{ghost} in ASCII ($b{=}1\mapsto0$, $b{=}2\mapsto1$), at
+$1.475$ seed-bits per scripted letter.
+
+\subsection*{The information paradox}
+To survive, the stream must \emph{look like} a random source of about
+$1.4$ bits per letter (the calibrated entropy ceiling, less the
+Legendre tax $t^*$ once the bias exceeds the free basin
+$\varepsilon_{\rm nat}\to0.1397$), with near-maximal factor diversity
+in every banded window at scale $p\approx\log_2Y$, forever ---
+repetition rigidity tolerates nothing less. Yet its true information
+rate is asymptotically \emph{zero}: finite seed, infinite output. By
+the completeness theorems of the faithfulness note, the statistical
+tests available to the dynamics are exactly the finite-shadow algebra;
+so a counterexample is a pseudorandom generator engineered to
+\emph{fail precisely one named test} (the chosen non-coboundary
+character, where it must show constant bias) \emph{while passing all
+the others} --- built not by a cryptographer but by carry propagation.
+The budgets are quantitative: bias up to $0.1397$ is free; every
+structured ghost channel combined supplies at most $R=0.0882$ bits per
+letter of the $0.415$ needed ($\le21\%$ efficiency); the rest must come
+from the unstructured remainder where no finite certificate sees it.
+
+\subsection*{How such a word would function}
+A self-feeding stream cipher. State: the binary tape of $x_n$.
+Output: the $v_2$-readings at the bottom. Update: multiply by $3$,
+propagate carries upward, truncate what was read. The opening
+$0.63\log_2x_0$ moves are the composer's; afterwards the machine's
+``randomness'' is the binary digit stream of $3$-power multiples of
+its own past --- it reads its exhaust as fuel. By the round chain,
+each life-or-death reading is $v_2(3^\ell m-1)$, so the functional
+requirement is that \emph{the powers of $3$, in base $2$, along this
+one orbit, are non-normal in a precisely coordinated pattern}. That is
+the entire miracle, localized --- the regime where mathematics has
+only logarithmic digit bounds (Stewart), and exactly where the
+program's wall stands. A counterexample would be a finite phrase whose
+forced elaboration is an unending, never-self-quoting, undetectably
+biased improvisation: a message that continues writing itself after
+its author has run out of ink.
+
+\subsection*{Play with it}
+Spell any ASCII message into an orbit and read it back
+(from the project root \texttt{shadow\_frontier/}):
+\begin{verbatim}
+python3 - <<'EOF'
+import sys; sys.path.insert(0,'search')
+from frontier import realize
+
+def spell(msg):                       # message -> performing integer
+    bits = ''.join(f"{ord(c):08b}" for c in msg)
+    word = [1 if c == '0' else 2 for c in bits]
+    return realize(word)[0]
+
+def read(x, nchars):                  # integer -> message
+    out = []
+    for _ in range(8 * nchars):
+        t = 3*x + 1; b = (t & -t).bit_length() - 1
+        out.append('0' if b == 1 else '1'); x = t >> b
+    s = ''.join(out)
+    return ''.join(chr(int(s[i:i+8], 2)) for i in range(0, len(s), 8))
+
+r = spell("GHOST")
+print(r)                  # 60822829639107739
+print(read(r, 5))         # GHOST
+EOF
+
+# render the four-panel candidate image of your message-orbit:
+python3 search/candidate_image.py --seed 60822829639107739 \
+    --steps 40 --out viz/cand_ghost_msg.png
+\end{verbatim}
+Things to try: longer messages (cost $\approx11.8$ seed bits per
+character --- \texttt{spell} of a $100$-character message returns a
+$\approx1180$-bit integer, instantly); watch the height panel during
+the scripted prefix (your bit pattern \emph{is} the drift: letters
+$1$ ascend, $2$ descend, so the orbit's silhouette draws your
+message's bit-density); read past the end of your message to watch
+the carry cascade take over the composition --- the letters after
+$8\cdot|\mathrm{msg}|$ are the automaton's, not yours, and (the
+$(3/4)^D$ law) a random message's orbit takes a letter $b\ge3$ within
+a handful of steps of being left to itself; try to compose a message
+whose forced continuation survives long --- that is exactly the
+champion-hunting problem, and the house always wins.
+
 \section{Collatz Elevator Pitch}
 One-liner. "We can prove the average number loses this game. We can't prove that this particular number does — and every number is a particular
 number."\\
