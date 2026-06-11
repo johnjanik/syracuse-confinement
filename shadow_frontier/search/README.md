@@ -109,3 +109,34 @@ ghosts at $\varepsilon=|v-G|$ for other letter-support laws) appear as
 level-set corners and gradient ridges. Raise `P` (and `BURN` ∝ P) before
 trusting any feature smaller than ~1/P in θ; a real arithmetic feature
 survives doubling `P`, a Lyapunov-average fluctuation halves.
+
+## Candidate-search tools (`candidate_tools.py`, `candidate_image.py`, `candidate_checklist.py`)
+
+A serious candidate image shows four simultaneous properties: banded height
+(no downward trend), calibrated mean letter with nontrivial non-coboundary
+shadow bias (D_3, D_9, D_27, D_5, D_11, D_13 — order-2/parity is exempt),
+near-full factor diversity at the critical scale p = floor(log2 Y), and **no
+mixed-tower max-plus descent certificate**: margin
+inf_{lambda>=0}(P_H(lambda) - lambda*eps) >= 0 at all tested levels 2^a 3^b,
+persisting under lifts.
+
+```sh
+# four-panel image + JSON diagnostics + six-step checklist for one candidate
+python3 search/candidate_image.py --seed 687871 --steps 55 --out viz/cand_687871.png
+python3 search/candidate_image.py --pilot 0 --out viz/cand_pilot000.png
+
+# six-step checklist over a batch (120 pilots + champions + harvested
+# ascending windows) + the (D,eps)->margin overlay on the phase diagram
+python3 search/candidate_checklist.py     # writes viz/fig8_candidate_margins.png
+```
+
+The six checks: (1) C1 drift (mean b > log2(3)+eta = descent-forcing);
+(2) repetition at critical p (collision distance < 2^{p+1} = rigidity
+fires); (3) complexity ratio >= 0.9 (else low-complexity ghost); (4) a
+non-coboundary character detects the bias; (5) Karp certificate margin at
+levels 2^a 3^b (negative = descent certificate); (6) margin persists under
+2- and 3-lifts (else finite artifact). Only windows surviving all six
+deserve attention — and the two known ways to then kill them are OUTSIDE
+the six: the ghost/realizability test (pilot words: full-bit-length least
+representatives) and window transience (real ascending windows belong to
+orbits that crash after the window).
