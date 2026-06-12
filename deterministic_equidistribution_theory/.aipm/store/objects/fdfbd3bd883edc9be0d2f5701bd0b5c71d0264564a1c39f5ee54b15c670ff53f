@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"\nShell cwd was reset to /home/john/mynotes/deterministic_equidistribution_theory","stdout":"both in [0.3,1.5]: N=28206, max|dtheta|=0.5318, median=0.0191, p95=0.0825\nlargest-artifact cells (D,eps): [(0.68, 0.0), (0.76, 0.0), (0.87, 0.0), (0.68, 0.0), (0.76, 0.0), (0.87, 0.0), (0.68, 0.01), (0.76, 0.01)]"}

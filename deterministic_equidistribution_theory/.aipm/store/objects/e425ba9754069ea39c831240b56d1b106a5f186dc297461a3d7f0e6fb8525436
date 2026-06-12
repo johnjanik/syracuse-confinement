@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/twoclock.py","description":"Run two-clock verification and measurements","timeout":600000}

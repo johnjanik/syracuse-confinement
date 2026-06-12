@@ -1,0 +1,1 @@
+{"command":"grep -rln \"stabilized\" /home/john/mynotes/collatz/ 2>/dev/null | head; grep -rln \"stabilized.residue\" /home/john/mynotes/deterministic_equidistribution_theory/ 2>/dev/null | head","description":"Find the stabilized-residue-extinction manuscript"}

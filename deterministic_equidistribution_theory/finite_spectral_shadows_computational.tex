@@ -43,7 +43,7 @@
 \begin{abstract}
 This companion documents the C numerical suite \texttt{collatz\_tests} and the
 nine experiments (A--I) supporting the main paper, \emph{Finite Spectral Shadows
-for the Collatz Valuation Cocycle}. It reports the suite architecture, the exact
+for the Collatz Valuation Cocycle}~\cite{main}. It reports the suite architecture, the exact
 construction of the finite residue--height operators and their Arnoldi spectral
 solver, the per-experiment pre-registrations and results, and a dedicated
 analysis relating the empirically detected ``shadow'' windows to the operator
@@ -60,7 +60,7 @@ $W_{n,\ell}(x;\chi,s)$ is the right finite detector and where it sees structure.
 \texttt{collatz\_tests} is an ISO~C11 program over the accelerated odd step
 $S(x)=(3x+1)/2^{b}$, $b=v_2(3x+1)$. Build profiles:
 \textsf{FAST128} (\texttt{\_\_uint128\_t}, overflow-flagged),
-\textsf{GMP} (\texttt{mpz\_t}; large seeds, exact congruence checks),
+\textsf{GMP} (\texttt{mpz\_t}~\cite{gmp}; large seeds, exact congruence checks),
 \textsf{DEBUG} (invariant assertions: $3x+1=2^bx'$, odd output, $b\ge1$).
 Modules: \texttt{bigval} (the two backends), \texttt{orbit\_scan} (streaming),
 \texttt{modarith}, \texttt{characters} (additive $\chi_k(a)=e(ka/Q)$ and
@@ -102,7 +102,7 @@ valuation. The main paper shows \texttt{sync} is the correct vehicle and
 \paragraph{Arnoldi solver.} Power iteration fails on the killed-height operator
 (a near-degenerate top cluster from the height-transport mode: residuals
 $3$--$9\%$, and spurious gap ratios $>1$ violating Wielandt). It is replaced by a
-restarted complex Arnoldi: complex Givens rotations, a Hessenberg single-shift QR
+restarted complex Arnoldi~\cite{arnoldi1951,saad2011}: complex Givens rotations, a Hessenberg single-shift QR
 eigensolver (Wilkinson shift, deflation), modified Gram--Schmidt with one
 reorthogonalisation, Krylov dimension grown to convergence. Validated against
 known spectra (real/complex diagonal, cyclic permutation = roots of unity,
@@ -363,5 +363,23 @@ pinning $C_0=\prod_j(1-2^{-2\cdot3^j})^{-1}<1.355$; shell bound
 $\tilde Q_L\le3C_1<5.16$, $C_1=\prod_j\frac{1+2^{-2\cdot3^j}}{1-2^{-2\cdot3^j}}$;
 level-cost $\lambda=\frac47<3^{-1/2}$; cascade and class-IV row rates
 $(\sqrt3/2)^c$; asymptotic gap $1-(\sqrt3/2)^{1/2}\approx0.069$ at $s=0$.
+
+\begin{thebibliography}{9}
+
+\bibitem{arnoldi1951} W.~E.~Arnoldi, \emph{The principle of minimized
+iterations in the solution of the matrix eigenvalue problem}, Quart. Appl.
+Math. \textbf{9} (1951), 17--29.
+
+\bibitem{gmp} T.~Granlund and the GMP development team, \emph{GNU MP: The GNU
+Multiple Precision Arithmetic Library}, \url{https://gmplib.org/}.
+
+\bibitem{main} J.~A.~Janik, \emph{Finite Spectral Shadows for the Collatz
+Valuation Cocycle}, accompanying manuscript (2026).
+
+\bibitem{saad2011} Y.~Saad, \emph{Numerical Methods for Large Eigenvalue
+Problems}, 2nd ed., Classics in Applied Mathematics \textbf{66}, SIAM,
+Philadelphia, 2011.
+
+\end{thebibliography}
 
 \end{document}

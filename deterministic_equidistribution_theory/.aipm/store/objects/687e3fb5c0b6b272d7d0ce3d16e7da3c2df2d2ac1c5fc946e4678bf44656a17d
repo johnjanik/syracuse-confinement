@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier/docs/arXiv-2603.11066v6 && grep -nE '\\\\(section|subsection)\\{' MAIN_v6_arXiv.tex | wc -l && grep -nE '\\\\(section)\\{' MAIN_v6_arXiv.tex | tail -20 && wc -l MAIN_v6_arXiv.tex","description":"Get remaining sections and file size"}

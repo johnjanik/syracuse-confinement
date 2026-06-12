@@ -1,0 +1,1 @@
+the word ghost is 40 bits = 5 char x 8 bits per character in ascii, in utf-16 = 80 and utf-32 = 160. so why is the integer 56 bits?

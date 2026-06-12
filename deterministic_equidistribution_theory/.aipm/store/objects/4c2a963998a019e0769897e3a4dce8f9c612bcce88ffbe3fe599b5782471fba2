@@ -1,0 +1,128 @@
+I would like to build addition counter-example search tools. A serious candidate image should show four simultaneous properties.
+
+### Height panel
+
+The curve should remain banded for a long time:
+
+[
+\log_2 x_n\in [H-D,H+D]
+]
+
+with no obvious downward trend.
+
+### Phase map
+
+The window should sit near:
+
+[
+\text{mean letter}\approx\log_2 3
+]
+
+but with visible non-coboundary bias:
+
+[
+|D_3|,\ |D_9|,\dots \text{ nontrivial}.
+]
+
+### Complexity panel
+
+It should have near-full factor diversity at
+
+[
+p\approx\log_2Y.
+]
+
+I would add this as a new visualization: plot
+
+[
+\frac{P_w(p)}{M-p+1}
+]
+
+against (p), with the critical scale (p=\lfloor\log_2Y\rfloor) marked.
+
+A true surviving candidate should be close to (1) at the critical scale.
+
+### Mixed-tower panel
+
+It should fail to acquire a max-plus descent certificate at tested levels (2^a3^b).
+
+This is the strongest diagnostic. If a candidate gets a certificate, it is not a counterexample; it is a descent-forcing trap.
+
+## What to add to the renderer/search
+
+Your current renderer is good for (\theta(D,\varepsilon)), but to hunt counterexamples you need overlays from the symbolic/integer side.
+
+Add per candidate:
+
+[
+\text{mean } \bar b,
+]
+
+[
+D_3,D_9,D_{27},
+]
+
+[
+\max_{\chi\notin\langle\chi_2\rangle}|D_\chi|,
+]
+
+[
+\text{factor complexity ratio } P(p)/(M-p+1),
+]
+
+[
+\text{minimum repeated-block collision distance},
+]
+
+[
+\text{mixed-tower certificate margin }
+\inf_\lambda(P_H(\lambda)-\lambda\varepsilon).
+]
+
+The most useful visual overlay would be:
+
+[
+(D,\varepsilon)\mapsto
+\text{certificate margin}
+]
+
+for candidate windows. Negative means certificate/descent; near zero or positive means genuinely interesting.
+
+## candidate windows
+
+For every red candidate-like window, run this checklist:
+
+1. **C1 check**
+[
+\bar b>\log_2 3+\eta?
+]
+If yes, descent-forcing.
+
+2. **Repetition check**
+At (p=\lfloor\log_2Y\rfloor), does a length-(p) block repeat inside the band?
+If yes, cycle/repetition-rigidity route.
+
+3. **Complexity check**
+Is
+[
+P(p)/(M-p+1)
+]
+near (1)?
+If no, low-complexity ghost.
+
+4. **Shadow check**
+Which character detects it?
+Is it genuinely non-coboundary, not parity?
+
+5. **Mixed-tower certificate check**
+Build (H\subset G_{2^a3^b}). Compute Karp max-cycle pressure:
+[
+\inf_{\lambda\ge0}(P_H(\lambda)-\lambda\varepsilon).
+]
+If negative, descent certificate.
+
+6. **Lift check**
+Does the trap persist from (3^r) to (3^{r+1}), and from (2^a) to (2^{a+1})?
+If no, finite artifact.
+
+Only windows surviving all six deserve attention.

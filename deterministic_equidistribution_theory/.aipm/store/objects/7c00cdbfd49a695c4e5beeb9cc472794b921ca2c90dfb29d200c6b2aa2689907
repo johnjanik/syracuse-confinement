@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes && git push origin main 2>&1 | tail -3; echo \"=== mynotes done ===\"; cd /home/john/mynotes/collatz && git push origin main 2>&1 | tail -3"}

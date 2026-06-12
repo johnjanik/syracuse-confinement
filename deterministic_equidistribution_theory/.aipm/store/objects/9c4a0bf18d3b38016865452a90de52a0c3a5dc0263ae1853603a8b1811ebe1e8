@@ -1,0 +1,1 @@
+Compose a short README.md on vhires_phase.c taking compile-time overrides (-DND -DNT -DP -DDLO -DDHI -DOUTBASE), and the phase diagram python script so that I can generate new zoomed in areas. I'd like to see if there is any structure in the candidate region.

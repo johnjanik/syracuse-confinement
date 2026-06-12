@@ -125,7 +125,11 @@ but take a different form.
 \section{The obstacle that fixes the shape of the object}
 
 A single odd integer $x_0$ produces one deterministic valuation word
-$w(x_0)=(b_0,b_1,\dots)$, $b_i=v_2(3x_i+1)\ge1$, with $x_{i+1}=S(x_i)$. The
+$w(x_0)=(b_0,b_1,\dots)$, $b_i=v_2(3x_i+1)\ge1$, with $x_{i+1}=S(x_i)$. (For
+background on the $3x+1$ problem and its stochastic models see the survey and
+collection of Lagarias~\cite{lagarias1985,lagarias2010} and the annealed
+analyses of Sinai, Kontorovich--Lagarias, and
+Tao~\cite{sinai2003,kontorovichlagarias,tao2022}.) The
 annealed law is the pushforward of Haar measure on $\Z_2$ under
 $x\mapsto v_2(3x+1)$, i.e.\ $\Pr(b)=2^{-b}$. ``The orbit obeys the annealed law''
 asserts that the one prescribed word $w(x_0)$ equidistributes for the
@@ -149,11 +153,13 @@ W_n(x;\chi,s)=\frac1n\sum_{i=0}^{n-1}\chi(x_i\bmod Q)\,2^{\,s\Delta_{b_i}},
 \]
 The family $\{W_n(x;\chi,s)\}$ fibered over the finite levels is the
 \emph{deterministic defect cocycle} $\Dcoll$. At $s=0$ it is the residue Weyl
-sum, so $x_i\bmod Q$ equidistributes iff $W_n(x;\chi,0)\to0$ for all $\chi\ne1$.
+sum~\cite{weyl1916}, so $x_i\bmod Q$ equidistributes iff $W_n(x;\chi,0)\to0$ for all $\chi\ne1$.
 At the trivial character the ensemble average reproduces the annealed pressure
 $M(s)=\sum_{b\ge1}2^{-b}2^{s\Delta_b}=3^s/(2^{1+s}-1)$ and its Cram\'er root
-$M(1)=1$ with tilted law $p^{(1)}_b=3\cdot4^{-b}$. Thus $\Dcoll$ is the quenched
-lift of the thermodynamic formalism.
+$M(1)=1$ with tilted law $p^{(1)}_b=3\cdot4^{-b}$
+(exponential tilting in the sense of~\cite{cramer1938,dembozeitouni}; for these
+quantities in the Collatz setting see~\cite{kontorovichlagarias,tao2022}). Thus $\Dcoll$ is the quenched
+lift of the thermodynamic formalism~\cite{ruelle2004,baladi2000}.
 
 At finite level the intended content is, informally, an equivalence between
 equidistribution failure, an approximate coboundary along the orbit, and a
@@ -191,7 +197,7 @@ non-coboundary finite spectral shadows. If, in addition, every bounded-deficit o
 large-deviation failure of the annealed law produces such a shadow---the keystone
 inverse arrow---then the relevant quenched obstruction is excluded. The keystone
 is open and is morally a normality/disjointness statement for the $2$-adic word,
-of Sarnak-hard flavour.
+of Sarnak-hard flavour~\cite{sarnak2011}.
 \end{remark}
 
 \paragraph{The two leaks.} Closing the principle quantitatively requires (i) a
@@ -348,7 +354,7 @@ this section the operator is the synchronized residue--parity operator of
 $(a,\tau)\xrightarrow{b}(S_b(a),\tau+b)$ with $S_b(a)=(3a+1)2^{-b}$, source twist,
 and \emph{arbitrary} positive summable branch weights $w_b>0$ (in particular
 $w_b=2^{-b}2^{s\Delta_b}$ for any tilt $s$). We allow the twisted-conjugacy
-(Wielandt) form with a global phase.
+(Wielandt~\cite{wielandt1950}) form with a global phase.
 
 \begin{theorem}[Coboundary classification]\label{thm:class}
 Let $\chi$ be a character of $\UQ$, and suppose there exist $\lambda\in S^1$ and
@@ -417,7 +423,8 @@ particular $\kappa^{\mathrm{par}}_Q(s)>0$ for every fixed $Q=3^r$ and $s$.
 \begin{proof}
 $\lvert\Lcal_{\chi}\rvert=\Lcal_{\mathbf1}$ entrywise (the twist has unit
 modulus), and $\Lcal_{\mathbf1}$ is irreducible (\cref{lem:irred}). By Wielandt's
-equality theorem, $\rho(\Lcal_\chi)=\rho(\Lcal_{\mathbf1})$ would force
+equality theorem~\cite{wielandt1950} (see also
+\cite[Theorem~8.4.5]{hornjohnson}), $\rho(\Lcal_\chi)=\rho(\Lcal_{\mathbf1})$ would force
 $\Lcal_\chi=e^{i\varphi}D\,\Lcal_{\mathbf1}D^{-1}$ with $D$ diagonal
 unimodular---which is precisely the identity hypothesised in \cref{thm:class}
 with $\lambda=e^{-i\varphi}$. By \cref{thm:class} this requires
@@ -809,7 +816,7 @@ also exposes the difficulty: the least-damped primitive mode at conductor $3^c$
 has $\theta=\pi/3^{c-1}$, hence one-step damping $\asymp9^{-c}$; a proof of a
 \emph{uniform} gap cannot ride a single mode and must use the spreading of
 Fourier mass under $\eta\mapsto\eta\circ A$ (whose coefficients are Jacobi-type
-sums with square-root cancellation). This is the analytic heart that remains.
+sums with square-root cancellation~\cite{bew1998}). This is the analytic heart that remains.
 
 \subsection*{Near-peripheral spectrum forces a near-coboundary}
 
@@ -1052,7 +1059,7 @@ $K[t_1,t_0]=c_{t_0,\epsilon}\,J(k-t_1,t_0)$, where
 \[
 J(u,v)=\frac1\phi\sum_{a\in U_{3^c}}e_u(a)\,e_v(3a+1)
 \]
-are $p$-adic Jacobi sums. Two structural facts, computed exactly for
+are $p$-adic Jacobi sums~\cite{bew1998,iwanieckowalski}. Two structural facts, computed exactly for
 $c\le7$: \emph{(i)} conductor lowering makes each column of $J$ supported on a
 fixed fraction $2/9$ of the frequencies, with exact resonance columns
 ($\lvert J\rvert=1$) at low conductor; \emph{(ii)} the entrywise bound is
@@ -1112,6 +1119,8 @@ $d=n+v_3(C_w-C_{w'})\le c-2$. Then
 \]
 \end{lemma}
 \begin{proof}
+The argument is a Postnikov-type expansion of the character along principal
+units~\cite{postnikov1955} (cf.\ \cite[\S12.3]{iwanieckowalski}).
 Write $L=(\log R)'=R'/R$, so $v_3(L(a))=d$ with unit part
 $\mu(a)=3^{-d}L(a)$, and $v_3(L')\ge d+n>d$. Split $a=a_0+3^{c-d-1}t$ with
 $t\in\Z/3^{d+1}$ (every lift of a unit is a unit). Taylor expansion of
@@ -1348,7 +1357,8 @@ coset base. Then (under the window $2(c-m)+d+1\ge c$)
 3^m\,\chi(R(\alpha)), & d\ge m .
 \end{cases}
 \]
-There is no intermediate boundary behaviour: at $d=m-1$ the Postnikov linear
+There is no intermediate boundary behaviour: at $d=m-1$ the
+Postnikov~\cite{postnikov1955} linear
 coefficient $\lambda_1=3^{-(c-1)}\bigl[\log R(\alpha+3^{c-m})-\log
 R(\alpha)\bigr]$ is a unit by definition of $d$, and the full-period mod-$3$
 sum vanishes. Verified exhaustively: at $(c,m,n)=(8,4,4)$ and $(7,3,3)$, all
@@ -1493,7 +1503,7 @@ p_s(w)\,p_s(w')\,\overline{\Psi_w(a)}\,\Psi_{w'}(a').
 \]
 The common-endpoint constraint selects word pairs only---no source coset
 appears---so the incomplete-coset obstruction of \cref{prop:endpoint} is
-structurally absent in this regime, and the Schur test becomes available.
+structurally absent in this regime, and the Schur test~\cite{schur1911} becomes available.
 \end{proposition}
 
 \paragraph{Row-sum audit (Schur sharpness).} For the unweighted Schur bound
@@ -1597,7 +1607,8 @@ B_i\equiv B_i'\pmod{2\cdot3^{\,c-3-i}},\qquad 1\le i\le c-3.
 \end{theorem}
 
 \begin{proof}
-By lifting-the-exponent, $v_3(2^t-1)=0$ for $t$ odd and $=1+v_3(t)$ for $t$
+By lifting-the-exponent (a standard $p$-adic valuation identity; see,
+e.g.,~\cite{gouvea2020}), $v_3(2^t-1)=0$ for $t$ odd and $=1+v_3(t)$ for $t$
 even; since the multiplicative order of $2$ modulo $3^k$ is $2\cdot3^{k-1}$,
 $v_3(D_i)\ge k\iff t_i\equiv0\pmod{2\cdot3^{k-1}}$. Forward: if the cascade
 holds at $i$ and $i+1$, then
@@ -2170,7 +2181,7 @@ observed.
 On a Postnikov cell $a=a_0+3^qt$ where the linear term is invisible
 ($q+v_3(\mathcal L)\ge c$) and the quadratic term is at scale
 $2q+v_3(\mathcal L')=c-\ell'$ with unit coefficient, the cell sum is an
-exact quadratic Gauss sum:
+exact quadratic Gauss sum~\cite{bew1998,iwanieckowalski}:
 $\bigl|\sum_{t\bmod3^{\ell}}e_{3^{\ell}}(Bt^2+At)\bigr|
 \in\{0,3^{\ell/2}\}$ for $3\nmid B$---the square-root saving, with
 constant $1$. By \cref{lem:quadval} the quadratic scale is \emph{known}
@@ -2275,7 +2286,8 @@ $3$), the second convergent.
 
 \begin{lemma}[Hensel profile; simple roots only]\label{lem:hensel}
 On the deep region $\{a:\nu(a)\ge d+2\tilde w+1\}$, every point lies in
-the basin of a \emph{unique simple} $3$-adic root $\alpha$ of $N$ (since
+the basin of a \emph{unique simple} $3$-adic root $\alpha$ of $N$, by
+Hensel's lemma~\cite{gouvea2020} (since
 $v_3(N'(a))=w_2<\infty$ there, clustering is impossible), and the
 valuation profile is exactly linear:
 \[
@@ -2488,7 +2500,8 @@ fallback, the fixed-modulus certificates.
 
 \begin{remark}[Relation to the prior certificate program]
 A complementary, finite-$Q$ route to the H23a gap was developed in an earlier
-phase of this project (the stabilized-residue-extinction manuscript): explicit
+phase of this project (the stabilized-residue-extinction
+manuscript~\cite{srce}): explicit
 per-$Q$ Wielandt certificates $(\mathcal C_Q,\Gamma_Q,\alpha_Q,\Delta_Q,
 \eta_Q,M_Q,L_0(Q))$ at mixed moduli $Q=2^r3^s$, organised into four modules
 (cocycle perturbation, stabilisation, Wielandt accessibility, non-coboundary
@@ -2795,13 +2808,15 @@ group. The numerical decay of $\gamma_c$ beyond a fixed conductor is consistent
 with both mechanisms acting.
 \end{remark}
 
-\paragraph{Block-cancellation alternative.} The earlier Doeblin route remains
+\paragraph{Block-cancellation alternative.} The earlier Doeblin route
+(minorization in the sense of~\cite{meyntweedie}) remains
 viable and is complementary: exhibit from every state a block family of
 untwisted mass $\ge\alpha$ whose endpoints contain a full coset of a subgroup
 $H$ with $\chi|_H\ne1$ (exact cancellation $\sum_{u\in H}\chi(uh)=0$). For the
 killed strip, build the families with identical valuation multisets so the
 height weights match exactly, or prove bounded distortion
-$w_s(w_1)/w_s(w_2)\in[C^{-1},C]$ with QSD bulk retention $O(e^{-cL})$.
+$w_s(w_1)/w_s(w_2)\in[C^{-1},C]$ with QSD bulk retention $O(e^{-cL})$
+(quasi-stationary distributions of the killed operator; see~\cite{cmsm2013}).
 
 \section{The keystone: bad orbits cast finite non-coboundary shadows}
 \label{sec:keystone}
@@ -3050,7 +3065,7 @@ $\sum(\phi-\varepsilon)\ge0$: $\sum g(b_n)\le-\delta M+
 $\log_2x_{N+M}=\log_2x_N+\sum g(b_n)+\sum\log_2(1+\frac1{3x_n})$ and the
 no-descent assumption $x_n\ge x_N$, the right side drops below
 $\log_2x_N$---contradiction. The duality is the standard max-plus
-(Karp) characterization.
+(Karp~\cite{karp1978}) characterization of the maximum cycle mean.
 \end{proof}
 
 \begin{proposition}[The $3$-adic-only formulation of C2 is false]
@@ -3062,7 +3077,8 @@ phase) is coherent modulo $3^R$ for every $R$, biased, descent-free, and
 admits no certificate at any level
 ($P_H(\lambda)-\lambda\varepsilon\equiv\log_23-1$); it is eliminated
 \emph{only} by the $2$-adic tower: $b_n\equiv1$ forever forces
-$x\equiv-1\bmod2^k$ for all $k$, i.e.\ $x=-1$ (the famous $-1$ cycle).
+$x\equiv-1\bmod2^k$ for all $k$, i.e.\ $x=-1$ (the famous $-1$
+cycle~\cite{lagarias1985}).
 \emph{(ii)} the critical $\{1,2\}$-mixture trap (letter mean $\log_23$,
 $\Pr[b{=}1]=2-\log_23$) is $2$-adically frequency-feasible yet
 uncertified at $r=2$ (margin $+0.056$). \emph{(iii)} of the observed
@@ -3083,7 +3099,7 @@ $2$-adic constraints are not optional: by \cref{prop:notthreeadic} they
 supply the negative weight that the $3$-adic graph alone cannot see.
 This is where the present program rejoins its predecessor: the
 mixed-modulus $(2^r3^s)$ certificates of the stabilized-residue
-program are exactly finite verifications in this joint tower.
+program~\cite{srce} are exactly finite verifications in this joint tower.
 \end{openproblem}
 
 \noindent The final route, corrected once more:
@@ -3112,7 +3128,8 @@ present theorem stack be \emph{mean-critical}
 $(2,3)$-adically coherent, and certificate-free at every level of the
 mixed tower. The simplest symbolic models with these properties are
 balanced low-letter words over $\{1,2\}$ with
-$\Pr[b{=}1]=2-\log_23\approx0.415$ (Sturmian/Beatty type, slope
+$\Pr[b{=}1]=2-\log_23\approx0.415$ (Sturmian/Beatty
+type~\cite{morsehedlund1940,lothaire2002}, slope
 $2-\log_23$)---the critical analogues of the all-ones word, whose
 $2$-adic point is $x=-1$. Direct realizability tests support the ghost
 expectation: for twelve intercepts $\theta$ and prefixes of length
@@ -3123,7 +3140,7 @@ stabilizing---the signature of a mixed-adic ghost, not a positive
 integer. For \emph{periodic} balanced traps the ghost exclusion is
 precisely the classical cycle problem, where the archimedean negative
 weight is supplied by linear forms in logarithms
-($|2^B-3^p|\gg2^B/B^{C}$): joint-tower rigidity restricted to periodic
+($|2^B-3^p|\gg2^B/B^{C}$, \cite{baker1975,rhin1987}): joint-tower rigidity restricted to periodic
 traps is thus partially within reach of existing transcendence
 technology, and the genuinely new content of \cref{op:ctwo} is its
 aperiodic, single-orbit analogue.
@@ -3144,7 +3161,7 @@ sequence space, with adelically coherent residue marginals, such that
 \]
 Consequently $\Pr_\mu[b{=}1]\ge2-\log_23\approx0.415$, and if moreover
 $\E_\mu[b]=\log_23$ and $\mu$ is ergodic, the discrepancy cocycle
-$S_j=j\log_23-B_j$ is recurrent $\mu$-a.e.\ (Atkinson). Thus
+$S_j=j\log_23-B_j$ is recurrent $\mu$-a.e.\ (Atkinson~\cite{atkinson1976}). Thus
 \cref{op:ctwo} is equivalent to: \emph{no such calibrated measure is
 realized by a positive integer orbit}.
 \end{lemma}
@@ -3153,7 +3170,7 @@ realized by a positive integer orbit}.
 At each level $L=2^a3^b$, no certificate means
 $\inf_{\lambda\ge0}\bigl(P_{H_L}(\lambda)-\lambda\varepsilon\bigr)\ge0$.
 The cycle-mean vectors $(\overline g,\overline\phi)$ of the trap span a
-compact convex polytope $C_L$, and by Sion's minimax,
+compact convex polytope $C_L$, and by Sion's minimax theorem~\cite{sion1958},
 \[
 \inf_{\lambda\ge0}\,\max_{\mu\in C_L}
 \bigl[\langle\mu,g\rangle+\lambda(\langle\mu,\phi\rangle-\varepsilon)\bigr]
@@ -3167,29 +3184,31 @@ letter marginals; a diagonal weak-$*$ limit along the tower produces a
 consistent projective family, i.e.\ a shift-invariant measure on the
 inverse limit with the same inequalities. The letter bound follows from
 $\E[b]\ge2-\Pr[b{=}1]$; recurrence at exact calibration is Atkinson's
-theorem for zero-mean ergodic cocycles.
+theorem~\cite{atkinson1976} for zero-mean ergodic cocycles.
 \end{proof}
 
 \begin{theorem}[Periodic exclusion via linear forms in logarithms]
 \label{thm:bakercycle}
 There are effective constants $C,\tau$ (one may take $\tau=13.3$, by
-Rhin's bound $|B\ln2-p\ln3|\ge c\,B^{-\tau}$) such that every
+Rhin's bound~\cite{rhin1987} $|B\ln2-p\ln3|\ge c\,B^{-\tau}$) such that every
 nontrivial positive integer cycle of period $p$ satisfies
 \[
 x_{\min}\le C\,p^{\,\tau+1}.
 \]
-Hence, given the verified range $x_{\min}>2^{71}$, every nontrivial
+Hence, given the verified range $x_{\min}>2^{71}$~\cite{barina2021}, every nontrivial
 cycle has $p>(2^{71}/C)^{1/(\tau+1)}$; and for every fixed period range
 the balanced (calibrated) periodic traps are effectively excluded: the
-linear form in logarithms \emph{is} the max-plus descent certificate for
-periodic traps.
+linear form in logarithms~\cite{baker1975} \emph{is} the max-plus descent certificate for
+periodic traps. (Cycle bounds of this shape go back to
+Steiner~\cite{steiner1977}, with the sharpest published forms in
+Eliahou~\cite{eliahou1993} and Simons--de~Weger~\cite{simonsdeweger2005}.)
 \end{theorem}
 
 \begin{proof}
 For a cycle, $2^B=3^p\prod_i(1+\tfrac1{3x_i})$, so
 $\theta:=B-p\log_23=\log_2\prod_i(1+\tfrac1{3x_i})\in
 \bigl(0,\,p/(3x_{\min}\ln2)\bigr]$; positivity and integrality pin
-$B=\lceil p\log_23\rceil$, so $B\le2p$. Rhin's effective bound gives
+$B=\lceil p\log_23\rceil$, so $B\le2p$. Rhin's effective bound~\cite{rhin1987} gives
 $\theta\ge c'B^{-\tau}\ge c''p^{-\tau}$. Combining,
 $c''p^{-\tau}\le p/(3x_{\min}\ln2)$, i.e.\
 $x_{\min}\le C p^{\tau+1}$.
@@ -3212,7 +3231,8 @@ words}
 The aperiodic analogue can now be carried out, and it closes more
 strongly than anticipated: the contraction bookkeeping of the
 repeated-block heuristic is unnecessary, because $2$-adic realizability
-gives \emph{exact} rigidity. Recall the classical coding: for a
+gives \emph{exact} rigidity. Recall the classical
+coding~\cite{terras1976,everett1977,bernsteinlagarias}: for a
 valuation block $u=(b_0,\dots,b_{p-1})$ with sum $B_u$, the set of odd
 $x$ whose first $p$ letters equal $u$ is a \emph{single residue class
 modulo $2^{B_u+1}$} (machine-checked: $84{,}471$ instances, no
@@ -3238,7 +3258,7 @@ No aperiodic valuation word with bounded discrepancy
 $\sup_N|N\log_23-B_N|\le D$ and subexponential factor complexity
 ($P(p)\le2^{\,p-2D-c_0}$ for large $p$) is realizable by a positive
 Syracuse orbit. In particular \emph{no Sturmian word of any slope}
-($D<1$, $P(p)=p+1$) is realizable: the critical ghost class of
+($D<1$, $P(p)=p+1$; \cite{morsehedlund1940,lothaire2002}) is realizable: the critical ghost class of
 \cref{rem:profile} is excluded unconditionally---no linear-forms input
 is needed for the qualitative statement, since the manufactured cycle's
 word is periodic, contradicting aperiodicity.
@@ -3249,7 +3269,8 @@ A realization from $x_0$ is confined to the band
 $[x_02^{-D-1},x_02^{D+1}]$ for $M\le x_0$ steps (the
 $\log_2(1+\tfrac1{3x})$ corrections total $o(1)$). Take
 $p=\lceil\log_2x_0\rceil+2D+3$ and $M=p+P(p)+1\le x_0$ (subexponential
-complexity; small $x_0$ is covered by the verified convergence range).
+complexity; small $x_0$ is covered by the verified convergence
+range~\cite{barina2021}).
 \cref{thm:repetition} produces a cycle, whose word is eventually
 periodic---contradiction.
 \end{proof}
@@ -3293,7 +3314,8 @@ words have near-full exponential complexity inside every banded window
 banded windows; for these the $S$-unit/subspace frontier is the next
 tool. We are not aware of prior statements of
 \cref{thm:repetition,thm:tradeoff,cor:sturmianexcl}, though their
-ingredients ($2$-adic coding; cycle bounds via linear forms) are
+ingredients ($2$-adic coding~\cite{terras1976,everett1977,bernsteinlagarias};
+cycle bounds via linear forms~\cite{steiner1977,eliahou1993,simonsdeweger2005}) are
 classical.
 \end{corollary}
 
@@ -3382,7 +3404,8 @@ routes of which ``shadow deviation forces descent'' is the most
 realistic.
 
 \paragraph{Lean formalization.} The elementary core of the repetition
-rigidity argument is machine-verified in Lean~4 (Mathlib v4.27.0):
+rigidity argument is machine-verified in
+Lean~4~\cite{demoura2021} (Mathlib~\cite{mathlib2020} v4.27.0):
 \texttt{CollatzLean/FiniteSpectralShadows.lean} proves
 \texttt{word\_congr} (the $2$-adic coding lemma),
 \texttt{repetition\_rigidity}, and \texttt{orbit\_periodic\_of\_eq}
@@ -3393,9 +3416,145 @@ of the formal program. Full provenance for every computation and proof
 step in this paper is recorded in the project's AIPM (\texttt{ailog})
 trail.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
+
+\bibitem{atkinson1976} G.~Atkinson, \emph{Recurrence of co-cycles and random
+walks}, J. London Math. Soc. (2) \textbf{13} (1976), 486--488.
+
+\bibitem{baker1975} A.~Baker, \emph{Transcendental Number Theory}, Cambridge
+University Press, Cambridge, 1975.
+
+\bibitem{baladi2000} V.~Baladi, \emph{Positive Transfer Operators and Decay of
+Correlations}, Advanced Series in Nonlinear Dynamics \textbf{16}, World
+Scientific, Singapore, 2000.
+
+\bibitem{barina2021} D.~Barina, \emph{Convergence verification of the Collatz
+problem}, J. Supercomputing \textbf{77} (2021), 2681--2688. (The verified range
+quoted here, $x_{\min}>2^{71}$, is from the project's continuing computation.)
+
+\bibitem{bew1998} B.~C.~Berndt, R.~J.~Evans, and K.~S.~Williams, \emph{Gauss
+and Jacobi Sums}, Canadian Mathematical Society Series of Monographs and
+Advanced Texts, Wiley, New York, 1998.
+
+\bibitem{bernsteinlagarias} D.~J.~Bernstein and J.~C.~Lagarias, \emph{The
+$3x+1$ conjugacy map}, Canad. J. Math. \textbf{48} (1996), 1154--1169.
+
+\bibitem{cmsm2013} P.~Collet, S.~Mart\'inez, and J.~San~Mart\'in,
+\emph{Quasi-Stationary Distributions: Markov Chains, Diffusions and Dynamical
+Systems}, Probability and its Applications, Springer, Berlin, 2013.
+
+\bibitem{cramer1938} H.~Cram\'er, \emph{Sur un nouveau th\'eor\`eme-limite de
+la th\'eorie des probabilit\'es}, Actualit\'es Scientifiques et Industrielles
+\textbf{736} (1938), 5--23.
+
+\bibitem{demoura2021} L.~de~Moura and S.~Ullrich, \emph{The Lean 4 theorem
+prover and programming language}, in: Automated Deduction -- CADE 28, Lecture
+Notes in Computer Science \textbf{12699}, Springer, Cham, 2021, 625--635.
+
+\bibitem{dembozeitouni} A.~Dembo and O.~Zeitouni, \emph{Large Deviations
+Techniques and Applications}, 2nd ed., Applications of Mathematics
+\textbf{38}, Springer, New York, 1998.
+
+\bibitem{eliahou1993} S.~Eliahou, \emph{The $3x+1$ problem: new lower bounds
+on nontrivial cycle lengths}, Discrete Math. \textbf{118} (1993), 45--56.
+
+\bibitem{everett1977} C.~J.~Everett, \emph{Iteration of the number-theoretic
+function $f(2n)=n$, $f(2n+1)=3n+2$}, Adv. Math. \textbf{25} (1977), 42--45.
+
+\bibitem{gouvea2020} F.~Q.~Gouv\^ea, \emph{$p$-adic Numbers: An Introduction},
+3rd ed., Universitext, Springer, Cham, 2020.
+
+\bibitem{hornjohnson} R.~A.~Horn and C.~R.~Johnson, \emph{Matrix Analysis},
+2nd ed., Cambridge University Press, Cambridge, 2013.
+
+\bibitem{iwanieckowalski} H.~Iwaniec and E.~Kowalski, \emph{Analytic Number
+Theory}, American Mathematical Society Colloquium Publications \textbf{53},
+Amer. Math. Soc., Providence, RI, 2004.
+
 \bibitem{companion} J.~A.~Janik, \emph{Finite Spectral Shadows for the Collatz
-Valuation Cocycle: computational companion}, accompanying numerical report (2026).
+Valuation Cocycle: computational companion}, accompanying numerical \href{https://github.com/johnjanik/syracuse-confinement/tree/main/deterministic_equidistribution_theory}{report} (2026).
+
+\bibitem{srce} J.~A.~Janik, \emph{Stabilized residue extinction in an inverse
+arithmetic tree: critical branching, killed operators, and a deterministic
+shrinking-target reduction}, \href{https://github.com/johnjanik/syracuse-confinement/tree/main/deterministic_equidistribution_theory}{manuscript} (2026).
+
+\bibitem{karp1978} R.~M.~Karp, \emph{A characterization of the minimum cycle
+mean in a digraph}, Discrete Math. \textbf{23} (1978), 309--311.
+
+\bibitem{kontorovichlagarias} A.~V.~Kontorovich and J.~C.~Lagarias,
+\emph{Stochastic models for the $3x+1$ and $5x+1$ problems and related
+problems}, in: J.~C.~Lagarias (ed.), The Ultimate Challenge: The $3x+1$
+Problem, Amer. Math. Soc., Providence, RI, 2010, 131--188.
+
+\bibitem{lagarias1985} J.~C.~Lagarias, \emph{The $3x+1$ problem and its
+generalizations}, Amer. Math. Monthly \textbf{92} (1985), 3--23.
+
+\bibitem{lagarias2010} J.~C.~Lagarias (ed.), \emph{The Ultimate Challenge: The
+$3x+1$ Problem}, Amer. Math. Soc., Providence, RI, 2010.
+
+\bibitem{lothaire2002} M.~Lothaire, \emph{Algebraic Combinatorics on Words},
+Encyclopedia of Mathematics and its Applications \textbf{90}, Cambridge
+University Press, Cambridge, 2002.
+
+\bibitem{mathlib2020} The mathlib Community, \emph{The Lean mathematical
+library}, in: Proceedings of the 9th ACM SIGPLAN International Conference on
+Certified Programs and Proofs (CPP 2020), ACM, New York, 2020, 367--381.
+
+\bibitem{meyntweedie} S.~Meyn and R.~L.~Tweedie, \emph{Markov Chains and
+Stochastic Stability}, 2nd ed., Cambridge University Press, Cambridge, 2009.
+
+\bibitem{morsehedlund1940} M.~Morse and G.~A.~Hedlund, \emph{Symbolic dynamics
+II. Sturmian trajectories}, Amer. J. Math. \textbf{62} (1940), 1--42.
+
+\bibitem{postnikov1955} A.~G.~Postnikov, \emph{On the sum of characters with
+respect to a modulus equal to a power of a prime number}, Izv. Akad. Nauk SSSR
+Ser. Mat. \textbf{19} (1955), 11--16 (Russian).
+
+\bibitem{rhin1987} G.~Rhin, \emph{Approximants de Pad\'e et mesures effectives
+d'irrationalit\'e}, in: S\'eminaire de Th\'eorie des Nombres, Paris 1985--86,
+Progress in Mathematics \textbf{71}, Birkh\"auser Boston, Boston, MA, 1987,
+155--164.
+
+\bibitem{ruelle2004} D.~Ruelle, \emph{Thermodynamic Formalism: The
+Mathematical Structures of Equilibrium Statistical Mechanics}, 2nd ed.,
+Cambridge Mathematical Library, Cambridge University Press, Cambridge, 2004.
+
+\bibitem{sarnak2011} P.~Sarnak, \emph{Three lectures on the M\"obius function,
+randomness and dynamics}, lecture notes, Institute for Advanced Study,
+Princeton, 2011.
+
+\bibitem{schur1911} I.~Schur, \emph{Bemerkungen zur Theorie der
+beschr\"ankten Bilinearformen mit unendlich vielen Ver\"anderlichen}, J. Reine
+Angew. Math. \textbf{140} (1911), 1--28.
+
+\bibitem{simonsdeweger2005} J.~Simons and B.~de~Weger, \emph{Theoretical and
+computational bounds for $m$-cycles of the $3n+1$-problem}, Acta Arith.
+\textbf{117} (2005), 51--70.
+
+\bibitem{sinai2003} Ya.~G.~Sinai, \emph{Statistical $(3x+1)$ problem}, Comm.
+Pure Appl. Math. \textbf{56} (2003), 1016--1028.
+
+\bibitem{sion1958} M.~Sion, \emph{On general minimax theorems}, Pacific J.
+Math. \textbf{8} (1958), 171--176.
+
+\bibitem{steiner1977} R.~P.~Steiner, \emph{A theorem on the Syracuse problem},
+in: Proceedings of the Seventh Manitoba Conference on Numerical Mathematics
+and Computing (Winnipeg, 1977), Congressus Numerantium XX, Utilitas Math.,
+Winnipeg, 1978, 553--559.
+
+\bibitem{tao2022} T.~Tao, \emph{Almost all orbits of the Collatz map attain
+almost bounded values}, Forum Math. Pi \textbf{10} (2022), Paper No. e12,
+56~pp.
+
+\bibitem{terras1976} R.~Terras, \emph{A stopping time problem on the positive
+integers}, Acta Arith. \textbf{30} (1976), 241--252.
+
+\bibitem{weyl1916} H.~Weyl, \emph{\"Uber die Gleichverteilung von Zahlen mod.
+Eins}, Math. Ann. \textbf{77} (1916), 313--352.
+
+\bibitem{wielandt1950} H.~Wielandt, \emph{Unzerlegbare, nicht negative
+Matrizen}, Math. Z. \textbf{52} (1950), 642--648.
+
 \end{thebibliography}
 
 \end{document}

@@ -1,0 +1,1 @@
+{"command":"nproc; gcc --version | head -1","description":"Check core count and gcc"}

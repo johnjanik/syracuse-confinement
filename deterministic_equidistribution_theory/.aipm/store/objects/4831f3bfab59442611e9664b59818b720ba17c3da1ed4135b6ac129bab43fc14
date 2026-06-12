@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier/catalog && grep -n '\\\\section\\|\\\\subsection' ghost_catalog.tex | head -40 && wc -l ghost_catalog.tex","description":"Survey ghost catalog structure"}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/collatz/docs && for f in master_dependencies pointwise_valuation sparse_target_inverse_theorem stabilized_residue_extinction; do echo \"════ $f abstract ════\"; sed -n '/\\\\begin{abstract}/,/\\\\end{abstract}/p' $f.tex | head -28; done 2>/dev/null | head -110","description":"Read abstracts of the four docs"}

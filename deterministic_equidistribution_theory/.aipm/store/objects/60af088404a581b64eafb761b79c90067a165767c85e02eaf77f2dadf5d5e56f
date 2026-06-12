@@ -1,0 +1,1 @@
+{"command":"grep -i \"undefined references\\|undefined citation\" /tmp/fss_pass2.log; grep -c \"Overfull\" /tmp/fss_pass2.log; pdflatex -interaction=nonstopmode finite_spectral_shadows.tex > /dev/null 2>&1; echo \"final pass done\"","description":"Final pass; confirm no undefined references","timeout":180000}

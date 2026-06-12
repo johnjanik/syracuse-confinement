@@ -1,0 +1,1 @@
+{"command":"grep -n -i \"arnoldi\\|GMP\\|ARPACK\\|main paper\\|companion\\|theory paper\\|\\\\\\\\end{document}\" finite_spectral_shadows_computational.tex | head -20; wc -l finite_spectral_shadows_computational.tex","description":"Survey companion's tool mentions and structure"}

@@ -1,0 +1,9 @@
+I've been receiving comments and other Collatz investigators are sharing their own work with me now. Here's one comments and what I would like us to investigate: "My remaining concern is not so much whether the obstruction has been narrowed, but whether the framework itself is a faithful compression of the full Collatz dynamics.
+
+Tao’s work starts from the behavior of all integers and progressively constrains what is possible. Here the flow feels somewhat reversed: the surviving counterexample profile is being narrowed more and more.
+
+So the question I keep coming back to is:
+
+How do we know that the finite-shadow language captures all arithmetic mechanisms available to Collatz, rather than only the mechanisms available to the surviving candidates inside the shadow framework?
+
+If that faithfulness can be established, the program becomes substantially stronger."

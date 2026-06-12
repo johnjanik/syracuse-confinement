@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/collatz/docs && for f in master_dependencies pointwise_valuation sparse_target_inverse_theorem stabilized_residue_extinction; do echo \"=== $f ===\"; grep -E '\\\\(section|subsection)\\{|\\\\title\\{' $f.tex | head -16; done","description":"Skim structure of the four old docs"}

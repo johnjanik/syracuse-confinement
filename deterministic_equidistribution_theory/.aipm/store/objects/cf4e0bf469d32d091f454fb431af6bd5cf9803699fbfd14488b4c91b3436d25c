@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"\nShell cwd was reset to /home/john/mynotes/deterministic_equidistribution_theory","stdout":"D=3.84 rate(0)=1.393\nD=4.92 rate(0)=1.432\nD=6.00 rate(0)=1.462\nwrote viz/fig5_phase_diagram_hires.png"}

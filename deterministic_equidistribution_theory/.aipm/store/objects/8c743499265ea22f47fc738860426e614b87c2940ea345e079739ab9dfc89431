@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && timeout 540 python3 search/faithfulness.py","description":"Run fixed faithfulness suite","timeout":600000}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && ls -la results/kink15_lnlam.bin results/cross_lnlam.bin results/interior_lnlam.bin results/window2023_lnlam.bin 2>&1; grep -c DONE /tmp/claude-1000/-home-john-mynotes-deterministic-equidistribution-theory/3d506146-0c9f-463a-a710-cacb38cea0a3/tasks/b358v887q.output 2>/dev/null","description":"Check engine outputs exist"}

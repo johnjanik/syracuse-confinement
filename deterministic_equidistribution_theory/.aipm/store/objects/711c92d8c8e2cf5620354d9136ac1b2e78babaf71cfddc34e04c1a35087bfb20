@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier/docs/arXiv-2603.11066v6 && grep -nE '\\\\(section|subsection)\\{' MAIN_v6_arXiv.tex | sed 's/\\\\texorpdfstring//;s/{\\\\core}//;s/{\\\\supporting}//;s/{\\\\explore}//' | head -100","description":"Extract section structure"}

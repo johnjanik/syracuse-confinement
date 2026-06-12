@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes && git remote -v; echo ---; cd /home/john/mynotes/collatz && git remote -v"}

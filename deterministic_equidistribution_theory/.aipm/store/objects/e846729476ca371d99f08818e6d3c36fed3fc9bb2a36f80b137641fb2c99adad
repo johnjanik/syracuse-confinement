@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/deterministic_equidistribution_theory/finite_spectral_shadows.tex","new_string":"J(u,v)=\\frac1\\phi\\sum_{a\\in U_{3^c}}e_u(a)\\,e_v(3a+1)\n\\]\nare $p$-adic Jacobi sums~\\cite{bew1998,iwanieckowalski}.","old_string":"J(u,v)=\\frac1\\phi\\sum_{a\\in U_{3^c}}e_u(a)\\,e_v(3a+1)\n\\]\nare $p$-adic Jacobi sums.","replace_all":false}

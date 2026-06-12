@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/candidate_image.py --seed 32817176580096093 --steps 92 --out viz/cand_ramanujan.png 2>&1 | tail -9","description":"Candidate image for Ramanujan's constant","timeout":300000}

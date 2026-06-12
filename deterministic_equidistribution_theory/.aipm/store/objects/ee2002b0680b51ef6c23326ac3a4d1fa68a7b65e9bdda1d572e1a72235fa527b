@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/phase_diagram_zoom.py 2>&1 | tail -4","description":"Re-render zoom figure","timeout":600000}

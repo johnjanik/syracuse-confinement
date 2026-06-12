@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/cic_lte.py","description":"Run CIC/LTE verification suite","timeout":900000}

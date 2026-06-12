@@ -1,0 +1,1 @@
+{"command":"git status --short -- . | head -30; echo ---; git ls-files . | grep finite_spectral | head","description":"Check git status of this directory and which files are tracked"}

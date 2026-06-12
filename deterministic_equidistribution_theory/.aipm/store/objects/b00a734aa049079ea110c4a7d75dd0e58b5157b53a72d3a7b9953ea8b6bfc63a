@@ -1,0 +1,1 @@
+{"command":"ls -la /home/john/mynotes/shadow_frontier/docs/arXiv-2603.11066v6/ && head -50 /home/john/mynotes/shadow_frontier/docs/arXiv-2603.11066v6/*.tex 2>/dev/null | head -80","description":"List manuscript contents"}

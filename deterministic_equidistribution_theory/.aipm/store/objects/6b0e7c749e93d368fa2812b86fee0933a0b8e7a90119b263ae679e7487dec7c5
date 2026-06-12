@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/phase_diagram_vhires.py","description":"Legendre transform and render 2000×1500 phase diagram","timeout":300000}

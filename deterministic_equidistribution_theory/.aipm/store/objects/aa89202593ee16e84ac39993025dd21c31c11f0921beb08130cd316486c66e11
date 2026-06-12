@@ -1,0 +1,1 @@
+{"command":"grep -m2 -n \"title\\|author\" /home/john/mynotes/deterministic_equidistribution_theory/finite_spectral_shadows_computational.tex && ls /home/john/mynotes/collatz/ 2>/dev/null | head -30","description":"Get companion title and list prior collatz project"}

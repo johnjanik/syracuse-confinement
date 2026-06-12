@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"\nShell cwd was reset to /home/john/mynotes/deterministic_equidistribution_theory","stdout":"run length == v2(x+1)-1: 20000/20000\ndepth decreases by exactly 1 per run step: 20071/20071"}

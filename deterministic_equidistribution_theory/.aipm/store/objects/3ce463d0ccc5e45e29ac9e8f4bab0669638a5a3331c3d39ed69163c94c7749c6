@@ -1,0 +1,1 @@
+{"command":"wc -l /home/john/mynotes/deterministic_equidistribution_theory/finite_spectral_shadows.tex && grep -n \"cite\\|bibliography\\|thebibliography\\|bibitem\" /home/john/mynotes/deterministic_equidistribution_theory/finite_spectral_shadows.tex | head -50","description":"Check manuscript length and existing citations"}

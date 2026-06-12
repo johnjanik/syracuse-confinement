@@ -1,0 +1,1 @@
+{"command":"until [ -f /home/john/mynotes/shadow_frontier/viz/fig7d_window2023.png ]; do sleep 3; done; cat /tmp/claude-1000/-home-john-mynotes-deterministic-equidistribution-theory/3d506146-0c9f-463a-a710-cacb38cea0a3/tasks/b8czqrukv.output 2>/dev/null | grep wrote","description":"Wait for renders to finish","run_in_background":true}

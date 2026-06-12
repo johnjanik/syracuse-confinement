@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && timeout 1500 python3 search/candidate_checklist.py 2>&1 | tail -32","description":"Run the six-step checklist batch","timeout":1560000}

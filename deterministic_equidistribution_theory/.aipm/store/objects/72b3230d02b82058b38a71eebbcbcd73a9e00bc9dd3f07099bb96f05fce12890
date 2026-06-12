@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/smooth_cascade.py","description":"Run 3-smooth cascade verification","timeout":900000}

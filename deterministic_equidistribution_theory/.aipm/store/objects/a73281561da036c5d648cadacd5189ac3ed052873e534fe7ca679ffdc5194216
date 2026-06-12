@@ -1,0 +1,1 @@
+{"command":"pdflatex -interaction=nonstopmode finite_spectral_shadows_computational.tex > /dev/null 2>&1; pdflatex -interaction=nonstopmode finite_spectral_shadows_computational.tex > /tmp/comp2.log 2>&1; echo \"exit $?\"; grep -i \"undefined\\|error\" /tmp/comp2.log | head","description":"Compile companion twice and check for errors","timeout":240000}

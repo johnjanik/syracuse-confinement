@@ -1,0 +1,1 @@
+{"command":"ls -la /home/john/mynotes/shadow_frontier/docs/ && file /home/john/mynotes/shadow_frontier/docs/arXiv-2603.11066v6* 2>/dev/null","description":"Inspect the manuscript path"}

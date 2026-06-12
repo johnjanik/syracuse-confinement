@@ -1,0 +1,1 @@
+{"command":"sed -n 31,36p /home/john/mynotes/collatz/docs/stabilized_residue_extinction.tex; sed -n 35,40p /home/john/mynotes/deterministic_equidistribution_theory/finite_spectral_shadows_computational.tex","description":"Get full titles of SRCE manuscript and companion"}

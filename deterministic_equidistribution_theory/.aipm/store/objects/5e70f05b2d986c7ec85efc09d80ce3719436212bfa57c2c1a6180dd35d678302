@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"\nShell cwd was reset to /home/john/mynotes/deterministic_equidistribution_theory","stdout":"letter law {1: 0.5669972982738187, 2: 0.35702280222869387, 4: 0.07597989949748743} (achieved bias 0.214)\n{\n\"ghost\": 120,\n\"cert\": 0,\n\"alive\": 0\n}\ncandidates tested=120, ghosts=120, certified=0, alive=0"}

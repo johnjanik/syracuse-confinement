@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && timeout 900 python3 search/message_champions.py","description":"Hunt for long-surviving messages","timeout":960000}

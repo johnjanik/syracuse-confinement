@@ -1,0 +1,1 @@
+The NW=48 test on window [2.0,2.3] should be done: render results/window2023w48_lnlam with render_window.py (elo 0.35 ehi 0.45, out viz/fig7e_window2023_w48.png), compare boundary corner location at D~2.10 vs the NW=24 run to adjudicate artifact-vs-real, then report all structure findings, commit/push/ailog everything (figs 7a-e, render_window.py, theta npz files).

@@ -1,0 +1,1 @@
+{"command":"grep -m5 -n \"stabilized\" /home/john/mynotes/collatz/README.md; ls /home/john/mynotes/collatz/saved_output 2>/dev/null | head; grep -rln \"Stabilized\\|stabilized\" /home/john/mynotes/collatz/*.tex /home/john/mynotes/collatz/docs/*.tex 2>/dev/null | head","description":"Find SRCE manuscript title in prior project"}

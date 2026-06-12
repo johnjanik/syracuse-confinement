@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && timeout 540 python3 search/faithfulness.py 2>&1 | tail -10","description":"Re-run suite with corrected F5","timeout":600000}

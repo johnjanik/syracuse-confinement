@@ -1,0 +1,1 @@
+{"command":"grep -n \"Conjecture\\|Hypothesis\" /home/john/mynotes/shadow_frontier/docs/arXiv-2603.11066v6/MAIN_v6_arXiv.tex | head -30"}

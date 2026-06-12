@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier\nsed -i \"s/ax.scatter(\\[0.9\\],\\[0.45\\],marker='s',s=70,color='royalblue',zorder5 if False else 5)/ax.scatter([0.9],[0.45],marker='s',s=70,color='royalblue',zorder=5)/\" search/phase_diagram.py\ntimeout 590 python3 search/phase_diagram.py 2>&1 | tail -4"}

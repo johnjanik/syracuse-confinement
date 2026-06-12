@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/candidate_image.py --seed 687871 --steps 55 --out viz/cand_687871.png 2>&1 | tail -22 && python3 search/candidate_image.py --pilot 0 --out viz/cand_pilot000.png 2>&1 | tail -14","description":"Render champion and pilot candidate images","timeout":600000}

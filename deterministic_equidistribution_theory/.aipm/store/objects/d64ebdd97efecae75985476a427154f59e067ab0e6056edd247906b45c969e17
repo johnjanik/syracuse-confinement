@@ -1,0 +1,1 @@
+{"file_path":"/home/john/mynotes/shadow_frontier/search/twoclock.py","new_string":"nat, asc, budgets = window_stats(seeds=4000, steps=2000, wlen=60)","old_string":"nat, asc, budgets = window_stats(seeds=400, steps=4000, wlen=240)","replace_all":false}

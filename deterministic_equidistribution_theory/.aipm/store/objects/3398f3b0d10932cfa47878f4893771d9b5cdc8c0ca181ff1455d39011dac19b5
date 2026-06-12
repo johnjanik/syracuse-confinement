@@ -1,0 +1,1 @@
+Check whether results/zoom_lnlam.bin exists and the background engine finished; if so run search/phase_diagram_zoom.py, inspect the figure, then commit/push/ailog the candidate-region zoom.

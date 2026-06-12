@@ -1,0 +1,1 @@
+{"command":"find /home/john/mynotes/collatz -name \"*.tex\" 2>/dev/null | head -20; head -30 /home/john/mynotes/collatz/README.md","description":"Locate tex manuscripts in prior collatz project"}

@@ -1,0 +1,1 @@
+{"interrupted":false,"isImage":false,"noOutputExpected":false,"stderr":"\nShell cwd was reset to /home/john/mynotes/deterministic_equidistribution_theory","stdout":"  eps*(3.0) = 0.4952   kink slope jump -0.0050\n  eps*(3.5) = 0.5199   kink slope jump -0.0000\n  eps*(4.0) = 0.5361   kink slope jump +0.0000\nwrote viz/fig6_candidate_region.png"}

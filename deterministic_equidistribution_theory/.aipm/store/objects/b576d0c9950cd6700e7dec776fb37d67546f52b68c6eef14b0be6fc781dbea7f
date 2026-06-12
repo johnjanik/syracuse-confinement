@@ -1,0 +1,1 @@
+{"command":"grep -m3 -n \"\\\\\\\\title\" /home/john/mynotes/collatz/docs/stabilized_residue_extinction.tex","description":"Get SRCE manuscript title"}

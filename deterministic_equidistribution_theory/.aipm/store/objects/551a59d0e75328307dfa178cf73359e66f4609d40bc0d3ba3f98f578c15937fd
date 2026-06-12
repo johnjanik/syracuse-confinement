@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/ghostclock.py","description":"Run ghost-clock verification suite","timeout":600000}

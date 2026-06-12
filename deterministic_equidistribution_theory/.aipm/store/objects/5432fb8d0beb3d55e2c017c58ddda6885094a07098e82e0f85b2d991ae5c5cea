@@ -1,0 +1,1 @@
+{"command":"grep -n \"thebibliography\\|bibitem\\|\\\\\\\\cite\" finite_spectral_shadows_computational.tex | head","description":"Check companion's bibliography state"}

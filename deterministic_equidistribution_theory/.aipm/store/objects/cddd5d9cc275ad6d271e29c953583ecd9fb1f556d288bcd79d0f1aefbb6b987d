@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier/catalog\npdflatex -interaction=nonstopmode ghost_catalog.tex >/tmp/gc.log 2>&1; pdflatex -interaction=nonstopmode ghost_catalog.tex >/tmp/gc.log 2>&1\ngrep -E \"^!\" /tmp/gc.log | head -3; pdfinfo ghost_catalog.pdf | grep Pages"}

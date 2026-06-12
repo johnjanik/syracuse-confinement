@@ -1,0 +1,1 @@
+{"command":"until [ -f /home/john/mynotes/shadow_frontier/results/window2023w48_lnlam.bin ]; do sleep 5; done; echo W48_READY","description":"Wait for omega-48 test run","run_in_background":true}

@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/candidate_checklist.py 2>/dev/null | sed -n '1,22p'","description":"Get checklist summary header","timeout":1560000}

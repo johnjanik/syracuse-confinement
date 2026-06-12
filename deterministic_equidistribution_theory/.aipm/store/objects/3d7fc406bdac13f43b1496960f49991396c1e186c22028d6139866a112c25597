@@ -1,0 +1,1 @@
+{"command":"cd /home/john/mynotes/shadow_frontier && python3 search/faithfulness.py","description":"Run faithfulness audit suite","timeout":900000}
