@@ -2841,6 +2841,77 @@ $\E_{\mathrm{geom}}[b]=2$, attained with equality only by the trivial
 cycle, where $b\equiv2$.)
 \end{proof}
 
+\begin{remark}[Calibration: the popular ``ratio'', the drift line, and a
+terminology dictionary]\label{rem:calibration}
+It is worth recording how the drift coordinate $B_N/N$ meets the
+heuristic vocabulary of the amateur and survey literature, where a
+single trajectory statistic appears under many incompatible names. The
+folklore ``average sequence'' argument (each odd step multiplies by
+$\approx3$ and the ensuing run of halvings divides by
+$\sum_{k\ge1}k2^{-k}=2$ on average, for a net factor $3/4$) is exactly
+the stationary law $\E_{\mathrm{geom}}[b]=2$ used in
+\cref{lem:drift}: a number $x_0$ is \emph{expected} to take
+$\log_2x_0/(2-\log_23)$ odd steps to reach $1$. Writing $N(x_0)$ for the
+actual odd-step count, the popular \emph{length ratio}
+$\rho(x_0):=N(x_0)\,(2-\log_23)/\log_2x_0$ is then \emph{not} an
+independent observable: with $\bar b_N:=B_N/N$ the mean letter and
+$\delta_N:=\sum_{n<N}\log_2(1+\tfrac1{3x_n})$ the \emph{same} correction
+that appears in \cref{lem:drift}, the descent identity
+$\log_2x_0=N(\bar b_N-\log_23)-\delta_N$ gives
+\[
+\rho(x_0)\;=\;\frac{2-\log_23}{\bar b_N-\log_23-\delta_N/N},
+\qquad \delta_N/N\to0 .
+\]
+Thus the ``ratio'' is just a reparametrised drift: $\rho$ is large
+\emph{precisely} when the orbit's mean drift $\bar b_N$ hovers just above
+the critical equidistribution line $\log_23$, and the recurrent amateur
+conjecture that $\rho$ is \emph{unbounded} is exactly the statement that
+record orbits drive $\bar b_N\downarrow\log_23$---i.e.\ that they
+approach, but by \cref{lem:drift} never cross, the
+deterministic-equidistribution barrier this paper localises. (Numerically
+the record-setters $27,230631,63728127,166763117679$ give
+$\rho=3.58,3.82,5.72,5.24$ against the identity values
+$3.39,3.77,5.66,5.22$, the gap being $\delta_N/N$, which decays with
+$N$.) Two cautions follow. First, these records are \emph{not}
+biased-alphabet objects: their measured binary $\{1,2\}$-bias stays
+$\lesssim0.1$, far below the alphabet-capacity ceiling
+$\varepsilon_{\mathrm{bin}}$ of the companion phase diagram---a champion
+rides the natural measure for an anomalously long time rather than
+conspiring inside a sub-alphabet. Second, the empirical ceiling of
+$\rho$ near $5.7$ is a \emph{count} ratio and must not be conflated with
+the band-magnitude capacity $2^{2D^\ast}\approx5.63$ of the narrow-band
+analysis; the per-orbit excursion $\max_N(B_N-N\log_23)$ grows without
+bound, and the numerical proximity of the two constants is a
+coincidence.
+
+The naming is genuinely balkanised; we fix the correspondences once.
+\[
+\renewcommand{\arraystretch}{1.2}
+\begin{array}{@{}lll@{}}
+\textbf{Literature term (source)} & \textbf{Object here} \\[2pt]
+\text{total stopping time }\sigma_\infty\ \text{\cite{lagarias1985,lagarias2010}}
+   & \text{steps to reach }1:\ N+B_N \\
+\text{stopping time }\sigma,\ \text{``glide''\ \cite{terras1976,roosendaal}}
+   & \text{first }N\text{ with }B_N>N\log_23\ (\text{drift }<0) \\
+\text{parity vector / encoding \cite{terras1976,everett1977}}
+   & \text{the word }(b_n)\ (=\text{$2$-adic coding \cite{bernsteinlagarias}}) \\
+\text{Syracuse / accelerated / odd map}
+   & \text{the odd orbit }(x_n) \\
+\text{``shortcut'' }T(n)=(3n+1)/2
+   & \text{one letter, aggregated over a run} \\
+\text{``drop'' / descent}
+   & \text{the letter }b_n=v_2(3x_n+1) \\
+\text{expansion / max value / ``completeness''\ \cite{roosendaal}}
+   & \text{excursion }\max_N(B_N-N\log_23) \\
+\text{length ``ratio'' / delay records \cite{roosendaal}}
+   & \rho=(2-\log_23)/(\bar b_N-\log_23)\ \text{(above)} \\
+\end{array}
+\]
+Every popular ``how long is the orbit'' record is, in these coordinates,
+a record of how closely $\bar b_N$ approaches $\log_23$ from above; the
+content of the paper is that this approach is finitely shadowed.
+\end{remark}
+
 \begin{lemma}[Letter characters are two-point shadows]\label{lem:lettershadow}
 For any character $\chi'$ modulo $3^r$, the finite-level two-point
 function
@@ -3514,6 +3585,11 @@ Ser. Mat. \textbf{19} (1955), 11--16 (Russian).
 d'irrationalit\'e}, in: S\'eminaire de Th\'eorie des Nombres, Paris 1985--86,
 Progress in Mathematics \textbf{71}, Birkh\"auser Boston, Boston, MA, 1987,
 155--164.
+
+\bibitem{roosendaal} E.~Roosendaal, \emph{On the $3x+1$ problem},
+web resource, \texttt{http://www.ericr.nl/wondrous/} (records of
+\emph{delay}, \emph{glide}, \emph{completeness} and \emph{class}; the
+de-facto source of the amateur-community terminology used below).
 
 \bibitem{ruelle2004} D.~Ruelle, \emph{Thermodynamic Formalism: The
 Mathematical Structures of Equilibrium Statistical Mechanics}, 2nd ed.,
