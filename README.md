@@ -1,3 +1,16 @@
+> # ⚠️ Repository superseded — consolidated into `collatz_lean`
+>
+> The Lean 4 formalization, C experiments, and manuscripts from this project have been
+> **merged into a single maintained repository**, to end the confusion caused by
+> multiple overlapping copies of the same files:
+>
+> ### ➡️ https://github.com/johnjanik/collatz_lean
+>
+> This repo is retained for history but is **no longer maintained**. Please use
+> **collatz_lean** for the current version of every file.
+
+---
+
 # Diophantine Confinement in Syracuse Dynamics
 
 A formal reduction of the Collatz conjecture to a Diophantine confinement problem,
