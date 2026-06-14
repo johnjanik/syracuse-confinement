@@ -1,5 +1,7 @@
 # Finite Spectral Shadows for the Collatz Valuation Cocycle
 
+Consolidated Collatz repo now at: https://github.com/johnjanik/collatz_lean
+
 A research program on the Collatz/Syracuse map via a *deterministic defect
 cocycle*: finite residue–height transfer operators, their coboundary
 structure, and the quenched shadows that bad orbits must cast. Developed
